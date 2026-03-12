@@ -3,3 +3,8 @@ node_modules/
 package-lock.json
 assets/ga_nexus_main_calendar.png
 assets/ga_nexus_main_calendar.html
+node_modules
+.env
+.env.local
+.env*.local
+public/uploads/

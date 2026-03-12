@@ -8,23 +8,22 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        navy: {
-          900: "#020617",
-          800: "#020817",
-        },
-        electric: {
-          500: "#22d3ee",
-          600: "#06b6d4",
-        },
-        glass: {
-          800: "rgba(15,23,42,0.7)",
-        },
+        primary: "#ef3b24",
+        "brand-gray": "#6d6e71",
+        "brand-black": "#000000",
+        "brand-gold": "#c49a3a",
+        "brand-silver": "#a7a9ac",
+        "background-light": "#f8f6f6",
+        "background-dark": "#221210",
       },
       borderRadius: {
-        xl: "1rem",
+        xl: "0.75rem",
       },
       boxShadow: {
-        glass: "0 18px 45px rgba(15,23,42,0.45)",
+        glass: "0 20px 45px rgba(15,23,42,0.25)",
+      },
+      fontFamily: {
+        display: ["Inter", "system-ui", "sans-serif"],
       },
     },
   },
