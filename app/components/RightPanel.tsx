@@ -48,11 +48,18 @@ function formatDateTime(iso: string) {
   });
 }
 
+function formatDateLabel(iso: string) {
+  const d = new Date(iso + "T12:00:00");
+  return d.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
+}
+
 export default function RightPanel({
   todaySchedules,
+  selectedDateStr,
   isAdmin,
 }: {
   todaySchedules: ScheduleItem[];
+  selectedDateStr?: string | null;
   isAdmin: boolean;
 }) {
   const [notice, setNotice] = useState<NoticeItem>(null);
@@ -172,9 +179,11 @@ export default function RightPanel({
           </div>
         </div>
 
-        {/* 오늘의 일정 */}
+        {/* 선택한 날짜(또는 오늘) 일정 */}
         <h3 className="text-base font-bold mb-3 text-brand-black">
-          오늘의 일정
+          {selectedDateStr
+            ? `${formatDateLabel(selectedDateStr)} 일정`
+            : "오늘의 일정"}
         </h3>
         <div className="mb-6 space-y-2 flex-shrink-0">
           {todaySchedules.length === 0 ? (

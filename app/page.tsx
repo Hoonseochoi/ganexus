@@ -7,9 +7,9 @@ import {
 } from "@/src/lib/engines/schedules";
 import { getHolidays } from "korean-holidays";
 import RightPanel from "./components/RightPanel";
-import CalendarCellDropZone from "./components/CalendarCellDropZone";
 import DesktopShell, { DesktopShellHamburger } from "./components/DesktopShell";
 import CalendarMonthNav from "./components/CalendarMonthNav";
+import CalendarGridClient from "./components/CalendarGridClient";
 
 type CalendarCell = {
   key: number;
@@ -34,15 +34,13 @@ export default async function Page({ searchParams }: PageProps) {
   const params = await searchParams?.catch(() => ({})) ?? {};
   const year = params.year ? parseInt(params.year, 10) : now.getFullYear();
   const month = params.month ? parseInt(params.month, 10) - 1 : now.getMonth();
+  const selectedDateStr = params.date ?? null;
   const todayYear = now.getFullYear();
   const todayMonth = now.getMonth();
   const todayDate = now.getDate();
+  const todayStr = `${todayYear}-${String(todayMonth + 1).padStart(2, "0")}-${String(todayDate).padStart(2, "0")}`;
 
-  const firstOfMonth = new Date(year, month, 1);
-  const firstWeekday = firstOfMonth.getDay(); // 0=Sun
   const lastDate = new Date(year, month + 1, 0).getDate();
-  const totalCells = Math.ceil((firstWeekday + lastDate) / 7) * 7;
-
   const mobileMonthLabel = new Date(year, month + 1, 0).toLocaleString("ko-KR", {
     month: "long",
     year: "numeric",
@@ -76,38 +74,49 @@ export default async function Page({ searchParams }: PageProps) {
   }
 
   const eventsByDay = new Map<number, ScheduleRow[]>();
+  const eventsByDateStr: Record<string, ScheduleRow[]> = {};
   for (const s of schedules) {
     const d = new Date(s.start_at);
     if (d.getFullYear() === year && d.getMonth() === month) {
       const day = d.getDate();
       if (!eventsByDay.has(day)) eventsByDay.set(day, []);
       eventsByDay.get(day)!.push(s);
+      const iso = d.toISOString().slice(0, 10);
+      if (!eventsByDateStr[iso]) eventsByDateStr[iso] = [];
+      eventsByDateStr[iso].push(s);
     }
   }
 
-  const calendarCells: CalendarCell[] = [];
-  for (let i = 0; i < totalCells; i++) {
-    const dayNumber = i - firstWeekday + 1;
-    if (dayNumber < 1 || dayNumber > lastDate) {
-      calendarCells.push({
-        key: i,
-        day: null,
-        date: null,
-        isToday: false,
-        isSunday: false,
-        isSaturday: false,
-        isHoliday: false,
-      });
-      continue;
-    }
+  // 월~금만 표시 (5열), 토·일 숨김
+  const daysToShow: number[] = [];
+  for (let d = 1; d <= lastDate; d++) {
+    const w = new Date(year, month, d).getDay();
+    if (w >= 1 && w <= 5) daysToShow.push(d);
+  }
+  const firstWeekdayInMonth = daysToShow.length ? new Date(year, month, daysToShow[0]).getDay() : 1;
+  const offset = firstWeekdayInMonth - 1;
+  const totalCells = Math.ceil((offset + daysToShow.length) / 5) * 5;
 
+  const calendarCells: CalendarCell[] = [];
+  let key = 0;
+  for (let i = 0; i < offset; i++) {
+    calendarCells.push({
+      key: key++,
+      day: null,
+      date: null,
+      isToday: false,
+      isSunday: false,
+      isSaturday: false,
+      isHoliday: false,
+    });
+  }
+  for (const dayNumber of daysToShow) {
     const date = new Date(year, month, dayNumber);
     const weekday = date.getDay();
     const iso = date.toISOString().slice(0, 10);
     const isHoliday = holidaySet.has(iso);
-
     calendarCells.push({
-      key: i,
+      key: key++,
       day: dayNumber,
       date,
       isToday: year === todayYear && month === todayMonth && dayNumber === todayDate,
@@ -116,6 +125,20 @@ export default async function Page({ searchParams }: PageProps) {
       isHoliday,
     });
   }
+  for (let i = offset + daysToShow.length; i < totalCells; i++) {
+    calendarCells.push({
+      key: key++,
+      day: null,
+      date: null,
+      isToday: false,
+      isSunday: false,
+      isSaturday: false,
+      isHoliday: false,
+    });
+  }
+
+  const displayDateStr = selectedDateStr ?? (year === todayYear && month === todayMonth ? todayStr : null);
+  const schedulesForSelected = displayDateStr ? (eventsByDateStr[displayDateStr] ?? []) : [];
 
   const leftPanel = (
     <>
@@ -224,86 +247,42 @@ export default async function Page({ searchParams }: PageProps) {
 
         <div className="flex-1 p-6">
           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm h-full flex flex-col">
-            <div className="grid grid-cols-7 bg-slate-50 border-b border-slate-200">
-              {["일", "월", "화", "수", "목", "금", "토"].map((d, idx) => {
-                const color =
-                  idx === 0
-                    ? "text-red-500"
-                    : idx === 6
-                      ? "text-blue-500"
-                      : "text-slate-400";
-                return (
-                  <div
-                    key={d}
-                    className={`py-3 text-center text-xs font-bold uppercase ${color}`}
-                  >
-                    {d}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="grid grid-cols-7 flex-1">
-              {calendarCells.map((cell) => {
-                const events =
-                  cell.day !== null ? eventsByDay.get(cell.day) ?? [] : [];
-                const isRed = cell.isSunday || cell.isHoliday;
-                const isBlue = cell.isSaturday && !cell.isHoliday;
-
-                let dayColor = "text-slate-800";
-                let dayWeight = "font-normal";
-
-                if (cell.isToday) {
-                  dayColor = "text-brand-black";
-                  dayWeight = "font-bold";
-                } else {
-                  if (isRed) dayColor = "text-red-500";
-                  else if (isBlue) dayColor = "text-blue-500";
-                }
-
-                return (
-                  <CalendarCellDropZone
-                    key={cell.key}
-                    dateISO={
-                      cell.date ? cell.date.toISOString().slice(0, 10) : null
-                    }
-                    isEmpty={cell.day === null}
-                    className={`p-2 min-h-[120px] ${
-                      cell.isToday
-                        ? "border-2 border-primary bg-primary/5 relative"
-                        : "border border-slate-100"
-                    }`}
-                  >
-                    <span className={`text-sm ${dayWeight} ${dayColor}`}>
-                      {cell.day ?? ""}
-                    </span>
-                    {cell.day !== null && events.length > 0 && (
-                      <div className="mt-2 space-y-1">
-                        {events.slice(0, 3).map((ev) => (
-                          <div
-                            key={ev.id}
-                            className="text-[10px] p-1.5 bg-primary/5 border-l-2 border-primary text-slate-700 rounded truncate"
-                          >
-                            {ev.title}
-                          </div>
-                        ))}
-                        {events.length > 3 && (
-                          <div className="text-[9px] text-brand-gray">
-                            + {events.length - 3}개 더보기
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </CalendarCellDropZone>
-                );
-              })}
-            </div>
+            <CalendarGridClient
+              cells={calendarCells.map((c) => ({
+                key: c.key,
+                day: c.day,
+                dateISO: c.date ? c.date.toISOString().slice(0, 10) : null,
+                isToday: c.isToday,
+                isSunday: c.isSunday,
+                isSaturday: c.isSaturday,
+                isHoliday: c.isHoliday,
+              }))}
+              eventsByDay={Object.fromEntries(
+                Array.from(eventsByDay.entries()).map(([d, list]) => [
+                  String(d),
+                  list.map((s) => ({
+                    id: s.id,
+                    title: s.title,
+                    description: s.description,
+                    start_at: s.start_at,
+                    end_at: s.end_at,
+                    is_all_day: s.is_all_day,
+                    category: s.category,
+                  })),
+                ]),
+              )}
+              year={year}
+              month={month}
+              isAdmin={user?.role === "admin"}
+              columns={5}
+            />
           </div>
         </div>
         </section>
 
-            {/* Right Panel: 오늘 일정 · 메모 · 공지 (실제 오늘 날짜 기준) */}
+            {/* Right Panel: 선택한 날짜(또는 오늘) 일정 · 메모 · 공지 */}
             <RightPanel
-              todaySchedules={(year === todayYear && month === todayMonth ? eventsByDay.get(todayDate) ?? [] : []).map((s) => ({
+              todaySchedules={schedulesForSelected.map((s) => ({
                 id: s.id,
                 title: s.title,
                 description: s.description,
@@ -312,6 +291,7 @@ export default async function Page({ searchParams }: PageProps) {
                 is_all_day: s.is_all_day,
                 category: s.category,
               }))}
+              selectedDateStr={displayDateStr}
               isAdmin={user?.role === "admin"}
             />
           </>
@@ -348,82 +328,35 @@ export default async function Page({ searchParams }: PageProps) {
                 Today
               </button>
             </div>
-            <div className="grid grid-cols-7 bg-slate-50 border-b border-slate-200">
-              {["일", "월", "화", "수", "목", "금", "토"].map((d, idx) => {
-                const color =
-                  idx === 0
-                    ? "text-red-500"
-                    : idx === 6
-                      ? "text-blue-500"
-                      : "text-slate-400";
-                return (
-                  <div
-                    key={`${d}-${idx}`}
-                    className={`py-2 text-center text-[10px] font-bold uppercase ${color}`}
-                  >
-                    {d}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="grid grid-cols-7">
-              {calendarCells.map((cell) => {
-                const events =
-                  cell.day !== null ? eventsByDay.get(cell.day) ?? [] : [];
-
-                const isRed = cell.isSunday || cell.isHoliday;
-                const isBlue = cell.isSaturday && !cell.isHoliday;
-
-                let dayColor = "text-slate-800";
-                let dayWeight = "font-normal";
-
-                if (cell.isToday) {
-                  dayColor = "text-brand-black";
-                  dayWeight = "font-bold";
-                } else {
-                  if (isRed) dayColor = "text-red-500";
-                  else if (isBlue) dayColor = "text-blue-500";
-                }
-
-                return (
-                  <CalendarCellDropZone
-                    key={cell.key}
-                    dateISO={
-                      cell.date ? cell.date.toISOString().slice(0, 10) : null
-                    }
-                    isEmpty={cell.day === null}
-                    className={`p-1.5 min-h-[70px] ${
-                      cell.isToday
-                        ? "border-2 border-primary bg-primary/5 relative"
-                        : "border border-slate-100"
-                    }`}
-                  >
-                    <span
-                      className={`text-[11px] ${dayWeight} ${dayColor}`}
-                    >
-                      {cell.day ?? ""}
-                    </span>
-                    {cell.day !== null && events.length > 0 && (
-                      <div className="mt-1 space-y-0.5">
-                        {events.slice(0, 2).map((ev) => (
-                          <div
-                            key={ev.id}
-                            className="text-[9px] px-1.5 py-1 bg-primary/5 border-l-2 border-primary text-slate-700 rounded truncate"
-                          >
-                            {ev.title}
-                          </div>
-                        ))}
-                        {events.length > 2 && (
-                          <div className="text-[9px] text-brand-gray">
-                            + {events.length - 2}개
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </CalendarCellDropZone>
-                );
-              })}
-            </div>
+            <CalendarGridClient
+              cells={calendarCells.map((c) => ({
+                key: c.key,
+                day: c.day,
+                dateISO: c.date ? c.date.toISOString().slice(0, 10) : null,
+                isToday: c.isToday,
+                isSunday: c.isSunday,
+                isSaturday: c.isSaturday,
+                isHoliday: c.isHoliday,
+              }))}
+              eventsByDay={Object.fromEntries(
+                Array.from(eventsByDay.entries()).map(([d, list]) => [
+                  String(d),
+                  list.map((s) => ({
+                    id: s.id,
+                    title: s.title,
+                    description: s.description,
+                    start_at: s.start_at,
+                    end_at: s.end_at,
+                    is_all_day: s.is_all_day,
+                    category: s.category,
+                  })),
+                ]),
+              )}
+              year={year}
+              month={month}
+              isAdmin={user?.role === "admin"}
+              columns={5}
+            />
           </div>
         </section>
 
@@ -478,10 +411,10 @@ export default async function Page({ searchParams }: PageProps) {
               </div>
             </div>
 
-            {/* Right panel - 오늘 일정 · 메모 · 공지 (동일 구조) */}
+            {/* Right panel - 선택한 날짜(또는 오늘) 일정 · 메모 · 공지 */}
             <div className="min-w-[85vw] snap-center bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
               <RightPanel
-                todaySchedules={(eventsByDay.get(todayDate) ?? []).map((s) => ({
+                todaySchedules={schedulesForSelected.map((s) => ({
                   id: s.id,
                   title: s.title,
                   description: s.description,
@@ -490,6 +423,7 @@ export default async function Page({ searchParams }: PageProps) {
                   is_all_day: s.is_all_day,
                   category: s.category,
                 }))}
+                selectedDateStr={displayDateStr}
                 isAdmin={user?.role === "admin"}
               />
             </div>
