@@ -31,6 +31,8 @@ type Props = {
   month: number;
   isAdmin: boolean;
   columns: 5 | 7;
+  selectedDateStr: string | null;
+  todayStr: string;
 };
 
 export default function CalendarGridClient({
@@ -40,6 +42,8 @@ export default function CalendarGridClient({
   month,
   isAdmin,
   columns,
+  selectedDateStr,
+  todayStr,
 }: Props) {
   const router = useRouter();
 
@@ -80,16 +84,20 @@ export default function CalendarGridClient({
             dayColor = "text-blue-500";
           }
 
+          const isSelected = cell.dateISO === selectedDateStr;
+          const isTodayHighlight =
+            cell.isToday && (!selectedDateStr || selectedDateStr === todayStr);
+          const redBorder = isSelected || isTodayHighlight;
+          const borderClass = redBorder
+            ? "border-2 border-primary bg-primary/5 relative"
+            : "border border-slate-100";
+
           return (
             <CalendarCellDropZone
               key={cell.key}
               dateISO={cell.dateISO}
               isEmpty={cell.day === null}
-              className={`p-2 min-h-[70px] lg:min-h-[120px] cursor-pointer ${
-                cell.isToday
-                  ? "border-2 border-primary bg-primary/5 relative"
-                  : "border border-slate-100"
-              }`}
+              className={`p-2 min-h-[70px] lg:min-h-[120px] cursor-pointer ${borderClass}`}
             >
               <div
                 role="button"

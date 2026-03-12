@@ -21,7 +21,7 @@ type CalendarCell = {
   isHoliday: boolean;
 };
 
-type PageProps = { searchParams?: Promise<{ year?: string; month?: string }> };
+type PageProps = { searchParams?: Promise<{ year?: string; month?: string; date?: string }> };
 
 export default async function Page({ searchParams }: PageProps) {
   const user = await getCurrentUser();
@@ -81,7 +81,7 @@ export default async function Page({ searchParams }: PageProps) {
       const day = d.getDate();
       if (!eventsByDay.has(day)) eventsByDay.set(day, []);
       eventsByDay.get(day)!.push(s);
-      const iso = d.toISOString().slice(0, 10);
+      const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       if (!eventsByDateStr[iso]) eventsByDateStr[iso] = [];
       eventsByDateStr[iso].push(s);
     }
@@ -113,7 +113,7 @@ export default async function Page({ searchParams }: PageProps) {
   for (const dayNumber of daysToShow) {
     const date = new Date(year, month, dayNumber);
     const weekday = date.getDay();
-    const iso = date.toISOString().slice(0, 10);
+    const iso = `${year}-${String(month + 1).padStart(2, "0")}-${String(dayNumber).padStart(2, "0")}`;
     const isHoliday = holidaySet.has(iso);
     calendarCells.push({
       key: key++,
@@ -251,7 +251,7 @@ export default async function Page({ searchParams }: PageProps) {
               cells={calendarCells.map((c) => ({
                 key: c.key,
                 day: c.day,
-                dateISO: c.date ? c.date.toISOString().slice(0, 10) : null,
+                dateISO: c.day !== null ? `${year}-${String(month + 1).padStart(2, "0")}-${String(c.day).padStart(2, "0")}` : null,
                 isToday: c.isToday,
                 isSunday: c.isSunday,
                 isSaturday: c.isSaturday,
@@ -275,6 +275,8 @@ export default async function Page({ searchParams }: PageProps) {
               month={month}
               isAdmin={user?.role === "admin"}
               columns={5}
+              selectedDateStr={selectedDateStr}
+              todayStr={todayStr}
             />
           </div>
         </div>
@@ -332,7 +334,7 @@ export default async function Page({ searchParams }: PageProps) {
               cells={calendarCells.map((c) => ({
                 key: c.key,
                 day: c.day,
-                dateISO: c.date ? c.date.toISOString().slice(0, 10) : null,
+                dateISO: c.day !== null ? `${year}-${String(month + 1).padStart(2, "0")}-${String(c.day).padStart(2, "0")}` : null,
                 isToday: c.isToday,
                 isSunday: c.isSunday,
                 isSaturday: c.isSaturday,
@@ -356,6 +358,8 @@ export default async function Page({ searchParams }: PageProps) {
               month={month}
               isAdmin={user?.role === "admin"}
               columns={5}
+              selectedDateStr={selectedDateStr}
+              todayStr={todayStr}
             />
           </div>
         </section>

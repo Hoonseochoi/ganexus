@@ -131,4 +131,15 @@
   - `eventsByDateStr`로 날짜별 일정 맵 구성. 우측 패널에 선택 날짜(또는 오늘) 일정 전달.
   - 모바일 우측 패널에도 동일하게 선택 날짜/일정 반영.
 
+## 2026-03-12 – 드래그앤드롭 날짜 보정 · 선택 날짜 테두리
+
+- **드래그 앤 드롭 날짜가 한 칸 밀리던 문제**
+  - 원인: 날짜를 UTC 기준(`YYYY-MM-DDT00:00:00.000Z`)으로만 처리해 타임존에 따라 로컬 날짜가 하루 밀림.
+  - `CalendarCellDropZone.tsx`: 드롭한 셀의 `dateISO`를 로컬 연·월·일로 파싱 후, **로컬 시간**으로 `new Date(y, m-1, d, ...)` 생성. 종일 일정은 해당 로컬 날짜 00:00~23:59:59.999를 `toISOString()`으로 저장. 시간 지정 일정은 기존 `start_at`/`end_at`의 **로컬** 시·분·초를 새 로컬 날짜에 적용 후 저장.
+  - `app/page.tsx`: 셀의 `dateISO`를 **로컬 날짜** 문자열로 생성 (`c.day` 기준 `YYYY-MM-DD`). `eventsByDateStr` 키도 일정의 **로컬** 날짜(`getFullYear/getMonth/getDate`)로 통일. 셀 클릭 시 URL `date`와 우측 패널·일정 목록이 같은 로컬 날짜 기준으로 맞도록 수정.
+- **다른 날짜 클릭 시 TODAY / 선택 날짜 테두리**
+  - `CalendarGridClient`에 `selectedDateStr`, `todayStr` props 추가.
+  - 빨간 테두리: **선택된 날짜** 셀(`cell.dateISO === selectedDateStr`) 또는, 오늘이면서 “선택된 날짜가 없거나 오늘인 경우”에만 적용.
+  - 다른 날짜를 클릭하면 TODAY 셀은 기본(회색) 그리드로, 클릭한 날짜 셀만 빨간 테두리로 표시.
+  - 데스크톱·모바일 그리드 모두 `selectedDateStr`, `todayStr` 전달.
 

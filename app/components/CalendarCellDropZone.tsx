@@ -57,18 +57,39 @@ export default function CalendarCellDropZone({
       }
       if (!payload.id || !payload.start_at || !payload.end_at) return;
 
-      const dateStr = dateISO.slice(0, 10);
+      // 로컬 날짜 기준으로 변환 (UTC만 쓰면 타임존에 따라 하루 밀림)
+      const [y, m, d] = dateISO.slice(0, 10).split("-").map(Number);
       let newStartAt: string;
       let newEndAt: string;
 
       if (payload.is_all_day) {
-        newStartAt = `${dateStr}T00:00:00.000Z`;
-        newEndAt = `${dateStr}T23:59:59.999Z`;
+        const localStart = new Date(y, m - 1, d, 0, 0, 0, 0);
+        const localEnd = new Date(y, m - 1, d, 23, 59, 59, 999);
+        newStartAt = localStart.toISOString();
+        newEndAt = localEnd.toISOString();
       } else {
-        const startTime = payload.start_at.slice(11);
-        const endTime = payload.end_at.slice(11);
-        newStartAt = `${dateStr}T${startTime}`;
-        newEndAt = `${dateStr}T${endTime}`;
+        const origStart = new Date(payload.start_at);
+        const origEnd = new Date(payload.end_at);
+        const localStart = new Date(
+          y,
+          m - 1,
+          d,
+          origStart.getHours(),
+          origStart.getMinutes(),
+          origStart.getSeconds(),
+          origStart.getMilliseconds(),
+        );
+        const localEnd = new Date(
+          y,
+          m - 1,
+          d,
+          origEnd.getHours(),
+          origEnd.getMinutes(),
+          origEnd.getSeconds(),
+          origEnd.getMilliseconds(),
+        );
+        newStartAt = localStart.toISOString();
+        newEndAt = localEnd.toISOString();
       }
 
       const res = await fetch(`/api/schedules/${payload.id}`, {
