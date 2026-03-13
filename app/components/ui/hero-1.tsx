@@ -87,15 +87,19 @@ export function HeroSection() {
 
         <div className="fade-in slide-in-from-bottom-10 flex animate-in flex-row flex-wrap items-center justify-center gap-3 fill-mode-backwards pt-4 delay-300 duration-500 ease-out">
           <Link href="/login">
-            <Button className="rounded-full px-6" size="lg" variant="default">
+            <Button
+              className="rounded-full px-6 text-white"
+              size="lg"
+              variant="default"
+            >
               관리자로 시작하기
             </Button>
           </Link>
           <Link href="/manager-login">
             <Button
-              className="rounded-full px-6"
+              className="rounded-full px-6 border border-primary text-primary bg-transparent"
               size="lg"
-              variant="secondary"
+              variant="outline"
             >
               매니저로 시작하기
             </Button>
