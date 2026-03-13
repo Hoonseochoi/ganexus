@@ -14,14 +14,13 @@ export function Header() {
           scrolled,
       })}
     >
-      <nav className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-xs font-bold text-white">
-            GA
-          </div>
-          <span className="text-sm font-semibold tracking-tight text-brand-black">
-            GALENDER
-          </span>
+      <nav className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-4">
+        <div className="flex items-center gap-3">
+          <img
+            src="/2cigalender.png"
+            alt="GALENDER 로고"
+            className="h-10 w-auto object-contain"
+          />
         </div>
         <div className="text-[11px] text-brand-gray hidden sm:block">
           우리 지점만의 캘린더, GALENDER
