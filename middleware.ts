@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const PUBLIC_PATHS = [
+  "/",
   "/login",
+  "/admin/signup",
   "/apply",
   "/api/auth/login",
+  "/api/auth/admin-signup",
   "/api/auth/change-password",
   "/api/auth/logout",
   "/api/invite/validate",
@@ -27,7 +30,9 @@ export function middleware(request: NextRequest) {
 
   if (!sessionCookie?.value) {
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirectTo", pathname);
+    if (pathname !== "/") {
+      loginUrl.searchParams.set("redirectTo", pathname);
+    }
     return NextResponse.redirect(loginUrl);
   }
 
