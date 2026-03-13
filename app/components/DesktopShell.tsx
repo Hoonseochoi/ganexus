@@ -20,7 +20,7 @@ export function DesktopShellHamburger() {
   return (
     <button
       type="button"
-      onClick={() => ctx.setLeftOpen((o) => !o)}
+      onClick={() => ctx.setLeftOpen(!ctx.leftOpen)}
       className="flex flex-col justify-center gap-1 w-8 h-8 rounded-lg border border-slate-200 bg-white shadow-sm hover:bg-slate-50 flex-shrink-0"
       aria-label={ctx.leftOpen ? "메뉴 닫기" : "메뉴 열기"}
     >
