@@ -21,22 +21,38 @@ export default function DraggableSchedulePill({
   schedule,
   isAdmin,
   className = "text-[10px] p-1.5 border-l-2 rounded truncate",
+  onPillClick,
 }: {
   schedule: ScheduleItem;
   isAdmin: boolean;
   className?: string;
+  onPillClick?: () => void;
 }) {
   const colorClass =
     (schedule.category && CATEGORY_CLASSES[schedule.category]) ||
     CATEGORY_CLASSES.etc;
   const baseClass = `${className} ${colorClass}`;
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onPillClick?.();
+  };
+
+  const clickableClass = onPillClick ? " cursor-pointer" : "";
+
   if (!isAdmin) {
-    return <div className={baseClass}>{schedule.title}</div>;
+    return (
+      <div className={`${baseClass}${clickableClass}`} onClick={handleClick} role="button" tabIndex={0}>
+        {schedule.title}
+      </div>
+    );
   }
   return (
     <div
       draggable
+      onClick={handleClick}
+      role="button"
+      tabIndex={0}
       onDragStart={(e) => {
         const payload = JSON.stringify({
           id: schedule.id,
@@ -49,7 +65,7 @@ export default function DraggableSchedulePill({
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.dropEffect = "move";
       }}
-      className={`${baseClass} cursor-grab active:cursor-grabbing`}
+      className={`${baseClass}${clickableClass} cursor-grab active:cursor-grabbing`}
     >
       {schedule.title}
     </div>

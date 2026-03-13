@@ -277,9 +277,10 @@ async function GET(_req) {
             status: 401
         });
     }
-    if (user.role !== "admin") {
+    const canListMembers = user.role === "admin" || user.role === "manager" || user.role === "agent";
+    if (!canListMembers) {
         return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-            message: "매니저 리스트 조회는 관리자만 가능합니다."
+            message: "매니저 리스트 조회 권한이 없습니다."
         }, {
             status: 403
         });

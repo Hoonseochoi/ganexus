@@ -146,8 +146,8 @@ export default function CalendarGridClient({
           const isSelected = cell.dateISO === selectedDateStr;
           const isTodayHighlight =
             cell.isToday && (!selectedDateStr || selectedDateStr === todayStr);
-          const redBorder = isSelected || isTodayHighlight;
-          const borderClass = redBorder
+          const isHighlight = isSelected || isTodayHighlight;
+          const borderClass = isHighlight
             ? "border-2 border-primary bg-primary/5 relative"
             : "border border-slate-100";
 
@@ -168,9 +168,19 @@ export default function CalendarGridClient({
                 className="w-full h-full text-left flex flex-col"
               >
                 <div className="flex-1 min-h-0">
-                  <span className={`font-calendar text-sm ${dayWeight} ${dayColor}`}>
-                    {cell.day ?? ""}
-                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className={`font-calendar text-sm ${dayWeight} ${dayColor}`}>
+                      {cell.day ?? ""}
+                    </span>
+                    {cell.isToday && (
+                      <span
+                        className="today-badge-float inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wide bg-primary/15 text-primary border border-primary/30"
+                        aria-label="오늘"
+                      >
+                        TODAY
+                      </span>
+                    )}
+                  </div>
                 {cell.day !== null && events.length > 0 && (
                   <div className="mt-2 space-y-1" onClick={(e) => e.stopPropagation()}>
                     {events.slice(0, 3).map((ev) => (
@@ -185,6 +195,7 @@ export default function CalendarGridClient({
                           category: ev.category,
                         }}
                         isAdmin={isAdmin}
+                        onPillClick={() => handleCellClick(cell.dateISO)}
                       />
                     ))}
                     {events.length > 3 && (
@@ -195,7 +206,7 @@ export default function CalendarGridClient({
                   </div>
                 )}
                 </div>
-                {cell.day !== null && redBorder && (
+                {cell.day !== null && isHighlight && (
                   <div className="mt-auto pt-1 flex justify-end" onClick={(e) => e.stopPropagation()}>
                     <EclipseButton
                       type="button"

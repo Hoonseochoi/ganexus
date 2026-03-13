@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/src/lib/engines/auth";
-import { listManagersForBranch } from "@/src/lib/engines/managers";
+import { listAllBranchMembers } from "@/src/lib/engines/managers";
 
 export async function GET(_req: NextRequest) {
   const user = await getCurrentUser();
@@ -8,9 +8,10 @@ export async function GET(_req: NextRequest) {
     return NextResponse.json({ message: "인증이 필요합니다." }, { status: 401 });
   }
 
-  if (user.role !== "admin") {
+  const canListMembers = user.role === "admin" || user.role === "manager" || user.role === "agent";
+  if (!canListMembers) {
     return NextResponse.json(
-      { message: "매니저 리스트 조회는 관리자만 가능합니다." },
+      { message: "매니저 리스트 조회 권한이 없습니다." },
       { status: 403 },
     );
   }
@@ -23,10 +24,10 @@ export async function GET(_req: NextRequest) {
     );
   }
 
-  const managers = await listManagersForBranch(branchName);
+  const members = await listAllBranchMembers(branchName);
 
   return NextResponse.json({
-    managers: managers.map((m) => ({
+    managers: members.map((m) => ({
       id: m.id,
       name: m.full_name ?? "이름 없음",
       branch_name: m.branch_name,

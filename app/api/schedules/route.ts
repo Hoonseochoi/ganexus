@@ -38,10 +38,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "인증이 필요합니다." }, { status: 401 });
   }
 
-  // 일정 생성은 우선 Admin 전용으로 제한
-  if (user.role !== "admin") {
+  // 일정 생성: admin / manager / agent(승인된 에이전트) 동일 권한
+  const canCreateSchedule = user.role === "admin" || user.role === "manager" || user.role === "agent";
+  if (!canCreateSchedule) {
     return NextResponse.json(
-      { message: "일정 생성은 관리자만 가능합니다." },
+      { message: "일정 생성 권한이 없습니다." },
       { status: 403 },
     );
   }

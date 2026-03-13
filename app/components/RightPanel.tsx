@@ -157,7 +157,7 @@ export default function RightPanel({
               type="button"
               variant="primary"
               size="sm"
-              text="일정추가"
+              text="일정 추가하기"
               className="w-full"
               onClick={() => router.push("/admin/schedules")}
             />

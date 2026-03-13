@@ -18,3 +18,18 @@
 body {
   font-family: var(--font-sans);
 }
+
+/* 오늘 날짜 뱃지: 은은한 위아래 흔들림 */
+@keyframes today-badge-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.today-badge-float {
+  animation: today-badge-float 2.5s ease-in-out infinite;
+}

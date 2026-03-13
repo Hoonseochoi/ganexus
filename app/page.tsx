@@ -290,7 +290,9 @@ export default async function Page({ searchParams }: PageProps) {
                 canAddSchedule={
                   user?.role === "admin" ||
                   user?.role === "manager" ||
-                  user?.profile?.role === "manager"
+                  user?.role === "agent" ||
+                  user?.profile?.role === "manager" ||
+                  user?.profile?.role === "agent"
                 }
               />
             </RightPanelCollapseWrapper>
@@ -393,7 +395,9 @@ export default async function Page({ searchParams }: PageProps) {
                 canAddSchedule={
                   user?.role === "admin" ||
                   user?.role === "manager" ||
-                  user?.profile?.role === "manager"
+                  user?.role === "agent" ||
+                  user?.profile?.role === "manager" ||
+                  user?.profile?.role === "agent"
                 }
               />
             </div>

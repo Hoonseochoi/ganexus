@@ -49,6 +49,8 @@ return __turbopack_context__.a(async (__turbopack_handle_async_dependencies__, _
 __turbopack_context__.s([
     "PG_CODE_RELATION_NOT_EXIST",
     ()=>PG_CODE_RELATION_NOT_EXIST,
+    "isColumnNotFound",
+    ()=>isColumnNotFound,
     "isRelationNotFound",
     ()=>isRelationNotFound,
     "pool",
@@ -75,6 +77,11 @@ const pool = new __TURBOPACK__imported__module__$5b$externals$5d2f$pg__$5b$exter
 const PG_CODE_RELATION_NOT_EXIST = "42P01";
 function isRelationNotFound(err) {
     return err !== null && typeof err === "object" && "code" in err && err.code === PG_CODE_RELATION_NOT_EXIST;
+}
+function isColumnNotFound(err) {
+    if (err === null || typeof err !== "object" || !("message" in err)) return false;
+    const msg = String(err.message ?? "");
+    return msg.includes("does not exist") || err.code === "42703";
 }
 async function query(text, params) {
     const client = await pool.connect();

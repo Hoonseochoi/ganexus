@@ -49,6 +49,8 @@ return __turbopack_context__.a(async (__turbopack_handle_async_dependencies__, _
 __turbopack_context__.s([
     "PG_CODE_RELATION_NOT_EXIST",
     ()=>PG_CODE_RELATION_NOT_EXIST,
+    "isColumnNotFound",
+    ()=>isColumnNotFound,
     "isRelationNotFound",
     ()=>isRelationNotFound,
     "pool",
@@ -75,6 +77,11 @@ const pool = new __TURBOPACK__imported__module__$5b$externals$5d2f$pg__$5b$exter
 const PG_CODE_RELATION_NOT_EXIST = "42P01";
 function isRelationNotFound(err) {
     return err !== null && typeof err === "object" && "code" in err && err.code === PG_CODE_RELATION_NOT_EXIST;
+}
+function isColumnNotFound(err) {
+    if (err === null || typeof err !== "object" || !("message" in err)) return false;
+    const msg = String(err.message ?? "");
+    return msg.includes("does not exist") || err.code === "42703";
 }
 async function query(text, params) {
     const client = await pool.connect();
@@ -226,6 +233,8 @@ __turbopack_context__.s([
     ()=>getNoticeById,
     "getNoticeReads",
     ()=>getNoticeReads,
+    "hasReadNotice",
+    ()=>hasReadNotice,
     "markNoticeRead",
     ()=>markNoticeRead,
     "updateNotice",
@@ -322,6 +331,18 @@ async function markNoticeRead(params) {
         params.noticeId,
         params.profileId
     ]);
+}
+async function hasReadNotice(noticeId, profileId) {
+    try {
+        const rows = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["query"])("select id from public.notice_reads where notice_id = $1 and profile_id = $2", [
+            noticeId,
+            profileId
+        ]);
+        return rows.length > 0;
+    } catch (err) {
+        if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["isRelationNotFound"])(err)) return false;
+        throw err;
+    }
 }
 async function getNoticeReads(noticeId) {
     try {

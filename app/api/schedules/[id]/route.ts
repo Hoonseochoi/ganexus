@@ -11,9 +11,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     return NextResponse.json({ message: "인증이 필요합니다." }, { status: 401 });
   }
 
-  if (user.role !== "admin") {
+  const canEditSchedule = user.role === "admin" || user.role === "manager" || user.role === "agent";
+  if (!canEditSchedule) {
     return NextResponse.json(
-      { message: "일정 수정은 관리자만 가능합니다." },
+      { message: "일정 수정 권한이 없습니다." },
       { status: 403 },
     );
   }
@@ -73,9 +74,10 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     return NextResponse.json({ message: "인증이 필요합니다." }, { status: 401 });
   }
 
-  if (user.role !== "admin") {
+  const canDeleteSchedule = user.role === "admin" || user.role === "manager" || user.role === "agent";
+  if (!canDeleteSchedule) {
     return NextResponse.json(
-      { message: "일정 삭제는 관리자만 가능합니다." },
+      { message: "일정 삭제 권한이 없습니다." },
       { status: 403 },
     );
   }

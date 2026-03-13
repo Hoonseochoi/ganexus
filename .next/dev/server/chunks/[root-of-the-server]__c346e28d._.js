@@ -521,10 +521,11 @@ async function POST(req) {
             status: 401
         });
     }
-    // 일정 생성은 우선 Admin 전용으로 제한
-    if (user.role !== "admin") {
+    // 일정 생성: admin / manager / agent(승인된 에이전트) 동일 권한
+    const canCreateSchedule = user.role === "admin" || user.role === "manager" || user.role === "agent";
+    if (!canCreateSchedule) {
         return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-            message: "일정 생성은 관리자만 가능합니다."
+            message: "일정 생성 권한이 없습니다."
         }, {
             status: 403
         });
