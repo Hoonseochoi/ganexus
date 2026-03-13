@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { FormEvent, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { EclipseButton } from "@/app/components/ui/EclipseButton";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [step, setStep] = useState<"login" | "changePassword">("login");
@@ -14,6 +15,13 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [loginIdForChange, setLoginIdForChange] = useState<string | null>(null);
+
+  useEffect(() => {
+    const redirectTo = searchParams.get("redirectTo");
+    if (redirectTo === "/") {
+      router.replace("/");
+    }
+  }, [router, searchParams]);
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
