@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/src/lib/engines/db";
 import { getCurrentUser } from "@/src/lib/engines/auth";
+import { addProfileToTenant } from "@/src/lib/engines/tenant";
 
 /**
  * 관리자 전용: 매니저 신규 등록
@@ -63,11 +64,28 @@ export async function POST(req: NextRequest) {
       [code, code],
     );
 
-    await query(
+    const profileRows = await query<{ id: string }>(
       `insert into public.profiles (login_id, full_name, branch_name, role, manager_code, is_approved)
-       values ($1, $2, $3, 'manager', $4, true)`,
+       values ($1, $2, $3, 'manager', $4, true)
+       returning id`,
       [code, name, branch, code],
     );
+    const profileId = profileRows[0].id;
+
+    const tenantSchema = user.profile?.tenant_schema;
+    if (tenantSchema) {
+      await addProfileToTenant({
+        tenantSchema,
+        profileId,
+        loginId: code,
+        fullName: name,
+        branchName: branch,
+        phoneNumber: null,
+        role: "manager",
+        isApproved: true,
+        managerCode: code,
+      });
+    }
 
     return NextResponse.json({
       status: "ok",

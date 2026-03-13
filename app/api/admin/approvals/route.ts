@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/src/lib/engines/db";
 import { getCurrentUser } from "@/src/lib/engines/auth";
+import { addProfileToTenant } from "@/src/lib/engines/tenant";
 
 type ProfileRow = {
   id: string;
   login_id: string;
+  full_name: string | null;
   branch_name: string | null;
+  phone_number: string | null;
+  role: "admin" | "manager" | "agent" | null;
+  is_approved: boolean;
+  manager_code: string | null;
 };
 
 export async function POST(req: NextRequest) {
@@ -37,7 +43,7 @@ export async function POST(req: NextRequest) {
   const branchName = user.profile.branch_name;
 
   const rows = await query<ProfileRow>(
-    "select id, login_id, branch_name from public.profiles where id = $1",
+    "select id, login_id, full_name, branch_name, phone_number, role, is_approved, manager_code from public.profiles where id = $1",
     [profileId],
   );
   const profile = rows[0];
@@ -76,6 +82,24 @@ export async function POST(req: NextRequest) {
            where id = $3`,
           [code, code, profileId],
         );
+        const tenantSchema = user.profile?.tenant_schema;
+        if (tenantSchema) {
+          const updated = await query<ProfileRow>("select id, login_id, full_name, branch_name, phone_number, role, is_approved, manager_code from public.profiles where id = $1", [profileId]);
+          const p = updated[0];
+          if (p) {
+            await addProfileToTenant({
+              tenantSchema,
+              profileId: p.id,
+              loginId: p.login_id,
+              fullName: p.full_name,
+              branchName: p.branch_name,
+              phoneNumber: p.phone_number,
+              role: p.role,
+              isApproved: p.is_approved,
+              managerCode: p.manager_code ?? undefined,
+            });
+          }
+        }
         return NextResponse.json({
           ok: true,
           message: "매니저로 승인되었습니다. 해당 매니저코드로 로그인할 수 있습니다.",
@@ -86,6 +110,24 @@ export async function POST(req: NextRequest) {
         "update public.profiles set is_approved = true where id = $1",
         [profileId],
       );
+      const tenantSchema = user.profile?.tenant_schema;
+      if (tenantSchema) {
+        const updated = await query<ProfileRow>("select id, login_id, full_name, branch_name, phone_number, role, is_approved, manager_code from public.profiles where id = $1", [profileId]);
+        const p = updated[0];
+        if (p) {
+          await addProfileToTenant({
+            tenantSchema,
+            profileId: p.id,
+            loginId: p.login_id,
+            fullName: p.full_name,
+            branchName: p.branch_name,
+            phoneNumber: p.phone_number,
+            role: p.role,
+            isApproved: p.is_approved,
+            managerCode: p.manager_code ?? undefined,
+          });
+        }
+      }
       return NextResponse.json({ ok: true, message: "승인되었습니다." });
     }
 

@@ -13,6 +13,7 @@ import RightPanelCollapseWrapper, { DesktopRightPanelProvider } from "./componen
 import DesktopShell, { DesktopShellHamburger } from "./components/DesktopShell";
 import CalendarMonthNav from "./components/CalendarMonthNav";
 import CalendarGridClient from "./components/CalendarGridClient";
+import LandingPage from "./components/LandingPage";
 
 type CalendarCell = {
   key: number;
@@ -30,7 +31,11 @@ type PageProps = { searchParams?: Promise<SearchParamsShape> };
 export default async function Page({ searchParams }: PageProps) {
   const user = await getCurrentUser();
 
-  if (user?.role === "agent" && user.profile && !user.profile.is_approved) {
+  if (!user) {
+    return <LandingPage />;
+  }
+
+  if (user.role === "agent" && user.profile && !user.profile.is_approved) {
     redirect("/pending-approval");
   }
 

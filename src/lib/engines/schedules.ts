@@ -1,4 +1,5 @@
 import { query, isRelationNotFound, isColumnNotFound } from "./db";
+import { getTenantSchemaForBranch } from "./tenant";
 
 export type ScheduleCategory = "dealer" | "internal" | "personal" | "leave" | "etc";
 
@@ -60,6 +61,7 @@ export async function listSchedulesForBranch(params: {
   to?: string;
 }): Promise<ScheduleRow[]> {
   const { branchName, from, to } = params;
+  const schema = (await getTenantSchemaForBranch(branchName)) ?? "public";
 
   const conditions = ["branch_name = $1"];
   const values: unknown[] = [branchName];
@@ -82,7 +84,7 @@ export async function listSchedulesForBranch(params: {
         select id, branch_name, title, description, category,
                dealer_name, location, instructor, target_audience, manager_name,
                start_at, end_at, is_all_day, created_by, created_at
-        from public.schedules
+        from ${schema}.schedules
         where ${where}
         order by start_at asc
       `,
@@ -100,7 +102,7 @@ export async function listSchedulesForBranch(params: {
         `
           select id, branch_name, title, description, category,
                  start_at, end_at, is_all_day, created_by, created_at
-          from public.schedules
+          from ${schema}.schedules
           where ${where}
           order by start_at asc
         `,
@@ -124,11 +126,12 @@ export async function createSchedule(input: ScheduleInput): Promise<ScheduleRow>
   const startAt = input.startAt;
   const endAt = input.endAt ?? input.startAt;
   const category = input.category ?? "etc";
+  const schema = (await getTenantSchemaForBranch(input.branchName)) ?? "public";
 
   try {
     const rows = await query<ScheduleRow>(
       `
-        insert into public.schedules (
+        insert into ${schema}.schedules (
           branch_name, title, description, category,
           dealer_name, location, instructor, target_audience, manager_name,
           start_at, end_at, is_all_day, created_by
@@ -160,7 +163,7 @@ export async function createSchedule(input: ScheduleInput): Promise<ScheduleRow>
       const legacyCategory = CATEGORY_TO_LEGACY[category];
       type LegacyInsertRow = Omit<ScheduleRow, "dealer_name" | "location" | "instructor" | "target_audience" | "manager_name"> & { category: LegacyCategory };
       const rows = await query<LegacyInsertRow>(
-        `insert into public.schedules (branch_name, title, description, category, start_at, end_at, is_all_day, created_by) values ($1, $2, $3, $4, $5, $6, $7, $8) returning id, branch_name, title, description, category, start_at, end_at, is_all_day, created_by, created_at`,
+        `insert into ${schema}.schedules (branch_name, title, description, category, start_at, end_at, is_all_day, created_by) values ($1, $2, $3, $4, $5, $6, $7, $8) returning id, branch_name, title, description, category, start_at, end_at, is_all_day, created_by, created_at`,
         [
           input.branchName,
           input.title,
@@ -203,6 +206,7 @@ export async function updateSchedule(params: {
   isAllDay?: boolean;
 }): Promise<ScheduleRow | null> {
   const { id, branchName } = params;
+  const schema = (await getTenantSchemaForBranch(branchName)) ?? "public";
 
   const fields: string[] = [];
   const values: unknown[] = [];
@@ -229,13 +233,13 @@ export async function updateSchedule(params: {
   const runFull = async (): Promise<ScheduleRow | null> => {
     if (fields.length === 0) {
       const rows = await query<ScheduleRow>(
-        `select id, branch_name, title, description, category, dealer_name, location, instructor, target_audience, manager_name, start_at, end_at, is_all_day, created_by, created_at from public.schedules where id = $1 and branch_name = $2`,
+        `select id, branch_name, title, description, category, dealer_name, location, instructor, target_audience, manager_name, start_at, end_at, is_all_day, created_by, created_at from ${schema}.schedules where id = $1 and branch_name = $2`,
         [id, branchName],
       );
       return rows[0] ?? null;
     }
     const rows = await query<ScheduleRow>(
-      `update public.schedules set ${fields.join(", ")} where id = $${fields.length + 1} and branch_name = $${fields.length + 2} returning id, branch_name, title, description, category, dealer_name, location, instructor, target_audience, manager_name, start_at, end_at, is_all_day, created_by, created_at`,
+      `update ${schema}.schedules set ${fields.join(", ")} where id = $${fields.length + 1} and branch_name = $${fields.length + 2} returning id, branch_name, title, description, category, dealer_name, location, instructor, target_audience, manager_name, start_at, end_at, is_all_day, created_by, created_at`,
       [...values, id, branchName],
     );
     return rows[0] ?? null;
@@ -257,7 +261,7 @@ export async function updateSchedule(params: {
 
     if (legacyFields.length === 0) {
       const rows = await query<LegacyRow>(
-        "select id, branch_name, title, description, category, start_at, end_at, is_all_day, created_by, created_at from public.schedules where id = $1 and branch_name = $2",
+        `select id, branch_name, title, description, category, start_at, end_at, is_all_day, created_by, created_at from ${schema}.schedules where id = $1 and branch_name = $2`,
         [id, branchName],
       );
       const r = rows[0];
@@ -265,7 +269,7 @@ export async function updateSchedule(params: {
       return { ...r, category: LEGACY_TO_CATEGORY[r.category], dealer_name: null, location: null, instructor: null, target_audience: null, manager_name: null };
     }
     const rows = await query<LegacyRow>(
-      `update public.schedules set ${legacyFields.join(", ")} where id = $${legacyFields.length + 1} and branch_name = $${legacyFields.length + 2} returning id, branch_name, title, description, category, start_at, end_at, is_all_day, created_by, created_at`,
+      `update ${schema}.schedules set ${legacyFields.join(", ")} where id = $${legacyFields.length + 1} and branch_name = $${legacyFields.length + 2} returning id, branch_name, title, description, category, start_at, end_at, is_all_day, created_by, created_at`,
       [...legacyValues, id, branchName],
     );
     const r = rows[0];
@@ -286,8 +290,9 @@ export async function deleteSchedule(params: {
   branchName: string;
 }): Promise<void> {
   const { id, branchName } = params;
+  const schema = (await getTenantSchemaForBranch(branchName)) ?? "public";
   await query(
-    "delete from public.schedules where id = $1 and branch_name = $2",
+    `delete from ${schema}.schedules where id = $1 and branch_name = $2`,
     [id, branchName],
   );
 }

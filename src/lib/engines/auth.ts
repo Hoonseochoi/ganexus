@@ -10,6 +10,7 @@ type ProfileRow = {
   phone_number: string | null;
   is_approved: boolean;
   role: "admin" | "manager" | "agent" | null;
+  tenant_schema?: string | null;
 };
 
 type AuthUserRow = {

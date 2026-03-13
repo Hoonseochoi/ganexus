@@ -101,6 +101,13 @@ create table if not exists public.notice_reads (
   unique(notice_id, profile_id)
 );
 
+-- 관리자 회원가입용 프로필 확장 (현재 회사, 이메일)
+alter table if exists public.profiles add column if not exists company text;
+alter table if exists public.profiles add column if not exists email text;
+
+-- 관리자별 전용 스키마(테이블) 라우팅: 해당 지점 데이터가 저장된 스키마명
+alter table if exists public.profiles add column if not exists tenant_schema text;
+
 -- RLS 는 Supabase 의 auth.uid() 대신
 -- 애플리케이션 레이어(Next.js)에서 역할/승인 상태를 체크하는 방식으로 처리한다.
 

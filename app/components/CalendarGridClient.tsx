@@ -143,7 +143,11 @@ export default function CalendarGridClient({
             dayColor = "text-blue-500";
           }
 
-          const isSelected = cell.dateISO === selectedDateStr;
+          const isSelected =
+            cell.day !== null &&
+            cell.dateISO != null &&
+            selectedDateStr != null &&
+            cell.dateISO === selectedDateStr;
           const isTodayHighlight =
             cell.isToday && (!selectedDateStr || selectedDateStr === todayStr);
           const isHighlight = isSelected || isTodayHighlight;
