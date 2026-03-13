@@ -1,10 +1,10 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { EclipseButton } from "@/app/components/ui/EclipseButton";
 
-export default function LoginPage() {
+function AdminLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loginId, setLoginId] = useState("");
@@ -200,6 +200,27 @@ export default function LoginPage() {
         ) : null}
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen flex items-center justify-center bg-background-light px-4 py-8">
+          <div className="w-full max-w-md mx-auto px-6 py-8 rounded-2xl bg-white border border-slate-200 shadow-sm animate-pulse">
+            <div className="h-16 bg-slate-100 rounded mb-6" />
+            <div className="space-y-4">
+              <div className="h-10 bg-slate-100 rounded" />
+              <div className="h-10 bg-slate-100 rounded" />
+              <div className="h-11 bg-slate-100 rounded mt-2" />
+            </div>
+          </div>
+        </main>
+      }
+    >
+      <AdminLoginForm />
+    </Suspense>
   );
 }
 
