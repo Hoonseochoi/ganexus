@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AdminPageHeader, ADMIN_ERROR_CLASS } from "../_components/AdminPageHeader";
+import { EclipseButton } from "@/app/components/ui/EclipseButton";
 
 type PendingAgent = {
   id: string;
@@ -19,6 +20,7 @@ export default function AdminApprovalsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actingId, setActingId] = useState<string | null>(null);
+  const [managerCodeByAgent, setManagerCodeByAgent] = useState<Record<string, string>>({});
 
   const load = async () => {
     setError(null);
@@ -45,11 +47,16 @@ export default function AdminApprovalsPage() {
   const handleAction = async (profileId: string, action: "approve" | "reject") => {
     setActingId(profileId);
     setError(null);
+    const managerCode = (managerCodeByAgent[profileId] ?? "").trim();
     try {
       const res = await fetch("/api/admin/approvals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profileId, action }),
+        body: JSON.stringify({
+          profileId,
+          action,
+          ...(managerCode !== "" ? { managerCode } : {}),
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -57,6 +64,11 @@ export default function AdminApprovalsPage() {
         return;
       }
       setAgents((prev) => prev.filter((a) => a.id !== profileId));
+      setManagerCodeByAgent((prev) => {
+        const next = { ...prev };
+        delete next[profileId];
+        return next;
+      });
     } catch {
       setError("네트워크 오류로 처리에 실패했습니다.");
     } finally {
@@ -126,23 +138,38 @@ export default function AdminApprovalsPage() {
                       </p>
                     )}
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
-                    <button
+                  <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0 items-stretch sm:items-center">
+                    <input
+                      type="text"
+                      placeholder="매니저 코드 (매니저로 승인 시)"
+                      value={managerCodeByAgent[a.id] ?? ""}
+                      onChange={(e) =>
+                        setManagerCodeByAgent((prev) => ({
+                          ...prev,
+                          [a.id]: e.target.value,
+                        }))
+                      }
+                      className="w-full sm:w-44 px-2 py-1.5 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary/30"
+                    />
+                    <div className="flex gap-2">
+                    <EclipseButton
                       type="button"
                       disabled={actingId !== null}
+                      isLoading={actingId === a.id}
+                      text={actingId === a.id ? "처리 중..." : "승인"}
+                      variant="primary"
+                      size="sm"
                       onClick={() => handleAction(a.id, "approve")}
-                      className="rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-semibold px-3 py-1.5 transition disabled:opacity-60"
-                    >
-                      {actingId === a.id ? "처리 중..." : "승인"}
-                    </button>
-                    <button
+                    />
+                    <EclipseButton
                       type="button"
                       disabled={actingId !== null}
+                      text="거절"
+                      variant="destructive"
+                      size="sm"
                       onClick={() => handleAction(a.id, "reject")}
-                      className="rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 text-sm font-medium px-3 py-1.5 transition disabled:opacity-60"
-                    >
-                      거절
-                    </button>
+                    />
+                    </div>
                   </div>
                 </div>
               ))

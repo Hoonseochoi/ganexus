@@ -57,27 +57,40 @@ export async function POST(req: NextRequest) {
   const body = (await req.json().catch(() => ({}))) as {
     title?: string;
     description?: string | null;
-    category?: "education" | "vacation" | "hq" | "etc";
+    category?: "dealer" | "internal" | "personal" | "leave" | "etc";
     startAt?: string;
     endAt?: string;
     isAllDay?: boolean;
+    dealerName?: string | null;
+    location?: string | null;
+    instructor?: string | null;
+    targetAudience?: string | null;
+    managerName?: string | null;
   };
 
-  if (!body.title || !body.startAt || !body.endAt) {
+  if (!body.title?.trim()) {
     return NextResponse.json(
-      { message: "제목과 시작/종료 시간을 모두 입력해주세요." },
+      { message: "제목을 입력해주세요." },
       { status: 400 },
     );
   }
 
+  const now = new Date();
+  const startAt = body.startAt ?? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0).toISOString();
+
   const created = await createSchedule({
     branchName: profile.branch_name,
-    title: body.title,
+    title: body.title.trim(),
     description: body.description ?? null,
     category: body.category,
-    startAt: body.startAt,
+    startAt,
     endAt: body.endAt,
     isAllDay: body.isAllDay ?? false,
+    dealerName: body.dealerName ?? null,
+    location: body.location ?? null,
+    instructor: body.instructor ?? null,
+    targetAudience: body.targetAudience ?? null,
+    managerName: body.managerName ?? null,
     createdByProfileId: profile.id,
   });
 

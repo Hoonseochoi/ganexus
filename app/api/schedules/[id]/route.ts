@@ -29,10 +29,15 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   const body = (await req.json().catch(() => ({}))) as {
     title?: string;
     description?: string | null;
-    category?: "education" | "vacation" | "hq" | "etc";
+    category?: "dealer" | "internal" | "personal" | "leave" | "etc";
     startAt?: string;
     endAt?: string;
     isAllDay?: boolean;
+    dealerName?: string | null;
+    location?: string | null;
+    instructor?: string | null;
+    targetAudience?: string | null;
+    managerName?: string | null;
   };
 
   const updated = await updateSchedule({
@@ -44,6 +49,11 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     startAt: body.startAt,
     endAt: body.endAt,
     isAllDay: body.isAllDay,
+    dealerName: body.dealerName,
+    location: body.location,
+    instructor: body.instructor,
+    targetAudience: body.targetAudience,
+    managerName: body.managerName,
   });
 
   if (!updated) {

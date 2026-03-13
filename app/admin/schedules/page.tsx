@@ -2,12 +2,13 @@
 
 import { useEffect, useState, FormEvent } from "react";
 import { AdminPageHeader, ADMIN_ERROR_CLASS } from "../_components/AdminPageHeader";
+import { EclipseButton } from "@/app/components/ui/EclipseButton";
 
 type Schedule = {
   id: string;
   title: string;
   description: string | null;
-  category: "education" | "vacation" | "hq" | "etc";
+  category: "dealer" | "internal" | "personal" | "leave" | "etc";
   start_at: string;
   end_at: string;
   is_all_day: boolean;
@@ -21,13 +22,24 @@ export default function AdminSchedulesPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const CATEGORIES: { value: Schedule["category"]; label: string }[] = [
+    { value: "dealer", label: "대리점일정" },
+    { value: "internal", label: "사내일정" },
+    { value: "personal", label: "개인" },
+    { value: "leave", label: "월차" },
+    { value: "etc", label: "기타" },
+  ];
+
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [category, setCategory] = useState<Schedule["category"]>("etc");
-  const [allDay, setAllDay] = useState(false);
+  const [startTime, setStartTime] = useState(""); // 대리점 '교육 시작 시간'용
+  const [category, setCategory] = useState<Schedule["category"]>("dealer");
   const [description, setDescription] = useState("");
+  const [dealerName, setDealerName] = useState("");
+  const [location, setLocation] = useState("");
+  const [instructor, setInstructor] = useState("");
+  const [targetAudience, setTargetAudience] = useState("");
+  const [managerName, setManagerName] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -56,17 +68,19 @@ export default function AdminSchedulesPage() {
     setError(null);
     setSuccess(null);
 
-    if (!title || !date || (!allDay && (!startTime || !endTime))) {
-      setError("제목과 날짜, 시간(또는 종일 여부)을 입력해주세요.");
+    if (!title.trim()) {
+      setError("제목을 입력해주세요.");
       return;
     }
 
-    const startAt = allDay
-      ? new Date(date + "T00:00:00").toISOString()
-      : new Date(`${date}T${startTime}:00`).toISOString();
-    const endAt = allDay
-      ? new Date(date + "T23:59:59").toISOString()
-      : new Date(`${date}T${endTime}:00`).toISOString();
+    let startAt: string | undefined;
+    if (date) {
+      if (startTime) {
+        startAt = new Date(`${date}T${startTime}:00`).toISOString();
+      } else {
+        startAt = new Date(date + "T00:00:00").toISOString();
+      }
+    }
 
     setSubmitting(true);
     try {
@@ -74,12 +88,15 @@ export default function AdminSchedulesPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title,
+          title: title.trim(),
           description: description || null,
           category,
           startAt,
-          endAt,
-          isAllDay: allDay,
+          dealerName: dealerName || null,
+          location: location || null,
+          instructor: instructor || null,
+          targetAudience: targetAudience || null,
+          managerName: managerName || null,
         }),
       });
       const data = await res.json();
@@ -96,9 +113,12 @@ export default function AdminSchedulesPage() {
       setDescription("");
       setDate("");
       setStartTime("");
-      setEndTime("");
-      setAllDay(false);
-      setCategory("etc");
+      setCategory("dealer");
+      setDealerName("");
+      setLocation("");
+      setInstructor("");
+      setTargetAudience("");
+      setManagerName("");
     } catch {
       setError("네트워크 오류로 일정 생성에 실패했습니다.");
     } finally {
@@ -147,17 +167,62 @@ export default function AdminSchedulesPage() {
             onSubmit={handleCreate}
             className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm"
           >
+            <div className="md:col-span-2">
+              <span className="text-xs text-brand-gray block mb-2">카테고리</span>
+              <div className="flex flex-wrap gap-2">
+                {CATEGORIES.map((c) => (
+                  <label
+                    key={c.value}
+                    className="inline-flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <input
+                      type="radio"
+                      name="category"
+                      value={c.value}
+                      checked={category === c.value}
+                      onChange={() => setCategory(c.value)}
+                      className="sr-only"
+                    />
+                    <span
+                      className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                        category === c.value
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-slate-200 bg-white text-brand-gray hover:border-slate-300"
+                      }`}
+                    >
+                      {c.label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
             <div className="space-y-1.5 md:col-span-2">
-              <label className="text-xs text-brand-gray">제목</label>
+              <label className="text-xs text-brand-gray flex items-center gap-1">
+                <span>
+                  {category === "dealer"
+                    ? "대리점명"
+                    : category === "leave"
+                    ? "매니저명"
+                    : "제목"}
+                </span>
+                <span className="text-[10px] text-red-500 font-medium">**필수</span>
+              </label>
               <input
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="예: GA4 교육 / 본사 방문 / 팀 회의"
+                placeholder={
+                  category === "dealer"
+                    ? "예: GA 대리점"
+                    : "예: GA4 교육 / 본사 방문 / 팀 회의"
+                }
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs text-brand-gray">날짜</label>
+              <label className="text-xs text-brand-gray flex items-center gap-1">
+                <span>날짜</span>
+                <span className="text-[10px] text-red-500 font-medium">**필수</span>
+              </label>
               <input
                 type="date"
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
@@ -165,58 +230,72 @@ export default function AdminSchedulesPage() {
                 onChange={(e) => setDate(e.target.value)}
               />
             </div>
-            <div className="space-y-1.5">
-              <label className="text-xs text-brand-gray">종일 여부</label>
-              <div className="flex items-center gap-2">
-                <input
-                  id="all-day"
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
-                  checked={allDay}
-                  onChange={(e) => setAllDay(e.target.checked)}
-                />
-                <label htmlFor="all-day" className="text-xs text-brand-gray">
-                  종일 일정
-                </label>
-              </div>
-            </div>
-            {!allDay && (
+            {/* 카테고리별 추가 필드 */}
+            {category === "dealer" && (
               <>
                 <div className="space-y-1.5">
-                  <label className="text-xs text-brand-gray">시작 시간</label>
+                  <label className="text-xs text-brand-gray">교육 시작 시간 (텍스트)</label>
                   <input
-                    type="time"
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
                     value={startTime}
                     onChange={(e) => setStartTime(e.target.value)}
+                    placeholder="예: 14:00"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs text-brand-gray">종료 시간</label>
+                  <label className="text-xs text-brand-gray">장소</label>
                   <input
-                    type="time"
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="예: 본사 교육장"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs text-brand-gray">교육자</label>
+                  <input
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
+                    value={instructor}
+                    onChange={(e) => setInstructor(e.target.value)}
+                    placeholder="예: 홍길동 매니저"
                   />
                 </div>
               </>
             )}
-            <div className="space-y-1.5">
-              <label className="text-xs text-brand-gray">카테고리</label>
-              <select
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
-                value={category}
-                onChange={(e) =>
-                  setCategory(e.target.value as Schedule["category"])
-                }
-              >
-                <option value="education">교육</option>
-                <option value="vacation">휴가</option>
-                <option value="hq">본사 일정</option>
-                <option value="etc">기타</option>
-              </select>
-            </div>
+            {category === "internal" && (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-xs text-brand-gray">대상자</label>
+                  <input
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
+                    value={targetAudience}
+                    onChange={(e) => setTargetAudience(e.target.value)}
+                    placeholder="예: 영업팀 전체"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs text-brand-gray">장소</label>
+                  <input
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="예: 회의실 A"
+                  />
+                </div>
+              </>
+            )}
+            {category === "personal" && (
+              <div className="space-y-1.5">
+                <label className="text-xs text-brand-gray">장소 (선택)</label>
+                <input
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="예: 외근 위치 등"
+                />
+              </div>
+            )}
+            {category === "leave" && null}
             <div className="space-y-1.5 md:col-span-2">
               <label className="text-xs text-brand-gray">메모 (선택)</label>
               <textarea
@@ -227,13 +306,13 @@ export default function AdminSchedulesPage() {
               />
             </div>
             <div className="md:col-span-2 flex justify-end">
-              <button
+              <EclipseButton
                 type="submit"
                 disabled={submitting}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-semibold px-4 py-2.5 transition disabled:opacity-60"
-              >
-                {submitting ? "등록 중..." : "+ 일정 등록"}
-              </button>
+                isLoading={submitting}
+                text={submitting ? "등록 중..." : "+ 일정 등록"}
+                variant="primary"
+              />
             </div>
           </form>
         </section>
@@ -288,13 +367,14 @@ export default function AdminSchedulesPage() {
                       </p>
                     )}
                   </div>
-                  <button
+                  <EclipseButton
                     type="button"
+                    text="삭제"
+                    variant="destructive"
+                    size="sm"
                     onClick={() => handleDelete(s.id)}
-                    className="text-[11px] text-rose-600 hover:text-rose-700 border border-rose-200 rounded-lg px-2 py-1 flex-shrink-0"
-                  >
-                    삭제
-                  </button>
+                    className="flex-shrink-0"
+                  />
                 </div>
               ))
             )}

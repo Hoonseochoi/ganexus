@@ -1,9 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-
-const BACK_BUTTON_CLASS =
-  "inline-flex h-7 w-7 items-center justify-center rounded-full border border-primary/40 text-primary bg-primary/5 hover:bg-primary hover:text-white text-sm transition-colors";
+import { EclipseButton } from "@/app/components/ui/EclipseButton";
 
 export function AdminPageHeader({
   title,
@@ -18,14 +16,16 @@ export function AdminPageHeader({
     <header className="mb-6 flex items-center justify-between gap-4">
       <div className="min-w-0">
         <div className="mb-1 flex items-center gap-2">
-          <button
+          <EclipseButton
             type="button"
+            variant="outline"
+            size="icon"
             onClick={() => window.history.back()}
-            className={BACK_BUTTON_CLASS}
             aria-label="뒤로가기"
+            className="!h-8 !w-8 !min-w-0 !p-0 text-sm"
           >
             ←
-          </button>
+          </EclipseButton>
           <p className="text-xs text-brand-gray">GA NEXUS 관리자 설정</p>
         </div>
         <h1 className="text-xl font-semibold text-brand-black">{title}</h1>

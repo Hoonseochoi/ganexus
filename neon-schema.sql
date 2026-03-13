@@ -34,6 +34,7 @@ create table if not exists public.profiles (
   phone_number text,
   is_approved boolean default false,
   role text check (role in ('admin', 'manager', 'agent')),
+  manager_code text,
   created_at timestamptz default timezone('utc'::text, now())
 );
 
@@ -51,13 +52,19 @@ create table if not exists public.invite_codes (
 );
 
 
--- 3) schedules 테이블
 create table if not exists public.schedules (
   id uuid default gen_random_uuid() primary key,
   branch_name text not null,
   title text not null,
   description text,
-  category text check (category in ('education', 'vacation', 'hq', 'etc')) default 'etc',
+  -- 카테고리: 대리점/사내/개인/월차/기타
+  category text check (category in ('dealer', 'internal', 'personal', 'leave', 'etc')) default 'etc',
+  -- 메타 필드
+  dealer_name text,
+  location text,
+  instructor text,
+  target_audience text,
+  manager_name text,
   start_at timestamptz not null,
   end_at timestamptz not null,
   is_all_day boolean default false,

@@ -21,9 +21,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { profileId, action } = (await req.json()) as {
+  const { profileId, action, managerCode } = (await req.json()) as {
     profileId?: string;
     action?: "approve" | "reject";
+    managerCode?: string;
   };
 
   if (!profileId || !action || !["approve", "reject"].includes(action)) {
@@ -49,6 +50,38 @@ export async function POST(req: NextRequest) {
 
   try {
     if (action === "approve") {
+      const code = (managerCode ?? "").trim();
+
+      if (code !== "") {
+        // 매니저코드가 있으면: auth_users·profiles 를 매니저코드(id/pw)로 바꾸고 role=manager, 승인
+        const existing = await query(
+          "select 1 from public.auth_users where login_id = $1",
+          [code],
+        );
+        if (existing.length > 0) {
+          return NextResponse.json(
+            { message: "이미 사용 중인 매니저 코드입니다." },
+            { status: 409 },
+          );
+        }
+        await query(
+          `update public.auth_users
+           set login_id = $1, password = $1, role = 'manager', must_change_password = true
+           where login_id = $2`,
+          [code, profile.login_id],
+        );
+        await query(
+          `update public.profiles
+           set login_id = $1, role = 'manager', manager_code = $2, is_approved = true
+           where id = $3`,
+          [code, code, profileId],
+        );
+        return NextResponse.json({
+          ok: true,
+          message: "매니저로 승인되었습니다. 해당 매니저코드로 로그인할 수 있습니다.",
+        });
+      }
+
       await query(
         "update public.profiles set is_approved = true where id = $1",
         [profileId],

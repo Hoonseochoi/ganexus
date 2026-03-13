@@ -25,6 +25,13 @@ export function isRelationNotFound(err: unknown): boolean {
   );
 }
 
+/** Postgres: column does not exist (메타 컬럼 미추가 시) */
+export function isColumnNotFound(err: unknown): boolean {
+  if (err === null || typeof err !== "object" || !("message" in err)) return false;
+  const msg = String((err as { message?: unknown }).message ?? "");
+  return msg.includes("does not exist") || (err as { code?: string }).code === "42703";
+}
+
 export async function query<T extends QueryResultRow = QueryResultRow>(
   text: string,
   params?: unknown[]

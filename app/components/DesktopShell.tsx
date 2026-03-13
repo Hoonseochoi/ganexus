@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, createContext, useContext } from "react";
+import { EclipseButton } from "@/app/components/ui/EclipseButton";
 
 type ShellContextValue = {
   leftOpen: boolean;
@@ -18,16 +19,20 @@ export function DesktopShellHamburger() {
   const ctx = useDesktopShell();
   if (!ctx) return null;
   return (
-    <button
+    <EclipseButton
       type="button"
+      variant="ghost"
+      size="icon"
       onClick={() => ctx.setLeftOpen(!ctx.leftOpen)}
-      className="flex flex-col justify-center gap-1 w-8 h-8 rounded-lg border border-slate-200 bg-white shadow-sm hover:bg-slate-50 flex-shrink-0"
       aria-label={ctx.leftOpen ? "메뉴 닫기" : "메뉴 열기"}
+      className="!h-9 !w-9 !min-w-0 !p-0 !normal-case !tracking-normal"
     >
-      <span className="block w-4 h-0.5 bg-slate-600 mx-auto rounded" />
-      <span className="block w-4 h-0.5 bg-slate-600 mx-auto rounded" />
-      <span className="block w-4 h-0.5 bg-slate-600 mx-auto rounded" />
-    </button>
+      <span className="flex flex-col justify-center gap-1" aria-hidden>
+        <span className="block w-4 h-0.5 bg-slate-600 mx-auto rounded" />
+        <span className="block w-4 h-0.5 bg-slate-600 mx-auto rounded" />
+        <span className="block w-4 h-0.5 bg-slate-600 mx-auto rounded" />
+      </span>
+    </EclipseButton>
   );
 }
 

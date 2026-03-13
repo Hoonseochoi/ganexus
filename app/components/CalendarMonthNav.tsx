@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { EclipseButton } from "@/app/components/ui/EclipseButton";
 
 type Props = {
   year: number;
@@ -32,30 +33,35 @@ export default function CalendarMonthNav({ year, month }: Props) {
 
   return (
     <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-200">
-      <button
+      <EclipseButton
         type="button"
+        variant="ghost"
+        size="icon"
         onClick={() => go(prevYear, prevMonth)}
-        className="p-1 hover:bg-slate-100 rounded transition-colors"
         aria-label="이전 달"
+        className="!h-8 !w-8 !min-w-0 !p-0"
       >
         {"<"}
-      </button>
-      <button
+      </EclipseButton>
+      <EclipseButton
         type="button"
+        variant="ghost"
+        size="sm"
+        text={label}
         onClick={goToday}
-        className="px-3 text-xs font-bold text-brand-black min-w-[3.5rem] hover:bg-slate-100 rounded transition-colors"
         aria-label="현재 달로 이동"
-      >
-        {label}
-      </button>
-      <button
+        className="min-w-[3.5rem] !normal-case !tracking-normal font-calendar"
+      />
+      <EclipseButton
         type="button"
+        variant="ghost"
+        size="icon"
         onClick={() => go(nextYear, nextMonth)}
-        className="p-1 hover:bg-slate-100 rounded transition-colors"
         aria-label="다음 달"
+        className="!h-8 !w-8 !min-w-0 !p-0"
       >
         {">"}
-      </button>
+      </EclipseButton>
     </div>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback, FormEvent } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { EclipseButton } from "@/app/components/ui/EclipseButton";
 
 type ScheduleItem = {
   id: string;
@@ -10,7 +11,12 @@ type ScheduleItem = {
   start_at: string;
   end_at: string;
   is_all_day: boolean;
-  category: string;
+  category: "dealer" | "internal" | "personal" | "leave" | "etc";
+  dealer_name?: string | null;
+  location?: string | null;
+  instructor?: string | null;
+  target_audience?: string | null;
+  manager_name?: string | null;
 };
 
 type MemoItem = {
@@ -57,10 +63,12 @@ export default function RightPanel({
   todaySchedules,
   selectedDateStr,
   isAdmin,
+  canAddSchedule,
 }: {
   todaySchedules: ScheduleItem[];
   selectedDateStr?: string | null;
   isAdmin: boolean;
+  canAddSchedule?: boolean;
 }) {
   const [notice, setNotice] = useState<NoticeItem>(null);
   const [readByMe, setReadByMe] = useState(false);
@@ -71,6 +79,8 @@ export default function RightPanel({
   const [sendingMemo, setSendingMemo] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedSchedule, setSelectedSchedule] = useState<ScheduleItem | null>(null);
+  const router = useRouter();
 
   const todayStr = new Date().toISOString().slice(0, 10);
 
@@ -142,13 +152,15 @@ export default function RightPanel({
       <div className="p-4 flex flex-col h-full overflow-y-auto">
         {/* 우측 상단: 일정추가 위, 공지사항 아래 (세로 배치) */}
         <div className="mb-4 flex flex-col gap-2">
-          {isAdmin && (
-            <Link
-              href="/admin/schedules"
-              className="w-full text-center py-1.5 px-2.5 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 transition-colors"
-            >
-              일정추가
-            </Link>
+          {canAddSchedule && (
+            <EclipseButton
+              type="button"
+              variant="primary"
+              size="sm"
+              text="일정추가"
+              className="w-full"
+              onClick={() => router.push("/admin/schedules")}
+            />
           )}
           <div className="flex flex-col min-w-0">
             <button
@@ -191,43 +203,76 @@ export default function RightPanel({
               오늘 일정이 없습니다.
             </p>
           ) : (
-            todaySchedules.map((s) => (
-              <div
-                key={s.id}
-                draggable={isAdmin}
-                onDragStart={
-                  isAdmin
-                    ? (e) => {
-                        const payload = JSON.stringify({
-                          id: s.id,
-                          start_at: s.start_at,
-                          end_at: s.end_at,
-                          is_all_day: s.is_all_day,
-                        });
-                        e.dataTransfer.setData("application/json", payload);
-                        e.dataTransfer.setData("text/plain", payload);
-                        e.dataTransfer.effectAllowed = "move";
-                        e.dataTransfer.dropEffect = "move";
-                      }
-                    : undefined
-                }
-                className={`p-3 rounded-lg border border-slate-100 bg-primary/5 border-l-4 border-primary ${isAdmin ? "cursor-grab active:cursor-grabbing" : ""}`}
-              >
-                <p className="text-sm font-semibold text-brand-black">
-                  {s.title}
-                </p>
-                <p className="text-xs text-brand-gray mt-0.5">
-                  {s.is_all_day
-                    ? "종일"
-                    : `${formatTime(s.start_at)} - ${formatTime(s.end_at)}`}
-                </p>
-                {s.description && (
-                  <p className="text-xs text-slate-600 mt-1 line-clamp-2">
-                    {s.description}
+            todaySchedules.map((s) => {
+              const isDealer = s.category === "dealer";
+              const isInternal = s.category === "internal";
+              const isPersonal = s.category === "personal";
+              const isLeave = s.category === "leave";
+
+              const subParts: string[] = [];
+              if (isDealer && s.instructor) subParts.push(`교육자 ${s.instructor}`);
+              if (isInternal && s.target_audience)
+                subParts.push(`대상자 ${s.target_audience}`);
+              if (isPersonal && s.location) subParts.push(s.location);
+              if (isLeave) subParts.push("월차");
+
+              if (s.is_all_day) {
+                subParts.push("종일");
+              } else {
+                subParts.push(`${formatTime(s.start_at)} - ${formatTime(s.end_at)}`);
+              }
+
+              const subText = subParts.join(" · ");
+
+              const colorClass =
+                s.category === "dealer"
+                  ? "border-blue-500 bg-blue-50"
+                  : s.category === "internal"
+                  ? "border-purple-500 bg-purple-50"
+                  : s.category === "personal"
+                  ? "border-emerald-500 bg-emerald-50"
+                  : s.category === "leave"
+                  ? "border-amber-500 bg-amber-50"
+                  : "border-slate-200 bg-slate-50";
+
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  draggable={isAdmin}
+                  onDragStart={
+                    isAdmin
+                      ? (e) => {
+                          const payload = JSON.stringify({
+                            id: s.id,
+                            start_at: s.start_at,
+                            end_at: s.end_at,
+                            is_all_day: s.is_all_day,
+                          });
+                          e.dataTransfer.setData("application/json", payload);
+                          e.dataTransfer.setData("text/plain", payload);
+                          e.dataTransfer.effectAllowed = "move";
+                          e.dataTransfer.dropEffect = "move";
+                        }
+                      : undefined
+                  }
+                  className={`w-full text-left p-3 rounded-lg border border-slate-100 border-l-4 ${colorClass} ${
+                    isAdmin ? "cursor-grab active:cursor-grabbing" : ""
+                  }`}
+                  onClick={() => setSelectedSchedule(s)}
+                >
+                  <p className="text-sm font-semibold text-brand-black">
+                    {s.title}
                   </p>
-                )}
-              </div>
-            ))
+                  <p className="text-xs text-brand-gray mt-0.5">{subText}</p>
+                  {s.description && (
+                    <p className="text-xs text-slate-600 mt-1 line-clamp-2">
+                      {s.description}
+                    </p>
+                  )}
+                </button>
+              );
+            })
           )}
         </div>
 
@@ -247,13 +292,14 @@ export default function RightPanel({
             rows={2}
             disabled={sendingMemo}
           />
-          <button
+          <EclipseButton
             type="submit"
             disabled={sendingMemo || !memoContent.trim()}
-            className="mt-1 w-full py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {sendingMemo ? "저장 중..." : "작성"}
-          </button>
+            isLoading={sendingMemo}
+            text={sendingMemo ? "저장 중..." : "작성"}
+            variant="primary"
+            className="mt-1 w-full"
+          />
         </form>
         <div className="space-y-2 overflow-y-auto min-h-0">
           {loadingMemos ? (
@@ -285,7 +331,125 @@ export default function RightPanel({
           }}
         />
       )}
+      {selectedSchedule && (
+        <ScheduleDetailPopup
+          schedule={selectedSchedule}
+          onClose={() => setSelectedSchedule(null)}
+        />
+      )}
     </aside>
+  );
+}
+
+function ScheduleDetailPopup({
+  schedule,
+  onClose,
+}: {
+  schedule: ScheduleItem;
+  onClose: () => void;
+}) {
+  const isDealer = schedule.category === "dealer";
+  const isInternal = schedule.category === "internal";
+  const isPersonal = schedule.category === "personal";
+  const isLeave = schedule.category === "leave";
+
+  return (
+    <div
+      className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/40"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-bold text-brand-black">
+              {schedule.title}
+            </h2>
+            <EclipseButton
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              aria-label="일정 상세 닫기"
+              className="!h-8 !w-8 !min-w-0 !p-0"
+            >
+              ×
+            </EclipseButton>
+          </div>
+          <p className="text-xs text-brand-gray mb-3">
+            {formatDateTime(schedule.start_at)}
+            {schedule.is_all_day ? (
+              " · 종일"
+            ) : (
+              <>
+                {" "}
+                ~ {formatDateTime(schedule.end_at)}
+              </>
+            )}
+          </p>
+          <div className="space-y-1.5 text-sm text-slate-800">
+            {isDealer && (
+              <>
+                {schedule.instructor && (
+                  <p>
+                    <span className="text-brand-gray text-xs mr-1">
+                      교육자
+                    </span>
+                    {schedule.instructor}
+                  </p>
+                )}
+                {schedule.location && (
+                  <p>
+                    <span className="text-brand-gray text-xs mr-1">
+                      장소
+                    </span>
+                    {schedule.location}
+                  </p>
+                )}
+              </>
+            )}
+            {isInternal && (
+              <>
+                {schedule.target_audience && (
+                  <p>
+                    <span className="text-brand-gray text-xs mr-1">
+                      대상자
+                    </span>
+                    {schedule.target_audience}
+                  </p>
+                )}
+                {schedule.location && (
+                  <p>
+                    <span className="text-brand-gray text-xs mr-1">
+                      장소
+                    </span>
+                    {schedule.location}
+                  </p>
+                )}
+              </>
+            )}
+            {isPersonal && schedule.location && (
+              <p>
+                <span className="text-brand-gray text-xs mr-1">장소</span>
+                {schedule.location}
+              </p>
+            )}
+            {isLeave && (
+              <p className="text-xs text-amber-700">
+                {schedule.title} 매니저님의 월차 일정입니다.
+              </p>
+            )}
+          </div>
+          {schedule.description && (
+            <div className="mt-4 pt-3 border-t border-slate-100 text-sm text-slate-700 whitespace-pre-wrap">
+              {schedule.description}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -433,14 +597,16 @@ function NoticePopup({
             <h2 className="text-lg font-bold text-brand-black">
               {showForm ? (mode === "create" ? "공지 작성" : "공지 수정") : "공지사항"}
             </h2>
-            <button
+            <EclipseButton
               type="button"
+              variant="ghost"
+              size="icon"
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-slate-100 text-slate-500"
               aria-label="닫기"
+              className="!h-8 !w-8 !min-w-0 !p-0"
             >
               ×
-            </button>
+            </EclipseButton>
           </div>
 
           {error && (
@@ -491,31 +657,32 @@ function NoticePopup({
                     alt="첨부"
                     className="max-h-40 rounded-lg border border-slate-200"
                   />
-                  <button
+                  <EclipseButton
                     type="button"
+                    variant="destructive"
+                    size="sm"
+                    text="이미지 제거"
                     onClick={() => setImageUrl("")}
-                    className="mt-1 text-xs text-rose-600 hover:underline"
-                  >
-                    이미지 제거
-                  </button>
+                    className="mt-1"
+                  />
                 </div>
               )}
               <div className="flex gap-2 mt-4">
-                <button
+                <EclipseButton
                   type="button"
                   onClick={handleSave}
                   disabled={saving || !title.trim()}
-                  className="flex-1 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50"
-                >
-                  {saving ? "저장 중..." : "저장"}
-                </button>
-                <button
+                  isLoading={saving}
+                  text={saving ? "저장 중..." : "저장"}
+                  variant="primary"
+                  className="flex-1"
+                />
+                <EclipseButton
                   type="button"
+                  variant="outline"
+                  text="취소"
                   onClick={() => (notice ? setMode("view") : onClose())}
-                  className="px-4 py-2.5 border border-slate-200 rounded-lg text-slate-700"
-                >
-                  취소
-                </button>
+                />
               </div>
             </>
           ) : (
@@ -543,13 +710,14 @@ function NoticePopup({
                         확인한 사람
                       </p>
                       {reads.length > 0 && (
-                        <button
+                        <EclipseButton
                           type="button"
+                          variant="ghost"
+                          size="sm"
+                          text={readDropdown ? "접기" : "목록 보기"}
                           onClick={() => setReadDropdown((v) => !v)}
-                          className="text-xs text-primary hover:underline"
-                        >
-                          {readDropdown ? "접기" : "목록 보기"}
-                        </button>
+                          className="!normal-case !tracking-normal text-xs"
+                        />
                       )}
                     </div>
                     <div className="flex flex-wrap gap-1">
@@ -585,21 +753,19 @@ function NoticePopup({
                   </div>
 
                   <div className="flex gap-2">
-                    <button
+                    <EclipseButton
                       type="button"
+                      variant="outline"
+                      text="확인했어요"
                       onClick={handleConfirmRead}
-                      className="py-2 px-4 rounded-lg border border-primary text-primary font-medium hover:bg-primary/5"
-                    >
-                      확인했어요
-                    </button>
+                    />
                     {isAdmin && (
-                      <button
+                      <EclipseButton
                         type="button"
+                        variant="ghost"
+                        text="수정"
                         onClick={() => setMode("edit")}
-                        className="py-2 px-4 rounded-lg bg-slate-100 text-slate-700 font-medium hover:bg-slate-200"
-                      >
-                        수정
-                      </button>
+                      />
                     )}
                   </div>
                 </>

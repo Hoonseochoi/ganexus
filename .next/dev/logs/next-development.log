@@ -1,0 +1,1658 @@
+[00:00:01.092] Server  WARN    ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:01.242] Server  LOG     ✓ Ready in 876ms
+[00:00:02.397] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:09.924] Server  ERROR   (node:41840) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
+
+To prepare for this change:
+- If you want the current behavior, explicitly use 'sslmode=verify-full'
+- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
+
+See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[00:00:10.561] Server  ERROR   ⨯ error: relation "public.auth_users" does not exist
+[00:02:29.350] Server  ERROR   ⨯ error: relation "public.sessions" does not exist
+[00:02:33.574] Server  ERROR   ⨯ error: relation "public.sessions" does not exist
+[00:10:18.620] Server  LOG     ✓ Compiled in 50ms
+[00:13:00.657] Server  ERROR   ⨯ error: relation "public.profiles" does not exist
+[00:13:00.868] Server  ERROR   ⨯ error: relation "public.profiles" does not exist
+[00:13:04.925] Server  ERROR   ⨯ error: relation "public.profiles" does not exist
+[00:13:05.133] Server  ERROR   ⨯ error: relation "public.profiles" does not exist
+[00:13:06.371] Server  ERROR   ⨯ error: relation "public.profiles" does not exist
+[00:13:07.778] Server  ERROR   ⨯ error: relation "public.profiles" does not exist
+[00:17:01.995] Server  ERROR   [admin/invite-codes POST] error: relation "public.profiles" does not exist
+[00:17:53.331] Server  ERROR   ⨯ error: relation "public.profiles" does not exist
+[00:17:53.533] Server  ERROR   ⨯ error: relation "public.profiles" does not exist
+[00:19:04.443] Server  ERROR   ⨯ error: relation "public.profiles" does not exist
+[00:19:04.652] Server  ERROR   ⨯ error: relation "public.profiles" does not exist
+[00:19:16.530] Server  LOG     ✓ Compiled in 26ms
+[00:19:17.690] Server  ERROR   ⨯ error: relation "public.profiles" does not exist
+[00:23:20.914] Server  LOG     ✓ Compiled in 47ms
+[00:23:39.764] Server  LOG     ✓ Compiled in 40ms
+[00:25:15.881] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:25:17.478] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:26:26.998] Server  LOG     ✓ Compiled in 39ms
+[00:26:36.466] Server  LOG     ✓ Compiled in 34ms
+[00:30:26.960] Server  LOG     ✓ Compiled in 156ms
+[00:30:40.281] Server  LOG     ✓ Compiled in 91ms
+[00:44:19.978] Server  ERROR   ⨯ error: relation "public.schedules" does not exist
+[00:44:20.120] Browser ERROR   uncaughtError: error: relation "public.schedules" does not exist
+[00:47:53.877] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:50:17.567] Server  LOG     ✓ Compiled in 697ms
+[00:56:49.030] Server  LOG     ✓ Compiled in 79ms
+[00:58:04.554] Server  LOG     ✓ Compiled in 40ms
+[01:01:59.724] Server  ERROR   ⨯ ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState, FormEvent } from "react";
+  4 | import { useRouter } from "next/navigation";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function AdminBranchPage() {
+  8 |   const router = useRouter();
+
+
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:01:59.725] Server  ERROR   ⨯ ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState, FormEvent } from "react";
+  4 | import { useRouter } from "next/navigation";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function AdminBranchPage() {
+  8 |   const router = useRouter();
+
+
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:01:59.727] Server  ERROR   ⨯ ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState, FormEvent } from "react";
+  4 | import { useRouter } from "next/navigation";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function AdminBranchPage() {
+  8 |   const router = useRouter();
+
+
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:01:59.729] Server  ERROR   ⨯ ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState, FormEvent } from "react";
+  4 | import { useRouter } from "next/navigation";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function AdminBranchPage() {
+  8 |   const router = useRouter();
+
+
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:01:59.731] Server  ERROR   ⨯ ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState, FormEvent } from "react";
+  4 | import { useRouter } from "next/navigation";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function AdminBranchPage() {
+  8 |   const router = useRouter();
+
+
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:01:59.732] Server  ERROR   ⨯ ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState, FormEvent } from "react";
+  4 | import { useRouter } from "next/navigation";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function AdminBranchPage() {
+  8 |   const router = useRouter();
+
+
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:01:59.867] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState, FormEvent } from "react";
+  4 | import { useRouter } from "next/navigation";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function AdminBranchPage() {
+  8 |   const router = useRouter();
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[01:02:01.881] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState, FormEvent } from "react";
+  4 | import { useRouter } from "next/navigation";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function AdminBranchPage() {
+  8 |   const router = useRouter();
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[01:02:15.502] Server  ERROR   ⨯ ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState } from "react";
+  4 | import Link from "next/link";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | type PendingAgent = {
+  8 |   id: string;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:02:15.514] Server  ERROR   ⨯ ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState } from "react";
+  4 | import Link from "next/link";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | type PendingAgent = {
+  8 |   id: string;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:02:15.533] Server  ERROR   ⨯ ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState } from "react";
+  4 | import Link from "next/link";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | type PendingAgent = {
+  8 |   id: string;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:02:15.540] Server  ERROR   ⨯ ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState } from "react";
+  4 | import Link from "next/link";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | type PendingAgent = {
+  8 |   id: string;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:02:15.564] Server  ERROR   ⨯ ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState } from "react";
+  4 | import Link from "next/link";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | type PendingAgent = {
+  8 |   id: string;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:02:15.571] Server  ERROR   ⨯ ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState } from "react";
+  4 | import Link from "next/link";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | type PendingAgent = {
+  8 |   id: string;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[01:02:15.690] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState } from "react";
+  4 | import Link from "next/link";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | type PendingAgent = {
+  8 |   id: string;
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[01:02:15.690] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState, FormEvent } from "react";
+  4 | import { useRouter } from "next/navigation";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function AdminBranchPage() {
+  8 |   const router = useRouter();
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[01:02:15.927] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState } from "react";
+  4 | import Link from "next/link";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | type PendingAgent = {
+  8 |   id: string;
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[01:02:15.928] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState, FormEvent } from "react";
+  4 | import { useRouter } from "next/navigation";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function AdminBranchPage() {
+  8 |   const router = useRouter();
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[01:02:17.718] Server  LOG     ✓ Compiled in 96ms
+[01:02:17.912] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState } from "react";
+  4 | import Link from "next/link";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | type PendingAgent = {
+  8 |   id: string;
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[01:02:17.912] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState, FormEvent } from "react";
+  4 | import { useRouter } from "next/navigation";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function AdminBranchPage() {
+  8 |   const router = useRouter();
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[01:02:17.912] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState } from "react";
+  4 | import Link from "next/link";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | type PendingAgent = {
+  8 |   id: string;
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[01:02:17.912] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState, FormEvent } from "react";
+  4 | import { useRouter } from "next/navigation";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function AdminBranchPage() {
+  8 |   const router = useRouter();
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[01:02:19.796] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState } from "react";
+  4 | import Link from "next/link";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | type PendingAgent = {
+  8 |   id: string;
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[01:02:19.796] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState, FormEvent } from "react";
+  4 | import { useRouter } from "next/navigation";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function AdminBranchPage() {
+  8 |   const router = useRouter();
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[01:02:44.815] Server  LOG     ✓ Compiled in 266ms
+[01:02:44.906] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState } from "react";
+  4 | import Link from "next/link";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | type PendingAgent = {
+  8 |   id: string;
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[01:02:44.906] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState, FormEvent } from "react";
+  4 | import { useRouter } from "next/navigation";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function AdminBranchPage() {
+  8 |   const router = useRouter();
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[01:02:55.760] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState } from "react";
+  4 | import Link from "next/link";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | type PendingAgent = {
+  8 |   id: string;
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[01:02:55.760] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState, FormEvent } from "react";
+  4 | import { useRouter } from "next/navigation";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | export default function AdminBranchPage() {
+  8 |   const router = useRouter();
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/branch/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[01:03:02.560] Server  LOG     ✓ Compiled in 103ms
+[01:03:02.666] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx:5:1
+Module not found: Can't resolve './_components/AdminPageHeader'
+  3 | import { useEffect, useState } from "react";
+  4 | import Link from "next/link";
+> 5 | import { AdminPageHeader, ADMIN_ERROR_CLASS } from "./_components/AdminPageHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | type PendingAgent = {
+  8 |   id: string;
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[01:03:06.194] Server  LOG     ✓ Compiled in 117ms
+[01:04:09.416] Server  LOG     ✓ Compiled in 35ms
+[01:04:12.758] Server  LOG     ✓ Compiled in 29ms
+[01:04:21.846] Server  LOG     ✓ Compiled in 35ms
+[01:04:26.066] Server  LOG     ✓ Compiled in 44ms
+[01:21:59.793] Server  LOG     ✓ Compiled in 421ms
+[01:22:42.872] Server  LOG     ✓ Compiled in 270ms
+[01:23:54.247] Server  LOG     ✓ Compiled in 162ms
+[01:24:33.176] Server  LOG     ✓ Compiled in 30ms
+[01:24:54.863] Server  WARN    [notices] notices 테이블이 없습니다.
+[01:24:54.865] Server  WARN    [memos] branch_memos 테이블이 없어 빈 결과를 반환합니다.
+[01:24:55.101] Server  WARN    [notices] notices 테이블이 없습니다.
+[01:24:55.110] Server  WARN    [memos] branch_memos 테이블이 없어 빈 결과를 반환합니다.
+[01:24:55.333] Server  WARN    [notices] notices 테이블이 없습니다.
+[01:24:55.349] Server  WARN    [memos] branch_memos 테이블이 없어 빈 결과를 반환합니다.
+[01:24:55.573] Server  WARN    [notices] notices 테이블이 없습니다.
+[01:24:55.586] Server  WARN    [memos] branch_memos 테이블이 없어 빈 결과를 반환합니다.
+[01:25:03.396] Server  LOG     ✓ Compiled in 40ms
+[01:25:03.601] Server  WARN    [notices] notices 테이블이 없습니다.
+[01:25:03.602] Server  WARN    [memos] branch_memos 테이블이 없어 빈 결과를 반환합니다.
+[01:25:03.842] Server  WARN    [memos] branch_memos 테이블이 없어 빈 결과를 반환합니다.
+[01:25:03.844] Server  WARN    [notices] notices 테이블이 없습니다.
+[01:33:28.883] Server  LOG     ✓ Compiled in 81ms
+[01:33:36.299] Server  LOG     ✓ Compiled in 36ms
+[01:33:44.410] Server  LOG     ✓ Compiled in 54ms
+[01:35:38.282] Server  LOG     ✓ Compiled in 49ms
+[01:36:36.912] Server  LOG     ✓ Compiled in 219ms
+[01:37:17.778] Server  LOG     ✓ Compiled in 111ms
+[01:37:28.365] Server  LOG     ✓ Compiled in 46ms
+[01:37:39.757] Server  LOG     ✓ Compiled in 30ms
+[01:37:41.652] Server  LOG     ✓ Compiled in 28ms
+[01:38:49.772] Server  WARN    Error: Route "/api/schedules/[id]" used `params.id`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+[01:38:58.538] Server  WARN    Error: Route "/api/schedules/[id]" used `params.id`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+[01:39:26.374] Server  WARN    Error: Route "/api/schedules/[id]" used `params.id`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+[01:40:17.323] Server  LOG     ✓ Compiled in 31ms
+[01:40:26.707] Server  LOG     ✓ Compiled in 51ms
+[01:40:31.222] Server  LOG     ✓ Compiled in 36ms
+[01:40:31.326] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx:171:20
+Parsing ecmascript source code failed
+  169 |             </p>
+  170 |           )}
+> 171 |           </button>
+      |                    ^
+> 172 |         </div>
+      | ^^^^^^^^^
+  173 |
+  174 |         {/* 오늘의 일정 */}
+  175 |         <h3 className="text-base font-bold mb-3 text-brand-black">
+
+Expected '</', got 'jsx text'
+
+Import trace:
+  Server Component:
+    ./OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx
+    ./OneDrive/Desktop/GA_NEXUS/app/page.tsx
+[01:40:36.728] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx:171:20
+Parsing ecmascript source code failed
+  169 |             </p>
+  170 |           )}
+> 171 |           </button>
+      |                    ^
+> 172 |         </div>
+      | ^^^^^^^^^
+  173 |
+  174 |         {/* 오늘의 일정 */}
+  175 |         <h3 className="text-base font-bold mb-3 text-brand-black">
+
+Expected '</', got 'jsx text'
+
+Import trace:
+  Server Component:
+    ./OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx
+    ./OneDrive/Desktop/GA_NEXUS/app/page.tsx
+[01:41:28.983] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx:166:20
+Parsing ecmascript source code failed
+  164 |             )}
+  165 |           </button>
+> 166 |           </button>
+      |                    ^
+> 167 |           {notice && readByMe && (
+      | ^^^^^^^^^^^
+  168 |             <p className="mt-1.5 flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
+  169 |               <span aria-hidden>✓</span> 읽음
+  170 |             </p>
+
+Expected '</', got 'jsx text'
+
+Import trace:
+  Server Component:
+    ./OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx
+    ./OneDrive/Desktop/GA_NEXUS/app/page.tsx
+[01:41:51.197] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx:166:20
+Parsing ecmascript source code failed
+  164 |             )}
+  165 |           </button>
+> 166 |           </button>
+      |                    ^
+> 167 |           {notice && readByMe && (
+      | ^^^^^^^^^^^
+  168 |             <p className="mt-1.5 flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
+  169 |               <span aria-hidden>✓</span> 읽음
+  170 |             </p>
+
+Expected '</', got 'jsx text'
+
+Import trace:
+  Server Component:
+    ./OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx
+    ./OneDrive/Desktop/GA_NEXUS/app/page.tsx
+[01:42:15.886] Server  LOG     ✓ Compiled in 31ms
+[01:42:42.365] Server  LOG     ✓ Compiled in 35ms
+[01:42:43.105] Server  WARN    Error: Route "/api/schedules/[id]" used `params.id`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+[01:50:11.090] Server  LOG     ✓ Compiled in 38ms
+[01:50:38.437] Server  LOG     ✓ Compiled in 33ms
+[01:50:42.004] Server  LOG     ✓ Compiled in 45ms
+[01:52:48.583] Server  LOG     ✓ Compiled in 55ms
+[01:53:01.787] Server  LOG     ✓ Compiled in 63ms
+[01:55:23.081] Server  ERROR   ⨯ ReferenceError: desktopMonthLabel is not defined
+[01:55:23.208] Browser ERROR   uncaughtError: ReferenceError: desktopMonthLabel is not defined
+[01:55:27.442] Server  ERROR   ⨯ ReferenceError: desktopMonthLabel is not defined
+[01:55:27.599] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:55:27.599] Browser ERROR   uncaughtError: ReferenceError: desktopMonthLabel is not defined
+[01:55:40.102] Server  ERROR   ⨯ ReferenceError: desktopMonthLabel is not defined
+[01:55:40.221] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:55:40.221] Browser ERROR   uncaughtError: ReferenceError: desktopMonthLabel is not defined
+[01:57:13.472] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/page.tsx:316:13
+Parsing ecmascript source code failed
+  314 |           isAdmin={user?.role === "admin"}
+  315 |         />
+> 316 |       </div>
+      |             ^
+> 317 |
+      | ^
+> 318 |       {/* 모바일: 달력 고정 + 좌/우 패널 슬라이드 */}
+      | ^^^^^^^
+  319 |       <div className="flex lg:hidden h-full flex-col">
+  320 |         {/* 상단 헤더 */}
+  321 |         <header className="px-4 pt-4 pb-3">
+
+Expected '</', got 'jsx text'
+[01:57:13.472] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/page.tsx
+Code generation for chunk item errored
+An error occurred while generating the chunk item [project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx [app-rsc] (ecmascript)
+
+Caused by:
+- CJS module can't be async.
+
+Debug info:
+- An error occurred while generating the chunk item [project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx [app-rsc] (ecmascript)
+- Execution of <ModuleChunkItem as EcmascriptChunkItem>::content_with_async_module_info failed
+- Execution of EcmascriptChunkItemContent::new failed
+- CJS module can't be async.
+[01:57:17.940] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/page.tsx:316:13
+Parsing ecmascript source code failed
+  314 |           isAdmin={user?.role === "admin"}
+  315 |         />
+> 316 |       </div>
+      |             ^
+> 317 |
+      | ^
+> 318 |       {/* 모바일: 달력 고정 + 좌/우 패널 슬라이드 */}
+      | ^^^^^^^
+  319 |       <div className="flex lg:hidden h-full flex-col">
+  320 |         {/* 상단 헤더 */}
+  321 |         <header className="px-4 pt-4 pb-3">
+
+Expected '</', got 'jsx text'
+[01:57:17.940] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/page.tsx
+Code generation for chunk item errored
+An error occurred while generating the chunk item [project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx [app-rsc] (ecmascript)
+
+Caused by:
+- CJS module can't be async.
+
+Debug info:
+- An error occurred while generating the chunk item [project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx [app-rsc] (ecmascript)
+- Execution of <ModuleChunkItem as EcmascriptChunkItem>::content_with_async_module_info failed
+- Execution of EcmascriptChunkItemContent::new failed
+- CJS module can't be async.
+[01:57:35.253] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/page.tsx:317:9
+Parsing ecmascript source code failed
+  315 |           isAdmin={user?.role === "admin"}
+  316 |         />
+> 317 |       </div>
+      |         ^^^
+  318 |
+  319 |       {/* 모바일: 달력 고정 + 좌/우 패널 슬라이드 */}
+  320 |       <div className="flex lg:hidden h-full flex-col">
+
+Expected '</', got 'ident'
+[01:57:35.253] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/page.tsx
+Code generation for chunk item errored
+An error occurred while generating the chunk item [project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx [app-rsc] (ecmascript)
+
+Caused by:
+- CJS module can't be async.
+
+Debug info:
+- An error occurred while generating the chunk item [project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx [app-rsc] (ecmascript)
+- Execution of <ModuleChunkItem as EcmascriptChunkItem>::content_with_async_module_info failed
+- Execution of EcmascriptChunkItemContent::new failed
+- CJS module can't be async.
+[01:57:39.521] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/page.tsx:317:9
+Parsing ecmascript source code failed
+  315 |           isAdmin={user?.role === "admin"}
+  316 |         />
+> 317 |       </div>
+      |         ^^^
+  318 |
+  319 |       {/* 모바일: 달력 고정 + 좌/우 패널 슬라이드 */}
+  320 |       <div className="flex lg:hidden h-full flex-col">
+
+Expected '</', got 'ident'
+[01:57:39.521] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/page.tsx
+Code generation for chunk item errored
+An error occurred while generating the chunk item [project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx [app-rsc] (ecmascript)
+
+Caused by:
+- CJS module can't be async.
+
+Debug info:
+- An error occurred while generating the chunk item [project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx [app-rsc] (ecmascript)
+- Execution of <ModuleChunkItem as EcmascriptChunkItem>::content_with_async_module_info failed
+- Execution of EcmascriptChunkItemContent::new failed
+- CJS module can't be async.
+[01:57:45.376] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:58:01.612] Server  WARN    ⚠ Fast Refresh had to perform a full reload when ./OneDrive/Desktop/GA_NEXUS/app/components/DesktopShell.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[01:58:01.740] Server  LOG     ✓ Compiled in 28ms
+[01:58:03.099] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:59:01.855] Server  LOG     ✓ Compiled in 29ms
+[02:08:07.327] Server  LOG     ✓ Compiled in 49ms
+[02:09:30.411] Server  LOG     ✓ Compiled in 348ms
+[02:09:44.982] Server  LOG     ✓ Compiled in 1054ms
+[02:09:46.105] Server  ERROR   ⨯ ReferenceError: CalendarCellDropZone is not defined
+[02:09:46.237] Browser ERROR   uncaughtError: ReferenceError: CalendarCellDropZone is not defined
+[02:10:17.082] Server  LOG     ✓ Compiled in 128ms
+[02:10:17.085] Server  WARN    ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[02:10:19.616] Server  ERROR   ⨯ ReferenceError: CalendarCellDropZone is not defined
+[02:10:19.799] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:10:19.799] Browser ERROR   uncaughtError: ReferenceError: CalendarCellDropZone is not defined
+[02:12:05.434] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:13:20.194] Server  LOG     ✓ Compiled in 39ms
+[02:13:48.608] Server  LOG     ✓ Compiled in 46ms
+[02:18:21.964] Server  LOG     ✓ Compiled in 29ms
+[02:18:27.102] Server  LOG     ✓ Compiled in 35ms
+[02:18:35.167] Server  LOG     ✓ Compiled in 30ms
+[02:20:05.201] Server  LOG     ✓ Compiled in 267ms
+[11:14:45.545] Server  WARN    ⚠ Fast Refresh had to perform a full reload when ./OneDrive/Desktop/GA_NEXUS/app/components/DesktopShell.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[11:14:45.795] Server  LOG     ✓ Compiled in 46ms
+[11:14:47.860] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[11:14:48.018] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+      <RedirectBoundary>
+        <RedirectErrorBoundary router={{...}}>
+          <InnerLayoutRouter url={"/?year=2..."} tree={[...]} params={{}} cacheNode={{rsc:<Fragment>, ...}} ...>
+            <SegmentViewNode type="page" pagePath="/OneDrive/...">
+              <SegmentTrieNode>
+              <Page>
+                <main className="h-screen b...">
+                  <div className="hidden lg:...">
+                    <DesktopShell leftPanel={[...]}>
+                      <aside>
+                      <div className="flex-1 fle...">
+                        <section className="flex-1 ove...">
+                          <header className="h-16 borde...">
+                            <div className="flex items...">
+                              <DesktopShellHamburger>
+                              <CalendarMonthNav year={2026} month={2}>
+                                <div className="flex items...">
+                                  <button>
+                                  <button
+                                    type="button"
+                                    onClick={function goToday}
++                                   className="px-3 text-xs font-bold text-brand-black min-w-[3.5rem] hover:bg-slate-1..."
+-                                   className="px-3 text-xs font-bold text-brand-black min-w-[3.5rem]"
++                                   aria-label="현재 달로 이동"
+-                                   aria-label="현재 달"
+                                  >
++                                   26.03
+                                  ...
+                            ...
+                          ...
+                        <RightPanel todaySchedules={[...]} selectedDateStr="2026-03-13" isAdmin={true}>
+                          <aside className="w-full lg:...">
+                            <div className="p-4 flex f...">
+                              <div>
+                              <h3 className="text-base font-bold mb-3 text-brand-black">
++                               2026년 3월 13일 일정
+-                               오늘의 일정
+                              ...
+                  ...
+            ...
+          ...
+
+[11:23:47.963] Server  LOG     ✓ Compiled in 57ms
+[11:25:00.864] Server  LOG     ✓ Compiled in 56ms
+[11:25:01.545] Browser ERROR   uncaughtError: ReferenceError: useRouter is not defined
+[11:25:03.579] Server  WARN    ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[11:25:03.702] Server  LOG     ✓ Compiled in 43ms
+[11:25:05.671] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[11:25:12.202] Server  LOG     ✓ Compiled in 123ms
+[11:25:14.485] Server  LOG     ✓ Compiled in 87ms
+[11:25:22.594] Server  LOG     ✓ Compiled in 125ms
+[11:25:31.862] Server  LOG     ✓ Compiled in 49ms
+[11:25:41.230] Server  LOG     ✓ Compiled in 88ms
+[11:25:41.336] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx:213:11
+Parsing ecmascript source code failed
+  211 |             </CalendarCellDropZone>
+  212 |           );
+> 213 |         })}
+      |           ^
+  214 |       </div>
+  215 |     </>
+  216 |   );
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Import trace:
+  Server Component:
+    ./OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx
+    ./OneDrive/Desktop/GA_NEXUS/app/page.tsx
+[11:25:55.939] Server  LOG     ✓ Compiled in 127ms
+[11:27:58.802] Server  LOG     ✓ Compiled in 40ms
+[11:34:28.837] Server  LOG     ✓ Compiled in 94ms
+[11:34:39.630] Server  LOG     ✓ Compiled in 80ms
+[11:38:32.780] Server  WARN    ⚠ Fast Refresh had to perform a full reload when ./OneDrive/Desktop/GA_NEXUS/app/components/RightPanelCollapseWrapper.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[11:38:34.724] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[11:38:34.882] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <RedirectErrorBoundary router={{...}}>
+      <InnerLayoutRouter url={"/?year=2..."} tree={[...]} params={{}} cacheNode={{rsc:<Fragment>, ...}} ...>
+        <SegmentViewNode type="page" pagePath="/OneDrive/...">
+          <SegmentTrieNode>
+          <Page>
+            <main className="h-screen b...">
+              <div className="hidden lg:...">
+                <DesktopShell leftPanel={[...]}>
+                  <aside>
+                  <div className="flex-1 fle...">
+                    <section className="flex-1 ove...">
+                      <header className="h-16 borde...">
+                        <div className="flex items...">
+                          <DesktopShellHamburger>
+                          <CalendarMonthNav year={2026} month={2}>
+                            <div className="flex items...">
+                              <button>
+                              <button
+                                type="button"
+                                onClick={function goToday}
++                               className="px-3 text-xs font-bold text-brand-black min-w-[3.5rem] hover:bg-slate-100 r..."
+-                               className="px-3 text-xs font-bold text-brand-black min-w-[3.5rem]"
++                               aria-label="현재 달로 이동"
+-                               aria-label="현재 달"
+                              >
++                               26.03
+                              ...
+                        ...
+                      <div className="flex-1 p-6">
+                        <div className="bg-white r...">
+                          <CalendarGridClient cells={[...]} eventsByDay={{13:[...],15:[...]}} year={2026} month={2} ...>
+                            <div>
+                            <div className="grid grid-...">
+                              <CalendarCellDropZone dateISO="2026-03-02" isEmpty={false} className="p-2 min-h-...">
+                                <div className={"p-2 min-..."} ...>
+                                  <div
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={function onClick}
+                                    onKeyDown={function onKeyDown}
++                                   className="w-full h-full text-left flex flex-col"
+-                                   className="w-full h-full text-left"
+                                  >
++                                   <div className="flex-1 min-h-0">
+-                                   <span className="text-sm font-normal text-slate-800">
+                              ...
+                    ...
+              ...
+        ...
+      ...
+
+[11:38:47.268] Server  LOG     ✓ Compiled in 38ms
+[11:38:53.292] Server  LOG     ✓ Compiled in 49ms
+[11:39:00.765] Server  LOG     ✓ Compiled in 55ms
+[11:39:00.870] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/page.tsx:304:9
+Parsing ecmascript source code failed
+  302 |             </RightPanelCollapseWrapper>
+  303 |           </>
+> 304 |         </DesktopShell>
+      |         ^
+  305 |       </div>
+  306 |
+  307 |       {/* 모바일: 달력 고정 + 좌/우 패널 슬라이드 */}
+
+Expression expected
+[11:39:00.870] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/page.tsx:304:10
+Parsing ecmascript source code failed
+  302 |             </RightPanelCollapseWrapper>
+  303 |           </>
+> 304 |         </DesktopShell>
+      |          ^^^^^^^^^^^^^^
+  305 |       </div>
+  306 |
+  307 |       {/* 모바일: 달력 고정 + 좌/우 패널 슬라이드 */}
+
+Unterminated regexp literal
+[11:39:00.870] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/page.tsx
+Code generation for chunk item errored
+An error occurred while generating the chunk item [project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx [app-rsc] (ecmascript)
+
+Caused by:
+- CJS module can't be async.
+
+Debug info:
+- An error occurred while generating the chunk item [project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx [app-rsc] (ecmascript)
+- Execution of <ModuleChunkItem as EcmascriptChunkItem>::content_with_async_module_info failed
+- Execution of EcmascriptChunkItemContent::new failed
+- CJS module can't be async.
+[11:47:10.269] Server  LOG     ✓ Compiled in 1075ms
+[11:47:54.570] Server  LOG     ✓ Compiled in 550ms
+[11:48:01.096] Server  LOG     ✓ Compiled in 612ms
+[11:48:10.862] Server  LOG     ✓ Compiled in 777ms
+[11:50:21.269] Server  LOG     ✓ Compiled in 54ms
+[11:50:23.629] Server  LOG     ✓ Compiled in 55ms
+[11:53:29.483] Server  LOG     ✓ Compiled in 93ms
+[11:54:00.383] Server  LOG     ✓ Compiled in 963ms
+[11:54:41.404] Server  LOG     ✓ Compiled in 89ms
+[11:56:51.185] Server  LOG     ✓ Compiled in 25.4s
+[11:57:01.831] Server  LOG     ✓ Compiled in 40ms
+[11:57:03.759] Server  LOG     ✓ Compiled in 76ms
+[11:57:05.192] Server  LOG     ✓ Compiled in 45ms
+[11:57:10.256] Server  LOG     ✓ Compiled in 32ms
+[11:57:26.280] Server  LOG     ✓ Compiled in 50ms
+[11:57:45.043] Server  LOG     ✓ Compiled in 70ms
+[11:59:46.837] Server  LOG     ✓ Compiled in 318ms
+[11:59:50.444] Server  LOG     ✓ Compiled in 665ms
+[11:59:53.604] Server  LOG     ✓ Compiled in 342ms
+[11:59:56.809] Server  LOG     ✓ Compiled in 225ms
+[12:00:02.573] Server  LOG     ✓ Compiled in 457ms
+[12:00:07.943] Server  LOG     ✓ Compiled in 470ms
+[12:00:13.989] Server  LOG     ✓ Compiled in 373ms
+[12:00:23.796] Server  LOG     ✓ Compiled in 569ms
+[12:00:30.357] Server  LOG     ✓ Compiled in 991ms
+[12:00:32.750] Server  LOG     ✓ Compiled in 560ms
+[12:00:36.678] Server  LOG     ✓ Compiled in 255ms
+[12:00:39.962] Server  LOG     ✓ Compiled in 596ms
+[12:00:46.389] Server  WARN    ⚠ Fast Refresh had to perform a full reload when ./OneDrive/Desktop/GA_NEXUS/app/components/DesktopShell.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[12:00:46.431] Server  LOG     ✓ Compiled in 199ms
+[12:00:49.172] Server  WARN    ⚠ Fast Refresh had to perform a full reload when ./OneDrive/Desktop/GA_NEXUS/app/components/DesktopShell.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[12:00:49.205] Server  LOG     ✓ Compiled in 739ms
+[12:00:53.534] Server  LOG     ✓ Compiled in 835ms
+[12:00:53.785] Server  WARN    ⚠ Fast Refresh had to perform a full reload when ./OneDrive/Desktop/GA_NEXUS/app/components/DesktopShell.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[12:00:57.309] Server  LOG     ✓ Compiled in 872ms
+[12:00:57.741] Server  WARN    ⚠ Fast Refresh had to perform a full reload when ./OneDrive/Desktop/GA_NEXUS/app/components/DesktopShell.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[12:01:02.496] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[12:01:03.427] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <SegmentViewNode type="page" pagePath="/OneDrive/...">
+      <SegmentTrieNode>
+      <Page>
+        <main className="h-screen b...">
+          ...
+            <aside>
+            <div className="flex-1 fle...">
+              <DesktopRightPanelProvider>
+                <section className="flex-1 ove...">
+                  <header className="h-16 borde...">
+                    <div className="flex items...">
+                      <DesktopShellHamburger>
+                        <EclipseButton type="button" variant="ghost" size="icon" onClick={function onClick} ...>
+                          <motion.button ref={function ref} className="relative i..." style={{x:{...},y:{...}}} ...>
+                            <button
++                             className="relative isolate overflow-hidden rounded-full border font-bold uppercase trac..."
+-                             className="flex flex-col justify-center gap-1 w-8 h-8 rounded-lg border border-slate-200..."
+                              onMouseMove={function handleMouseMove}
+                              onMouseEnter={function onMouseEnter}
+                              onMouseLeave={function onMouseLeave}
+                              disabled={false}
+                              type="button"
+                              onClick={function onClick}
+                              aria-label="메뉴 열기"
++                             tabIndex={0}
+-                             tabIndex={null}
+                              style={{
++                               transform: "translateX(-7.5px) translateY(-3px)"
+                              }}
+                              ref={function useMotionRef.useCallback}
+                            >
++                             <svg className="absolute hidden" aria-hidden={true}>
+-                             <span className="block w-4 h-0.5 bg-slate-600 mx-auto rounded">
+                              ...
+                      ...
+                    ...
+                  ...
+                ...
+          ...
+
+[12:01:26.030] Server  WARN    ⚠ Fast Refresh had to perform a full reload when ./OneDrive/Desktop/GA_NEXUS/app/components/DesktopShell.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[12:01:26.189] Server  LOG     ✓ Compiled in 55ms
+[12:01:29.733] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[12:01:29.900] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <SegmentViewNode type="page" pagePath="/OneDrive/...">
+      <SegmentTrieNode>
+      <Page>
+        <main className="h-screen b...">
+          ...
+            <aside>
+            <div className="flex-1 fle...">
+              <DesktopRightPanelProvider>
+                <section className="flex-1 ove...">
+                  <header className="h-16 borde...">
+                    <div className="flex items...">
+                      <DesktopShellHamburger>
+                        <EclipseButton type="button" variant="ghost" size="icon" onClick={function onClick} ...>
+                          <motion.button ref={function ref} className="relative i..." style={{x:{...},y:{...}}} ...>
+                            <button
++                             className="relative isolate overflow-hidden rounded-full border font-bold uppercase trac..."
+-                             className="flex flex-col justify-center gap-1 w-8 h-8 rounded-lg border border-slate-200..."
+                              onMouseMove={function handleMouseMove}
+                              onMouseEnter={function onMouseEnter}
+                              onMouseLeave={function onMouseLeave}
+                              disabled={false}
+                              type="button"
+                              onClick={function onClick}
+                              aria-label="메뉴 열기"
++                             tabIndex={0}
+-                             tabIndex={null}
+                              style={{
++                               transform: "translateX(-7.5px) translateY(-3px)"
+                              }}
+                              ref={function useMotionRef.useCallback}
+                            >
++                             <svg className="absolute hidden" aria-hidden={true}>
+-                             <span className="block w-4 h-0.5 bg-slate-600 mx-auto rounded">
+                              ...
+                      ...
+                    ...
+                  ...
+                ...
+          ...
+
+[12:01:40.416] Server  WARN    ⚠ Fast Refresh had to perform a full reload when ./OneDrive/Desktop/GA_NEXUS/app/components/DesktopShell.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[12:01:40.551] Server  LOG     ✓ Compiled in 36ms
+[12:01:43.196] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[12:01:43.385] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <SegmentViewNode type="page" pagePath="/OneDrive/...">
+      <SegmentTrieNode>
+      <Page>
+        <main className="h-screen b...">
+          ...
+            <aside>
+            <div className="flex-1 fle...">
+              <DesktopRightPanelProvider>
+                <section className="flex-1 ove...">
+                  <header className="h-16 borde...">
+                    <div className="flex items...">
+                      <DesktopShellHamburger>
+                        <EclipseButton type="button" variant="ghost" size="icon" onClick={function onClick} ...>
+                          <motion.button ref={function ref} className="relative i..." style={{x:{...},y:{...}}} ...>
+                            <button
++                             className="relative isolate overflow-hidden rounded-full border font-bold uppercase trac..."
+-                             className="flex flex-col justify-center gap-1 w-8 h-8 rounded-lg border border-slate-200..."
+                              onMouseMove={function handleMouseMove}
+                              onMouseEnter={function onMouseEnter}
+                              onMouseLeave={function onMouseLeave}
+                              disabled={false}
+                              type="button"
+                              onClick={function onClick}
+                              aria-label="메뉴 열기"
++                             tabIndex={0}
+-                             tabIndex={null}
+                              style={{
++                               transform: "translateX(-7.5px) translateY(-3px)"
+                              }}
+                              ref={function useMotionRef.useCallback}
+                            >
++                             <svg className="absolute hidden" aria-hidden={true}>
+-                             <span className="block w-4 h-0.5 bg-slate-600 mx-auto rounded">
+                              ...
+                      ...
+                    ...
+                  ...
+                ...
+          ...
+
+[12:03:08.172] Server  LOG     ✓ Compiled in 57ms
+[12:03:09.274] Server  LOG     ✓ Compiled in 104ms
+[12:03:10.851] Server  LOG     ✓ Compiled in 87ms
+[12:03:20.013] Server  LOG     ✓ Compiled in 49ms
+[12:06:25.095] Server  LOG     ✓ Compiled in 134ms
+[12:06:25.208] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/globals.css:1444:8
+Parsing CSS source code failed
+  1442 |   }
+  1443 | }
+> 1444 | @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+       |        ^
+  1445 | @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
+  1446 | body {
+  1447 |   font-family: var(--font-sans);
+
+@import rules must precede all rules aside from @charset and @layer statements
+
+Import trace:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/globals.css [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/layout.tsx [Server Component]
+[12:06:39.337] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/globals.css:1447:8
+Parsing CSS source code failed
+  1445 |   }
+  1446 | }
+> 1447 | @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+       |        ^
+  1448 | @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
+  1449 | body {
+  1450 |   font-family: var(--font-sans);
+
+@import rules must precede all rules aside from @charset and @layer statements
+
+Import trace:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/globals.css [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/layout.tsx [Server Component]
+[12:06:52.419] Server  LOG     ✓ Compiled in 62ms
+[12:06:52.520] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/globals.css:1451:8
+Parsing CSS source code failed
+  1449 |   }
+  1450 | }
+> 1451 | @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+       |        ^
+  1452 | @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
+  1453 | body {
+  1454 |   font-family: var(--font-sans);
+
+@import rules must precede all rules aside from @charset and @layer statements
+
+Import trace:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/globals.css [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/layout.tsx [Server Component]
+[12:06:54.431] Server  LOG     ✓ Compiled in 35ms
+[12:06:54.537] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/globals.css:1451:8
+Parsing CSS source code failed
+  1449 |   }
+  1450 | }
+> 1451 | @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+       |        ^
+  1452 | @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
+  1453 | body {
+  1454 |   font-family: var(--font-sans);
+
+@import rules must precede all rules aside from @charset and @layer statements
+
+Import trace:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/globals.css [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/layout.tsx [Server Component]
+[12:06:55.357] Server  LOG     ✓ Compiled in 66ms
+[12:06:55.461] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/globals.css:1451:8
+Parsing CSS source code failed
+  1449 |   }
+  1450 | }
+> 1451 | @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+       |        ^
+  1452 | @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
+  1453 | body {
+  1454 |   font-family: var(--font-sans);
+
+@import rules must precede all rules aside from @charset and @layer statements
+
+Import trace:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/globals.css [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/layout.tsx [Server Component]
+[12:07:24.362] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/globals.css:1451:8
+Parsing CSS source code failed
+  1449 |   }
+  1450 | }
+> 1451 | @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+       |        ^
+  1452 | @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
+  1453 | body {
+  1454 |   font-family: var(--font-sans);
+
+@import rules must precede all rules aside from @charset and @layer statements
+
+Import trace:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/globals.css [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/layout.tsx [Server Component]
+[12:07:24.682] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/globals.css:1451:8
+Parsing CSS source code failed
+  1449 |   }
+  1450 | }
+> 1451 | @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+       |        ^
+  1452 | @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
+  1453 | body {
+  1454 |   font-family: var(--font-sans);
+
+@import rules must precede all rules aside from @charset and @layer statements
+
+Import trace:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/globals.css [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/layout.tsx [Server Component]
+[12:07:24.852] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/globals.css:1451:8
+Parsing CSS source code failed
+  1449 |   }
+  1450 | }
+> 1451 | @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+       |        ^
+  1452 | @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
+  1453 | body {
+  1454 |   font-family: var(--font-sans);
+
+@import rules must precede all rules aside from @charset and @layer statements
+
+Import trace:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/globals.css [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/layout.tsx [Server Component]
+[12:15:03.698] Server  LOG     ✓ Compiled in 80ms
+[12:15:21.073] Server  LOG     ✓ Compiled in 508ms
+[12:15:21.125] Server  WARN    ⚠ Fast Refresh had to perform a full reload when ./OneDrive/Desktop/GA_NEXUS/app/components/RightPanelCollapseWrapper.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[12:15:29.802] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[12:15:32.750] Server  WARN    ⚠ Fast Refresh had to perform a full reload when ./OneDrive/Desktop/GA_NEXUS/app/components/RightPanelCollapseWrapper.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[12:15:32.931] Server  LOG     ✓ Compiled in 56ms
+[12:15:38.449] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[12:15:45.755] Server  WARN    ⚠ Fast Refresh had to perform a full reload when ./OneDrive/Desktop/GA_NEXUS/app/components/RightPanelCollapseWrapper.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[12:15:45.908] Server  LOG     ✓ Compiled in 38ms
+[12:15:51.559] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[12:15:51.966] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <RedirectBoundary>
+      <RedirectErrorBoundary router={{...}}>
+        <InnerLayoutRouter url={"/?year=2..."} tree={[...]} params={{}} cacheNode={{rsc:<Fragment>, ...}} ...>
+          <SegmentViewNode type="page" pagePath="/OneDrive/...">
+            <SegmentTrieNode>
+            <Page>
+              <main className="h-screen b...">
+                <div className="hidden lg:...">
+                  <DesktopShell leftPanel={[...]}>
+                    <aside>
+                    <div className="flex-1 fle...">
+                      <DesktopRightPanelProvider>
+                        <section>
+                        <RightPanelCollapseWrapper>
+                          <div className="w-0 flex-s...">
+                            <div
++                             className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-20 pointer-events..."
+-                             className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-20 pointer-events..."
++                             role="button"
+-                             role={null}
++                             tabIndex={0}
+-                             tabIndex={null}
++                             aria-label="우측 패널 닫기"
+-                             aria-label={null}
+                              onKeyDown={function onKeyDown}
+-                             style={{margin-left:"0px"}}
+                            >
+                              <IntIcon animationData="https://re..." color="black" playOnClick={true} size={40} ...>
++                               <div
++                                 ref={{current:null}}
++                                 onClick={function handleClick}
++                                 onMouseEnter={function handleMouseEnter}
++                                 onMouseLeave={function handleMouseLeave}
++                                 className={undefined}
++                                 style={{cursor:"pointer",display:"inline-block",width:"40px",height:"40px"}}
++                                 role="button"
++                                 tabIndex={0}
++                                 onKeyDown={function onKeyDown}
++                               >
+-                               <button
+-                                 type="button"
+-                                 aria-label="우측 패널 닫기"
+-                                 className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-p..."
+-                               >
+                          ...
+                ...
+          ...
+        ...
+
+[12:23:51.900] Server  LOG     ✓ Compiled in 33ms
+[12:24:13.673] Server  ERROR   ⨯ error: column "dealer_name" does not exist
+[12:24:13.805] Server  ERROR   ⨯ error: column "dealer_name" does not exist
+[12:24:13.806] Browser ERROR   uncaughtError: error: column "dealer_name" does not exist
+[12:28:16.745] Server  ERROR   ⨯ error: column "dealer_name" does not exist
+[12:28:17.287] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[12:28:17.287] Browser ERROR   uncaughtError: error: column "dealer_name" does not exist
+[12:28:41.233] Server  ERROR   ⨯ error: column "dealer_name" does not exist
+[12:28:41.388] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[12:28:41.388] Browser ERROR   uncaughtError: error: column "dealer_name" does not exist
+[12:28:52.127] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[12:36:45.658] Server  LOG     ✓ Compiled in 52ms
+[12:36:54.894] Server  LOG     ✓ Compiled in 71ms
+[12:39:14.118] Server  LOG     ✓ Compiled in 140ms
+[12:40:44.201] Server  LOG     ✓ Compiled in 50ms
+[12:43:28.762] Server  LOG     ✓ Compiled in 71ms
+[13:00:24.185] Server  LOG     ✓ Compiled in 789ms
+[13:00:38.253] Server  LOG     ✓ Compiled in 904ms
+[13:01:09.122] Server  LOG     ✓ Compiled in 672ms
+[13:09:45.852] Server  LOG     ✓ Compiled in 114ms
+[13:10:09.828] Server  LOG     ✓ Compiled in 265ms
+[13:13:57.715] Server  LOG     ✓ Compiled in 100ms
+[13:14:42.203] Server  LOG     ✓ Compiled in 85ms
+[13:20:04.687] Server  LOG     ✓ Compiled in 69ms
+[13:22:09.290] Server  LOG     ✓ Compiled in 505ms
+[13:27:10.268] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[13:28:08.969] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[13:28:09.808] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[13:32:04.463] Server  LOG     ✓ Compiled in 240ms
+[13:38:06.106] Server  LOG     ✓ Compiled in 515ms
+[13:38:14.117] Server  LOG     ✓ Compiled in 117ms
+[13:39:01.976] Server  LOG     ✓ Compiled in 189ms
+[13:39:43.008] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[13:42:47.722] Server  LOG     ✓ Compiled in 164ms
+[13:43:15.642] Server  LOG     ✓ Compiled in 186ms
+[13:48:43.231] Server  LOG     ✓ Compiled in 42ms
+[13:51:32.780] Server  LOG     ✓ Compiled in 50ms
+[13:53:43.054] Server  LOG     ✓ Compiled in 51ms
+[13:59:27.662] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[13:59:44.905] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[14:47:43.919] Server  LOG     ✓ Compiled in 96ms
+[14:47:50.170] Server  LOG     ✓ Compiled in 35ms
+[14:48:45.439] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[14:55:57.289] Server  LOG     ✓ Compiled in 40ms
+[14:56:01.426] Server  LOG     ✓ Compiled in 33ms
+[14:56:03.567] Server  LOG     ✓ Compiled in 35ms
+[14:56:08.529] Server  LOG     ✓ Compiled in 61ms
+[14:56:08.632] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx:175:14
+Parsing ecmascript source code failed
+  173 |                 </div>
+  174 |               ))
+> 175 |             )}
+      |              ^
+  176 |           </div>
+  177 |         </section>
+  178 |       </div>
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+[14:56:08.632] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx:177:10
+Parsing ecmascript source code failed
+  175 |             )}
+  176 |           </div>
+> 177 |         </section>
+      |          ^^^^^^^^^
+  178 |       </div>
+  179 |     </main>
+  180 |   );
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+[14:56:08.632] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx:175:14
+Parsing ecmascript source code failed
+  173 |                 </div>
+  174 |               ))
+> 175 |             )}
+      |              ^
+  176 |           </div>
+  177 |         </section>
+  178 |       </div>
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+[14:56:08.632] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx:177:10
+Parsing ecmascript source code failed
+  175 |             )}
+  176 |           </div>
+> 177 |         </section>
+      |          ^^^^^^^^^
+  178 |       </div>
+  179 |     </main>
+  180 |   );
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component Browser]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Client Component SSR]
+    ./OneDrive/Desktop/GA_NEXUS/app/admin/approvals/page.tsx [Server Component]
+[14:57:59.317] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[15:02:32.279] Server  LOG     ✓ Compiled in 33ms
+[15:02:34.429] Server  LOG     ✓ Compiled in 37ms
+[15:02:58.198] Server  LOG     ✓ Compiled in 95ms
+[15:03:16.212] Server  LOG     ✓ Compiled in 32ms
+[15:03:57.503] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[15:07:10.869] Server  LOG     ✓ Compiled in 204ms

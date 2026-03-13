@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState, FormEvent } from "react";
+import { CopyCodeButton } from "@/app/components/CopyCodeButton";
+import { AdminPageHeader, ADMIN_ERROR_CLASS } from "../_components/AdminPageHeader";
+import { EclipseButton } from "@/app/components/ui/EclipseButton";
 
 type InviteCode = {
   id: string;
@@ -65,30 +68,22 @@ export default function InviteCodesPage() {
   return (
     <main className="min-h-screen bg-background-light px-4 py-6">
       <div className="max-w-3xl mx-auto">
-        <header className="mb-6">
-          <p className="text-xs text-brand-gray mb-1">GA NEXUS 관리자 설정</p>
-          <h1 className="text-xl font-semibold text-brand-black">
-            초대 코드 관리
-          </h1>
-          <p className="mt-1 text-[11px] text-brand-gray">
-            지점 에이전트 온보딩에 사용할 초대 코드를 생성하고 관리합니다.
-          </p>
-        </header>
+        <AdminPageHeader
+          title="초대 코드 관리"
+          description="지점 에이전트 온보딩에 사용할 초대 코드를 생성하고 관리합니다."
+        />
 
-        {error && (
-          <div className="mb-4 rounded-lg border border-rose-500/40 bg-rose-500/5 px-3 py-2 text-xs text-rose-700">
-            {error}
-          </div>
-        )}
+        {error && <div className={ADMIN_ERROR_CLASS}>{error}</div>}
 
         <form onSubmit={handleCreate} className="mb-5">
-          <button
+          <EclipseButton
             type="submit"
             disabled={creating}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-semibold px-4 py-2.5 transition disabled:opacity-60"
-          >
-            {creating ? "생성 중..." : "+ 새 초대 코드 생성"}
-          </button>
+            isLoading={creating}
+            text={creating ? "생성 중..." : "+ 새 초대 코드 생성"}
+            variant="primary"
+            size="default"
+          />
         </form>
 
         <section className="bg-white border border-slate-200 rounded-xl shadow-sm">
@@ -114,9 +109,9 @@ export default function InviteCodesPage() {
               codes.map((c) => (
                 <div
                   key={c.id}
-                  className="px-4 py-3 flex items-center justify-between text-sm"
+                  className="px-4 py-3 flex items-center justify-between gap-4 text-sm"
                 >
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="font-semibold text-brand-black">{c.code}</p>
                     <p className="text-[11px] text-brand-gray">
                       {c.branch_name} ·{" "}
@@ -128,23 +123,19 @@ export default function InviteCodesPage() {
                         minute: "2-digit",
                       })}
                     </p>
-                  </div>
-                  <div className="text-right text-[11px] text-brand-gray space-y-1">
-                    <p>
+                    <p className="text-[11px] text-brand-gray mt-0.5">
                       사용{" "}
                       <span className="font-semibold text-brand-black">
                         {c.used_count}
                       </span>
-                      {c.max_uses
-                        ? ` / ${c.max_uses}`
-                        : " / 제한 없음"}
+                      {c.max_uses ? ` / ${c.max_uses}` : " / 제한 없음"}
+                      {c.expires_at && (
+                        <> · 만료: {new Date(c.expires_at).toLocaleDateString("ko-KR")}</>
+                      )}
                     </p>
-                    {c.expires_at && (
-                      <p>
-                        만료:{" "}
-                        {new Date(c.expires_at).toLocaleDateString("ko-KR")}
-                      </p>
-                    )}
+                  </div>
+                  <div className="flex-shrink-0">
+                    <CopyCodeButton code={c.code} />
                   </div>
                 </div>
               ))

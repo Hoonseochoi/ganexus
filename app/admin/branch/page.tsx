@@ -3,6 +3,7 @@
 import { useEffect, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AdminPageHeader, ADMIN_ERROR_CLASS } from "../_components/AdminPageHeader";
+import { EclipseButton } from "@/app/components/ui/EclipseButton";
 
 export default function AdminBranchPage() {
   const router = useRouter();
@@ -80,13 +81,14 @@ export default function AdminBranchPage() {
               placeholder="예: 메리츠 강남지점"
             />
           </div>
-          <button
+          <EclipseButton
             type="submit"
             disabled={loading}
-            className="mt-2 w-full rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-semibold py-2.5 transition disabled:opacity-60"
-          >
-            {loading ? "저장 중..." : "저장하고 메인으로 이동"}
-          </button>
+            isLoading={loading}
+            text={loading ? "저장 중..." : "저장하고 메인으로 이동"}
+            variant="primary"
+            className="mt-2 w-full"
+          />
         </form>
       </div>
     </main>

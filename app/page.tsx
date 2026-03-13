@@ -7,6 +7,9 @@ import {
 } from "@/src/lib/engines/schedules";
 import { getHolidays } from "korean-holidays";
 import RightPanel from "./components/RightPanel";
+import BranchMembersCard from "./components/BranchMembersCard";
+import LeftPanelBranchMembers from "./components/LeftPanelBranchMembers";
+import RightPanelCollapseWrapper, { DesktopRightPanelProvider } from "./components/RightPanelCollapseWrapper";
 import DesktopShell, { DesktopShellHamburger } from "./components/DesktopShell";
 import CalendarMonthNav from "./components/CalendarMonthNav";
 import CalendarGridClient from "./components/CalendarGridClient";
@@ -163,60 +166,42 @@ export default async function Page({ searchParams }: PageProps) {
         <button className="w-full flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg transition-colors text-left">
           <span className="text-sm font-medium">Main Calendar</span>
         </button>
-        <Link
-          href="/admin/branch"
-          className="w-full flex items-center gap-3 px-3 py-2 text-brand-gray hover:bg-slate-50 rounded-lg transition-colors text-left"
-        >
-          <span className="text-sm font-medium">지점 정보 설정</span>
-        </Link>
-        <Link
-          href="/admin/approvals"
-          className="w-full flex items-center gap-3 px-3 py-2 text-brand-gray hover:bg-slate-50 rounded-lg transition-colors text-left"
-        >
-          <span className="text-sm font-medium">에이전트 승인</span>
-        </Link>
-        <div className="pt-8 pb-2">
-          <h3 className="px-3 text-[10px] uppercase font-bold tracking-wider text-brand-gray mb-4">
-            Branch Members
-          </h3>
-          <div className="space-y-4 text-sm">
-            <div className="flex items-center gap-3 px-3">
-              <div className="relative">
-                <div className="w-9 h-9 rounded-full bg-slate-200" />
-                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold truncate text-brand-black">
-                  Sarah Chen
-                </p>
-                <p className="text-xs text-brand-gray">In Office</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 px-3">
-              <div className="relative">
-                <div className="w-9 h-9 rounded-full bg-slate-200" />
-                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-yellow-500 border-2 border-white rounded-full" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold truncate text-brand-black">
-                  Marcus Jordan
-                </p>
-                <p className="text-xs text-brand-gray">On Break</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 px-3">
-              <div className="relative">
-                <div className="w-9 h-9 rounded-full bg-slate-200" />
-                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-slate-300 border-2 border-white rounded-full" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold truncate text-brand-black">
-                  Elena Rodriguez
-                </p>
-                <p className="text-xs text-slate-500">Offline</p>
-              </div>
-            </div>
-          </div>
+        {user?.role === "admin" && (
+          <>
+            <Link
+              href="/admin/branch"
+              className="w-full flex items-center gap-3 px-3 py-2 text-brand-gray hover:bg-slate-50 rounded-lg transition-colors text-left"
+            >
+              <span className="text-sm font-medium">지점 정보 설정</span>
+            </Link>
+            <Link
+              href="/admin/approvals"
+              className="w-full flex items-center gap-3 px-3 py-2 text-brand-gray hover:bg-slate-50 rounded-lg transition-colors text-left"
+            >
+              <span className="text-sm font-medium">에이전트 승인</span>
+            </Link>
+            <Link
+              href="/admin/managers"
+              className="w-full flex items-center gap-3 px-3 py-2 text-brand-gray hover:bg-slate-50 rounded-lg transition-colors text-left"
+            >
+              <span className="text-sm font-medium">매니저 등록</span>
+            </Link>
+          </>
+        )}
+        <LeftPanelBranchMembers />
+        <div className="pt-4 border-t border-slate-100">
+          <form
+            action="/api/auth/logout"
+            method="post"
+            className="px-3"
+          >
+            <button
+              type="submit"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-brand-gray hover:bg-slate-50"
+            >
+              로그아웃
+            </button>
+          </form>
         </div>
       </nav>
     </>
@@ -227,9 +212,9 @@ export default async function Page({ searchParams }: PageProps) {
       {/* 데스크탑: 좌측 패널 오버레이(기본 숨김) + 캘린더 확장 */}
       <div className="hidden lg:flex h-full overflow-hidden">
         <DesktopShell leftPanel={leftPanel}>
-          <>
-          {/* Main Calendar */}
-          <section className="flex-1 overflow-y-auto flex flex-col min-w-0">
+          <DesktopRightPanelProvider>
+          {/* Main Calendar: 패널 열릴 때 왼쪽으로 밀리는 모션용 transition */}
+          <section className="flex-1 overflow-y-auto flex flex-col min-w-0 transition-[flex-basis] duration-300 ease-out">
             <header className="h-16 border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 bg-background-light z-10 bg-opacity-95 backdrop-blur-sm">
               <div className="flex items-center gap-4">
                 <DesktopShellHamburger />
@@ -283,21 +268,33 @@ export default async function Page({ searchParams }: PageProps) {
         </div>
         </section>
 
-            {/* Right Panel: 선택한 날짜(또는 오늘) 일정 · 메모 · 공지 */}
-            <RightPanel
-              todaySchedules={schedulesForSelected.map((s) => ({
-                id: s.id,
-                title: s.title,
-                description: s.description,
-                start_at: s.start_at,
-                end_at: s.end_at,
-                is_all_day: s.is_all_day,
-                category: s.category,
-              }))}
-              selectedDateStr={displayDateStr}
-              isAdmin={user?.role === "admin"}
-            />
-          </>
+            {/* Right Panel: 선택한 날짜(또는 오늘) 일정 · 메모 · 공지 (>> 로 닫기) */}
+            <RightPanelCollapseWrapper>
+              <RightPanel
+                todaySchedules={schedulesForSelected.map((s) => ({
+                  id: s.id,
+                  title: s.title,
+                  description: s.description,
+                  start_at: s.start_at,
+                  end_at: s.end_at,
+                  is_all_day: s.is_all_day,
+                  category: s.category as "dealer" | "internal" | "personal" | "leave" | "etc",
+                  dealer_name: (s as any).dealer_name ?? null,
+                  location: (s as any).location ?? null,
+                  instructor: (s as any).instructor ?? null,
+                  target_audience: (s as any).target_audience ?? null,
+                  manager_name: (s as any).manager_name ?? null,
+                }))}
+                selectedDateStr={displayDateStr}
+                isAdmin={user?.role === "admin"}
+                canAddSchedule={
+                  user?.role === "admin" ||
+                  user?.role === "manager" ||
+                  user?.profile?.role === "manager"
+                }
+              />
+            </RightPanelCollapseWrapper>
+          </DesktopRightPanelProvider>
         </DesktopShell>
       </div>
 
@@ -372,49 +369,7 @@ export default async function Page({ searchParams }: PageProps) {
           </div>
           <div className="flex gap-4 px-4 pb-4 overflow-x-auto snap-x snap-mandatory">
             {/* Left panel 내용 - Branch Members */}
-            <div className="min-w-[85vw] snap-center bg-white border border-slate-200 rounded-xl shadow-sm p-4">
-              <h3 className="text-sm font-bold mb-3 text-brand-black">
-                Branch Members
-              </h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div className="w-8 h-8 rounded-full bg-slate-200" />
-                    <div className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 border-2 border-white rounded-full" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-brand-black">
-                      Sarah Chen
-                    </p>
-                    <p className="text-[11px] text-brand-gray">In Office</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div className="w-8 h-8 rounded-full bg-slate-200" />
-                    <div className="absolute bottom-0 right-0 w-2 h-2 bg-yellow-500 border-2 border-white rounded-full" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-brand-black">
-                      Marcus Jordan
-                    </p>
-                    <p className="text-[11px] text-brand-gray">On Break</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div className="w-8 h-8 rounded-full bg-slate-200" />
-                    <div className="absolute bottom-0 right-0 w-2 h-2 bg-slate-300 border-2 border-white rounded-full" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-brand-black">
-                      Elena Rodriguez
-                    </p>
-                    <p className="text-[11px] text-brand-gray">Offline</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <BranchMembersCard />
 
             {/* Right panel - 선택한 날짜(또는 오늘) 일정 · 메모 · 공지 */}
             <div className="min-w-[85vw] snap-center bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
@@ -426,10 +381,20 @@ export default async function Page({ searchParams }: PageProps) {
                   start_at: s.start_at,
                   end_at: s.end_at,
                   is_all_day: s.is_all_day,
-                  category: s.category,
+                  category: s.category as "dealer" | "internal" | "personal" | "leave" | "etc",
+                  dealer_name: (s as any).dealer_name ?? null,
+                  location: (s as any).location ?? null,
+                  instructor: (s as any).instructor ?? null,
+                  target_audience: (s as any).target_audience ?? null,
+                  manager_name: (s as any).manager_name ?? null,
                 }))}
                 selectedDateStr={displayDateStr}
                 isAdmin={user?.role === "admin"}
+                canAddSchedule={
+                  user?.role === "admin" ||
+                  user?.role === "manager" ||
+                  user?.profile?.role === "manager"
+                }
               />
             </div>
           </div>

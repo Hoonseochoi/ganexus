@@ -2,16 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/src/lib/engines/db";
 
 export async function POST(req: NextRequest) {
-  const { code, fullName, birthDate, phoneNumber } = (await req.json()) as {
+  const { code, fullName, birthDate, phoneNumber, managerCode } = (await req.json()) as {
     code?: string;
     fullName?: string;
     birthDate?: string;
     phoneNumber?: string;
+    managerCode?: string;
   };
 
-  if (!code || !fullName || !birthDate || !phoneNumber) {
+  const managerCodeTrimmed = (managerCode ?? "").trim();
+  if (!code || !fullName || !birthDate || !phoneNumber || !managerCodeTrimmed) {
     return NextResponse.json(
-      { message: "초대 코드와 기본 정보를 모두 입력해주세요." },
+      { message: "매니저 코드, 초대 코드, 성함, 생년월일, 휴대폰 번호를 모두 입력해주세요." },
       { status: 400 },
     );
   }
@@ -71,31 +73,40 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const loginId = phoneDigits;
-  const initialPassword = birthDate;
+  const existingAuth = await query(
+    "select 1 from public.auth_users where login_id = $1",
+    [managerCodeTrimmed],
+  );
+  if (existingAuth.length > 0) {
+    return NextResponse.json(
+      { message: "이미 사용 중인 매니저 코드입니다. 다른 코드를 입력해주세요." },
+      { status: 409 },
+    );
+  }
 
   await query(
     `
       insert into public.auth_users (login_id, password, role, must_change_password)
       values ($1, $2, 'agent', true)
       on conflict (login_id)
-      do update set role = 'agent', must_change_password = true
+      do update set role = 'agent', must_change_password = true, password = $2
     `,
-    [loginId, initialPassword],
+    [managerCodeTrimmed, managerCodeTrimmed],
   );
 
   await query(
     `
-      insert into public.profiles (login_id, full_name, branch_name, birth_date, phone_number, role, is_approved)
-      values ($1, $2, $3, $4, $5, 'agent', false)
+      insert into public.profiles (login_id, full_name, branch_name, birth_date, phone_number, role, is_approved, manager_code)
+      values ($1, $2, $3, $4, $5, 'agent', false, $1)
       on conflict (login_id)
       do update set full_name = excluded.full_name,
                   branch_name = excluded.branch_name,
                   birth_date = excluded.birth_date,
                   phone_number = excluded.phone_number,
-                  role = 'agent'
+                  role = 'agent',
+                  manager_code = excluded.manager_code
     `,
-    [loginId, fullName, invite.branch_name, birthDate, phoneDigits],
+    [managerCodeTrimmed, fullName, invite.branch_name, birthDate, phoneDigits],
   );
 
   await query(
@@ -105,9 +116,8 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     status: "ok",
-    loginId,
-    initialPassword,
-    message: "지점장 승인 후 내부 로그인 페이지에서 접속할 수 있습니다.",
+    loginId: managerCodeTrimmed,
+    message: "지점장 승인 후 매니저 로그인에서 해당 코드(ID·PW 동일)로 접속할 수 있습니다.",
   });
 }
 

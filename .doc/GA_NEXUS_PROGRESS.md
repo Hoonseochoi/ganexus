@@ -143,3 +143,53 @@
   - 다른 날짜를 클릭하면 TODAY 셀은 기본(회색) 그리드로, 클릭한 날짜 셀만 빨간 테두리로 표시.
   - 데스크톱·모바일 그리드 모두 `selectedDateStr`, `todayStr` 전달.
 
+## 2026-03-12 – 전역 폰트 통일 (Pretendard / Plus Jakarta Sans)
+
+- **적용 원칙**
+  - **캘린더 섹션의 달력 숫자 파트**: **Plus Jakarta Sans** (플러스 자카르타 산스)
+  - **나머지 모든 공간**: **Pretendard** (프리텐다드)
+- **구현**
+  - `app/globals.css`: 폰트 로드(Pretendard Variable jsDelivr, Plus Jakarta Sans Google Fonts)를 `@import "tailwindcss"` 위에서 수행. `@theme`에 `--font-sans`(Pretendard), `--font-calendar`(Plus Jakarta Sans) 정의. `body { font-family: var(--font-sans); }` 적용.
+  - `app/layout.tsx`: body에 `font-sans` 적용.
+  - `CalendarGridClient.tsx`: 요일 헤더 그리드·날짜 셀 숫자 span에 `font-calendar` 적용.
+  - `CalendarMonthNav.tsx`: 달 라벨(26.03) 버튼에 `font-calendar` 적용.
+
+## 2026-03-13 – 일정 카테고리 UX 확장 (색상, 우측 패널, 등록 폼)
+
+- **캘린더 카테고리 색상**
+  - `DraggableSchedulePill.tsx`: `ScheduleItem`에 `category` 필드를 추가하고, `dealer/internal/personal/leave/etc`별로 좌측 보더·배경색을 다르게 적용하는 `CATEGORY_CLASSES` 매핑 추가.
+  - `CalendarGridClient.tsx`: 일자 셀에 렌더되는 일정 칩에 `category`를 함께 전달해 카테고리별 색상이 적용되도록 변경.
+- **우측 패널 리스트/상세 구조 준비**
+  - `RightPanel.tsx`: `todaySchedules`의 타입을 새 카테고리(`dealer/internal/personal/leave/etc`)와 메타 필드(`dealer_name/location/instructor/target_audience/manager_name`)를 포함하도록 확장하고, 리스트 아이템을 카테고리별 색상(border-l-4 색상)과 `title + sub(대상자/교육자/장소/월차 · 시간/종일)` 형식으로 재구성.
+  - `app/page.tsx`: `RightPanel`으로 넘기는 일정 객체에 카테고리와 메타 필드(있을 경우)를 함께 전달하도록 매핑 로직 수정.
+- **Admin 일정 등록 폼 – 카테고리별 필드/라벨**
+  - `app/admin/schedules/page.tsx`: 카테고리를 1행 라디오형(칩 스타일)으로 배치하고, 대리점/사내/개인/월차/기타별로 다른 입력 필드 세트를 노출.
+  - 대리점 일정일 때 상단 제목 라벨을 `대리점명`으로 표시하고, 월차일 때는 `매니저명`으로 표시(하단 별도 매니저명 필드는 제거).
+  - 제목, 날짜 라벨 옆에 작은 레드 텍스트 `**필수`를 추가해 필수 필드 시각적으로 표시.
+
+## 2026-03-13 – 매니저 리스트 좌측 패널 연동
+
+- `src/lib/engines/managers.ts`: 지점별 매니저(또는 관리자) 목록을 조회하는 `listManagersForBranch(branchName)` 유틸 추가. `profiles` 테이블에서 `branch_name`과 `role in ('admin','manager')` 기준으로 조회.
+- `app/api/admin/managers/route.ts`: Admin 전용 매니저 리스트 API(`GET /api/admin/managers`) 구현. 현재 로그인한 Admin의 `profiles.branch_name` 기준으로 매니저 목록 반환.
+- `app/components/BranchMembersCard.tsx`: 좌측(모바일) `Branch Members` 섹션을 실제 매니저 데이터로 렌더링하는 카드 컴포넌트 추가. 로딩/에러/빈 상태 처리 포함.
+- `app/page.tsx`: 모바일 섹션의 기존 더미 `Branch Members` 카드(Sarah Chen 등)를 `BranchMembersCard`로 교체하여, 등록된 매니저가 좌측 패널에서 바로 보이도록 변경.
+
+## 2026-03-13 – Admin 최초 로그인 온보딩 멀티스텝 UI
+
+- `app/components/OnboardingShell.tsx`: 멀티스텝 온보딩 공통 셸 컴포넌트 추가. 상단 스텝 인디케이터·프로그레스 바, 중앙 카드 컨텐츠, 하단 이전/다음/시작하기 버튼을 포함하며 framer-motion으로 단계 전환 애니메이션 적용.
+- `app/admin/onboarding/page.tsx`: Admin 최초 로그인용 3단계 온보딩 페이지 구현.
+  - Step1: 이름/지점 입력 후 `/api/admin/profile`로 저장.
+  - Step2: `/api/admin/invite-codes`를 호출해 초대코드 생성 및 카드 내 표시.
+  - Step3: 설정 요약(이름/지점/초대코드) 안내 후 “캘린더로 이동” 버튼으로 `/`로 이동.
+
+## 2026-03-13 – 초대코드 온보딩(/apply) 멀티스텝 리디자인
+
+- `app/apply/page.tsx`: 기존 단일 카드 3단계 UI를 `OnboardingShell` 기반 3스텝 온보딩으로 리팩터링.
+  - Step1: 초대코드 입력 후 `/api/invite/validate`로 검증, 지점명(branchName) 확인.
+  - Step2: 성함·자동 지점·생년월일·휴대폰·매니저 코드 + 개인정보 동의 입력 후 `/api/agent/apply`로 제출.
+  - Step3: 승인 대기 안내(“승인이 되면 접속이 가능합니다” 메시지) 화면 표시.
+
+## 2026-03-13 – 우측 패널 일정 상세 팝업
+
+- `app/components/RightPanel.tsx`: 오늘/선택 날짜 일정 리스트 아이템을 클릭하면 카테고리별 세부 정보(교육자, 장소, 대상자, 월차 안내 등)와 전체 메모를 볼 수 있는 `ScheduleDetailPopup` 모달을 띄우도록 구현.
+  - 리스트 카드는 버튼으로 변경되어 클릭 시 `selectedSchedule` 상태를 설정하고, 별도의 오버레이 팝업에서 일정 시간 구간(종일 여부 포함)과 카테고리별 필드를 표시.
