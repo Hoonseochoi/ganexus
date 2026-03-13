@@ -106,7 +106,7 @@ export default function ApplyPage() {
   const content = (
     <div className="px-6 pb-6">
       <header className="mb-6 pt-4">
-        <p className="text-xs text-brand-gray mb-1">GA NEXUS 에이전트 온보딩</p>
+        <p className="text-xs text-brand-gray mb-1">GALENDER 매니저 온보딩</p>
         <h1 className="text-xl font-semibold text-brand-black">
           지점 캘린더 합류 신청
         </h1>

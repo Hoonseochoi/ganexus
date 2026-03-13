@@ -1,4 +1,5 @@
 import { query, isRelationNotFound } from "./db";
+import { getTenantSchemaForBranch } from "./tenant";
 
 export type NoticeRow = {
   id: string;
@@ -18,14 +19,21 @@ export type NoticeReadRow = {
   full_name: string | null;
 };
 
+/** 지점(tenant) 스키마 또는 public 사용 — 공지사항은 항상 해당 지점 전용 */
+async function getSchemaForBranch(branchName: string): Promise<string> {
+  const tenant = await getTenantSchemaForBranch(branchName);
+  return tenant ?? "public";
+}
+
 export async function getLatestNoticeForBranch(
   branchName: string,
 ): Promise<NoticeRow | null> {
+  const schema = await getSchemaForBranch(branchName);
   try {
     const rows = await query<NoticeRow>(
       `
         select id, branch_name, title, body, image_url, created_by, created_at
-        from public.notices
+        from ${schema}.notices
         where branch_name = $1
         order by created_at desc
         limit 1
@@ -46,15 +54,21 @@ export async function getNoticeById(
   id: string,
   branchName: string,
 ): Promise<NoticeRow | null> {
-  const rows = await query<NoticeRow>(
-    `
-      select id, branch_name, title, body, image_url, created_by, created_at
-      from public.notices
-      where id = $1 and branch_name = $2
-    `,
-    [id, branchName],
-  );
-  return rows[0] ?? null;
+  const schema = await getSchemaForBranch(branchName);
+  try {
+    const rows = await query<NoticeRow>(
+      `
+        select id, branch_name, title, body, image_url, created_by, created_at
+        from ${schema}.notices
+        where id = $1 and branch_name = $2
+      `,
+      [id, branchName],
+    );
+    return rows[0] ?? null;
+  } catch (err) {
+    if (isRelationNotFound(err)) return null;
+    throw err;
+  }
 }
 
 export async function createNotice(params: {
@@ -64,9 +78,10 @@ export async function createNotice(params: {
   imageUrl?: string | null;
   createdByProfileId: string;
 }): Promise<NoticeRow> {
+  const schema = await getSchemaForBranch(params.branchName);
   const rows = await query<NoticeRow>(
     `
-      insert into public.notices (branch_name, title, body, image_url, created_by)
+      insert into ${schema}.notices (branch_name, title, body, image_url, created_by)
       values ($1, $2, $3, $4, $5)
       returning id, branch_name, title, body, image_url, created_by, created_at
     `,
@@ -89,6 +104,7 @@ export async function updateNotice(params: {
   imageUrl?: string | null;
 }): Promise<NoticeRow | null> {
   const { id, branchName } = params;
+  const schema = await getSchemaForBranch(branchName);
   const fields: string[] = [];
   const values: unknown[] = [];
   if (params.title !== undefined) {
@@ -106,25 +122,32 @@ export async function updateNotice(params: {
   if (fields.length === 0) {
     return getNoticeById(id, branchName);
   }
-  const rows = await query<NoticeRow>(
-    `
-      update public.notices
-      set ${fields.join(", ")}
-      where id = $${values.length + 1} and branch_name = $${values.length + 2}
-      returning id, branch_name, title, body, image_url, created_by, created_at
-    `,
-    [...values, id, branchName],
-  );
-  return rows[0] ?? null;
+  try {
+    const rows = await query<NoticeRow>(
+      `
+        update ${schema}.notices
+        set ${fields.join(", ")}
+        where id = $${values.length + 1} and branch_name = $${values.length + 2}
+        returning id, branch_name, title, body, image_url, created_by, created_at
+      `,
+      [...values, id, branchName],
+    );
+    return rows[0] ?? null;
+  } catch (err) {
+    if (isRelationNotFound(err)) return null;
+    throw err;
+  }
 }
 
 export async function markNoticeRead(params: {
+  branchName: string;
   noticeId: string;
   profileId: string;
 }): Promise<void> {
+  const schema = await getSchemaForBranch(params.branchName);
   await query(
     `
-      insert into public.notice_reads (notice_id, profile_id)
+      insert into ${schema}.notice_reads (notice_id, profile_id)
       values ($1, $2)
       on conflict (notice_id, profile_id) do nothing
     `,
@@ -133,12 +156,14 @@ export async function markNoticeRead(params: {
 }
 
 export async function hasReadNotice(
+  branchName: string,
   noticeId: string,
   profileId: string,
 ): Promise<boolean> {
+  const schema = await getSchemaForBranch(branchName);
   try {
     const rows = await query<{ id: string }>(
-      "select id from public.notice_reads where notice_id = $1 and profile_id = $2",
+      `select id from ${schema}.notice_reads where notice_id = $1 and profile_id = $2`,
       [noticeId, profileId],
     );
     return rows.length > 0;
@@ -148,13 +173,17 @@ export async function hasReadNotice(
   }
 }
 
-export async function getNoticeReads(noticeId: string): Promise<NoticeReadRow[]> {
+export async function getNoticeReads(
+  branchName: string,
+  noticeId: string,
+): Promise<NoticeReadRow[]> {
+  const schema = await getSchemaForBranch(branchName);
   try {
     const rows = await query<NoticeReadRow>(
       `
         select nr.id, nr.notice_id, nr.profile_id, nr.read_at, p.full_name
-        from public.notice_reads nr
-        left join public.profiles p on p.id = nr.profile_id
+        from ${schema}.notice_reads nr
+        left join ${schema}.profiles p on p.id = nr.profile_id
         where nr.notice_id = $1
         order by nr.read_at asc
       `,

@@ -23,7 +23,7 @@ export async function GET() {
   const notice = await getLatestNoticeForBranch(branchName);
   let readByMe = false;
   if (notice && user.profile?.id) {
-    readByMe = await hasReadNotice(notice.id, user.profile.id);
+    readByMe = await hasReadNotice(branchName, notice.id, user.profile.id);
   }
   return NextResponse.json({ notice, readByMe });
 }

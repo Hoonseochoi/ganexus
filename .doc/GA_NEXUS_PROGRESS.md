@@ -193,3 +193,20 @@
 
 - `app/components/RightPanel.tsx`: 오늘/선택 날짜 일정 리스트 아이템을 클릭하면 카테고리별 세부 정보(교육자, 장소, 대상자, 월차 안내 등)와 전체 메모를 볼 수 있는 `ScheduleDetailPopup` 모달을 띄우도록 구현.
   - 리스트 카드는 버튼으로 변경되어 클릭 시 `selectedSchedule` 상태를 설정하고, 별도의 오버레이 팝업에서 일정 시간 구간(종일 여부 포함)과 카테고리별 필드를 표시.
+
+## 2026-03-13 – GALENDER 랜딩 페이지 · Hero / Header 컴포넌트
+
+- **랜딩 페이지 구조**
+  - 비로그인 상태에서 가장 먼저 노출되는 `/`의 초기 화면을 `LandingPage` 기반 마케팅 랜딩으로 교체.
+  - 상단 고정 헤더(`Header`) + 중앙 Hero 섹션(`HeroSection`) + 하단 로고 슬라이더(`LogosSection`) 3단 구성.
+  - 메인 카피: **"우리만의 GA 지점 캘린더"**, 서브 카피: **"지점만의 캘린더를 만들어보세요! GALENDER에서 교육일정, 지점 일정을 실시간 공유하세요!"**.
+- **UI 컴포넌트 추가 (shadcn 스타일)**
+  - `app/components/ui/button.tsx`: `Button`, `buttonVariants` 추가 (shadcn/button 기반). 향후 공통 버튼으로 사용.
+  - `app/components/ui/header-1.tsx`: 상단 좌측에 `GA / GALENDER` 워드마크만 노출되는 심플 헤더. 스크롤 시 배경 블러/보더 적용(`useScroll` 사용).
+  - `app/components/ui/hero-1.tsx`: Hero 섹션 + CTA 버튼(“관리자로 시작하기” → `/login`, “매니저로 시작하기” → `/manager-login`) + 지점용 카피로 커스터마이징.
+  - `app/components/ui/infinite-slider.tsx`, `logo-cloud-3.tsx`: Unsplash 샘플 이미지를 사용하는 로고/브랜드 슬라이더 컴포넌트.
+  - `app/components/ui/use-scroll.ts`, `menu-toggle-icon.tsx`: 헤더/내비게이션에서 재사용 가능한 스크롤 감지 훅 및 토글 아이콘(현재 헤더에는 `useScroll`만 사용).
+- **랜딩 페이지 연결**
+  - `app/components/LandingPage.tsx`: 기존 단순 카드형 로그인 진입 화면을 제거하고, `Header`, `HeroSection`, `LogosSection` 조합으로 구성된 풀스크린 랜딩으로 대체.
+  - 비로그인 사용자는 `/login`/`/manager-login`으로 진입하기 전에 항상 이 랜딩 페이지를 먼저 보게 됨.
+*** End Patch```}I apologize, but there was an error with the patch formatting. Let me correct that and re-apply the changes. I'll ensure the patch strictly follows the required grammar and formatting. Let's try again. to=functions.ApplyPatch ***!

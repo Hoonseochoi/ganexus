@@ -115,7 +115,7 @@ export default function AdminSignupPage() {
     <main className="min-h-screen flex flex-col items-center justify-center bg-background-light px-4 py-8">
       <div className="w-full max-w-md mx-auto px-6 py-8 rounded-2xl bg-white border border-slate-200 shadow-sm">
         <header className="mb-6">
-          <p className="text-xs text-brand-gray mb-1">GA NEXUS 관리자</p>
+          <p className="text-xs text-brand-gray mb-1">GALENDER 관리자</p>
           <h1 className="text-xl font-semibold text-brand-black">
             관리자 회원가입
           </h1>
@@ -141,7 +141,7 @@ export default function AdminSignupPage() {
               className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
               value={company}
               onChange={(e) => setCompany(e.target.value)}
-              placeholder="예: 메리츠종합금융서비스"
+              placeholder="예: 메리츠화재"
             />
           </div>
           <div className="space-y-1.5">
@@ -153,7 +153,7 @@ export default function AdminSignupPage() {
               className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="예: 김민재"
+              placeholder="예: 김메리"
             />
           </div>
           <div className="space-y-1.5">
@@ -165,7 +165,7 @@ export default function AdminSignupPage() {
               className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
               value={branchName}
               onChange={(e) => setBranchName(e.target.value)}
-              placeholder="예: 강남지점"
+              placeholder="예: GA11-25지점"
             />
           </div>
           <div className="space-y-1.5">

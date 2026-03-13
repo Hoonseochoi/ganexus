@@ -87,9 +87,9 @@ export async function POST(req: NextRequest) {
   await query(
     `
       insert into public.auth_users (login_id, password, role, must_change_password)
-      values ($1, $2, 'agent', true)
+      values ($1, $2, 'manager', true)
       on conflict (login_id)
-      do update set role = 'agent', must_change_password = true, password = $2
+      do update set role = 'manager', must_change_password = true, password = $2
     `,
     [managerCodeTrimmed, managerCodeTrimmed],
   );
@@ -97,13 +97,13 @@ export async function POST(req: NextRequest) {
   await query(
     `
       insert into public.profiles (login_id, full_name, branch_name, birth_date, phone_number, role, is_approved, manager_code)
-      values ($1, $2, $3, $4, $5, 'agent', false, $1)
+      values ($1, $2, $3, $4, $5, 'manager', false, $1)
       on conflict (login_id)
       do update set full_name = excluded.full_name,
                   branch_name = excluded.branch_name,
                   birth_date = excluded.birth_date,
                   phone_number = excluded.phone_number,
-                  role = 'agent',
+                  role = 'manager',
                   manager_code = excluded.manager_code
     `,
     [managerCodeTrimmed, fullName, invite.branch_name, birthDate, phoneDigits],

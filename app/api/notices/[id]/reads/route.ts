@@ -25,6 +25,6 @@ export async function GET(
     return NextResponse.json({ message: "공지를 찾을 수 없습니다." }, { status: 404 });
   }
 
-  const reads = await getNoticeReads(id);
+  const reads = await getNoticeReads(branchName, id);
   return NextResponse.json({ reads });
 }

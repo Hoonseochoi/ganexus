@@ -93,7 +93,7 @@ export default function LoginPage() {
     <main className="min-h-screen flex items-center justify-center bg-background-light px-4 py-8">
       <div className="w-full max-w-md mx-auto px-6 py-8 rounded-2xl bg-white border border-slate-200 shadow-sm">
         <header className="mb-6">
-          <p className="text-xs text-brand-gray mb-1">GA NEXUS 내부 전용</p>
+          <p className="text-xs text-brand-gray mb-1">GALENDER 내부 전용</p>
           <h1 className="text-xl font-semibold text-brand-black">
             지점 관리자 로그인
           </h1>
@@ -141,7 +141,21 @@ export default function LoginPage() {
               최초 로그인 시, 보안을 위해 비밀번호 변경 단계가 자동으로 진행됩니다.
             </p>
           </form>
-        ) : (
+        ) : null}
+        {step === "login" && (
+          <div className="mt-6 pt-4 border-t border-slate-100 text-center">
+            <p className="text-[11px] text-brand-gray mb-2">계정이 없으신가요?</p>
+            <EclipseButton
+              type="button"
+              variant="outline"
+              size="sm"
+              text="관리자 회원가입"
+              className="w-full"
+              onClick={() => router.push("/admin/signup")}
+            />
+          </div>
+        )}
+        {step === "changePassword" ? (
           <form onSubmit={handleChangePassword} className="space-y-4">
             <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-700">
               첫 로그인입니다. 안전한 사용을 위해 반드시 새 비밀번호를 설정해주세요.
@@ -175,7 +189,7 @@ export default function LoginPage() {
               className="mt-2 w-full"
             />
           </form>
-        )}
+        ) : null}
       </div>
     </main>
   );

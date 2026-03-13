@@ -25,6 +25,10 @@ export async function POST(
     return NextResponse.json({ message: "공지를 찾을 수 없습니다." }, { status: 404 });
   }
 
-  await markNoticeRead({ noticeId, profileId: profile.id });
+  await markNoticeRead({
+    branchName: profile.branch_name ?? "",
+    noticeId,
+    profileId: profile.id,
+  });
   return NextResponse.json({ ok: true });
 }

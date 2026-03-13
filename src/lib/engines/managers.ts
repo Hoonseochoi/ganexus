@@ -6,7 +6,7 @@ export type ManagerRow = {
   full_name: string | null;
   branch_name: string | null;
   phone_number: string | null;
-  role: "admin" | "manager" | "agent" | null;
+  role: "admin" | "manager" | null;
   created_at: string;
 };
 
@@ -36,7 +36,7 @@ export async function listManagersForBranch(branchName: string): Promise<Manager
   }
 }
 
-/** 지점에 가입된 전체 멤버(admin, manager, agent 포함) 조회. admin → manager → agent 순. */
+/** 지점에 가입된 전체 멤버(admin, manager 포함) 조회. admin → manager 순. */
 export async function listAllBranchMembers(branchName: string): Promise<ManagerRow[]> {
   const schema = (await getTenantSchemaForBranch(branchName)) ?? "public";
   try {
@@ -45,17 +45,20 @@ export async function listAllBranchMembers(branchName: string): Promise<ManagerR
         select id, full_name, branch_name, phone_number, role, created_at
         from ${schema}.profiles
         where branch_name = $1
-        order by case role when 'admin' then 1 when 'manager' then 2 when 'agent' then 3 else 4 end, created_at asc
+        order by case role when 'admin' then 1 when 'manager' then 2 else 3 end, created_at asc
       `,
       [branchName],
     );
     return rows;
   } catch (err) {
     if (isRelationNotFound(err)) {
-      const rows = await query<ManagerRow>(
-        `select id, full_name, branch_name, phone_number, role, created_at from public.profiles where branch_name = $1 order by case role when 'admin' then 1 when 'manager' then 2 when 'agent' then 3 else 4 end, created_at asc`,
-        [branchName],
-      );
+      const rows = await query<ManagerRow>(`
+        select id, full_name, branch_name, phone_number, role, created_at
+        from public.profiles
+        where branch_name = $1
+          and role in ('admin', 'manager')
+        order by case role when 'admin' then 1 when 'manager' then 2 else 3 end, created_at asc
+      `, [branchName]);
       return rows;
     }
     throw err;

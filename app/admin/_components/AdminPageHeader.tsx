@@ -26,7 +26,7 @@ export function AdminPageHeader({
           >
             ←
           </EclipseButton>
-          <p className="text-xs text-brand-gray">GA NEXUS 관리자 설정</p>
+          <p className="text-xs text-brand-gray">GALENDER 관리자 설정</p>
         </div>
         <h1 className="text-xl font-semibold text-brand-black">{title}</h1>
         <p className="mt-1 text-[11px] text-brand-gray">{description}</p>

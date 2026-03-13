@@ -99,7 +99,7 @@ function ManagerLoginForm() {
     <main className="min-h-screen flex items-center justify-center bg-background-light px-4 py-8">
       <div className="w-full max-w-md mx-auto px-6 py-8 rounded-2xl bg-white border border-slate-200 shadow-sm">
         <header className="mb-6">
-          <p className="text-xs text-brand-gray mb-1">GA NEXUS 내부 전용</p>
+          <p className="text-xs text-brand-gray mb-1">GALENDER 내부 전용</p>
           <h1 className="text-xl font-semibold text-brand-black">
             매니저 로그인
           </h1>
@@ -116,39 +116,51 @@ function ManagerLoginForm() {
         )}
 
         {step === "login" ? (
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs text-brand-gray">
-                매니저 코드 (ID)
-              </label>
-              <input
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
-                value={loginId}
-                onChange={(e) => setLoginId(e.target.value)}
-                placeholder={prefilledCode ?? "예: MANAGER-XXXX"}
+          <>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs text-brand-gray">
+                  매니저 코드 (ID)
+                </label>
+                <input
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
+                  value={loginId}
+                  onChange={(e) => setLoginId(e.target.value)}
+                  placeholder={prefilledCode ?? "예: MANAGER-XXXX"}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs text-brand-gray">
+                  매니저 코드 (비밀번호)
+                </label>
+                <input
+                  type="password"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="동일한 매니저 코드를 입력하세요"
+                />
+              </div>
+              <EclipseButton
+                type="submit"
+                disabled={loading}
+                isLoading={loading}
+                text={loading ? "로그인 중..." : "로그인"}
+                variant="primary"
+                className="mt-2 w-full"
+              />
+            </form>
+            <div className="mt-6 pt-4 border-t border-slate-100 text-center">
+              <p className="text-[11px] text-brand-gray mb-2">처음이신가요?</p>
+              <EclipseButton
+                type="button"
+                variant="outline"
+                text="초대코드로 매니저 가입하기"
+                className="w-full text-xs"
+                onClick={() => router.push("/apply")}
               />
             </div>
-            <div className="space-y-1.5">
-              <label className="text-xs text-brand-gray">
-                매니저 코드 (비밀번호)
-              </label>
-              <input
-                type="password"
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="동일한 매니저 코드를 입력하세요"
-              />
-            </div>
-            <EclipseButton
-              type="submit"
-              disabled={loading}
-              isLoading={loading}
-              text={loading ? "로그인 중..." : "로그인"}
-              variant="primary"
-              className="mt-2 w-full"
-            />
-          </form>
+          </>
         ) : (
           <form onSubmit={handleChangePassword} className="space-y-4">
             <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-700">

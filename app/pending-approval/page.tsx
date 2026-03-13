@@ -8,7 +8,7 @@ export default async function PendingApprovalPage() {
     redirect("/login");
   }
 
-  if (user.role !== "agent") {
+  if (user.role !== "manager") {
     redirect("/");
   }
 
@@ -20,7 +20,7 @@ export default async function PendingApprovalPage() {
     <main className="min-h-screen flex items-center justify-center bg-background-light px-4">
       <div className="w-full max-w-md mx-auto px-6 py-8 rounded-2xl bg-white border border-slate-200 shadow-sm">
         <header className="mb-4">
-          <p className="text-xs text-brand-gray mb-1">GA NEXUS 접근 대기</p>
+          <p className="text-xs text-brand-gray mb-1">GALENDER 접근 대기</p>
           <h1 className="text-xl font-semibold text-brand-black">
             지점장 승인 대기 중입니다
           </h1>

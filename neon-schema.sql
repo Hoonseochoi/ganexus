@@ -5,7 +5,7 @@
 create table if not exists public.auth_users (
   login_id text primary key,
   password text not null,
-  role text check (role in ('admin', 'manager', 'agent')) not null,
+  role text check (role in ('admin', 'manager')) not null,
   must_change_password boolean default true,
   created_at timestamptz default timezone('utc'::text, now())
 );
@@ -33,7 +33,7 @@ create table if not exists public.profiles (
   birth_date varchar(6),
   phone_number text,
   is_approved boolean default false,
-  role text check (role in ('admin', 'manager', 'agent')),
+  role text check (role in ('admin', 'manager')),
   manager_code text,
   created_at timestamptz default timezone('utc'::text, now())
 );
