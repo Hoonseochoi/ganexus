@@ -7,7 +7,7 @@ type Member = {
   name: string;
   branch_name: string | null;
   phone_number: string | null;
-  role: "admin" | "manager" | "agent" | null;
+  role: "admin" | "manager" | null;
   created_at: string;
 };
 
@@ -36,6 +36,9 @@ export default function LeftPanelBranchMembers() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [canEdit, setCanEdit] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -50,6 +53,8 @@ export default function LeftPanelBranchMembers() {
         }
         const list = (data.managers ?? []) as Member[];
         setMembers(sortAdminFirst(list));
+        setCanEdit(Boolean(data.canEdit));
+        setCurrentUserId(data.currentUserId ?? null);
       } catch {
         setError("네트워크 오류로 목록을 불러오지 못했습니다.");
       } finally {
@@ -61,9 +66,20 @@ export default function LeftPanelBranchMembers() {
 
   return (
     <div className="pt-8 pb-2">
-      <h3 className="px-3 text-[10px] uppercase font-bold tracking-wider text-brand-gray mb-4">
-        Branch Members
-      </h3>
+      <div className="px-3 mb-2 flex items-center justify-between">
+        <h3 className="text-[10px] uppercase font-bold tracking-wider text-brand-gray">
+          Branch Members
+        </h3>
+        {canEdit && (
+          <button
+            type="button"
+            onClick={() => setEditing((prev) => !prev)}
+            className="text-[10px] text-primary hover:underline"
+          >
+            {editing ? "편집 완료" : "멤버 편집"}
+          </button>
+        )}
+      </div>
       <div className="space-y-4 text-sm">
         {loading ? (
           <p className="px-3 text-xs text-brand-gray">불러오는 중...</p>
@@ -90,6 +106,31 @@ export default function LeftPanelBranchMembers() {
                   {roleLabel(m.role)}
                 </p>
               </div>
+              {editing && m.role !== "admin" && m.id !== currentUserId && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const res = await fetch("/api/admin/managers", {
+                        method: "DELETE",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ memberId: m.id }),
+                      });
+                      const data = await res.json();
+                      if (!res.ok) {
+                        alert(data.message ?? "멤버 삭제 중 오류가 발생했습니다.");
+                        return;
+                      }
+                      setMembers((prev) => prev.filter((x) => x.id !== m.id));
+                    } catch {
+                      alert("네트워크 오류로 멤버를 삭제할 수 없습니다.");
+                    }
+                  }}
+                  className="text-[11px] text-rose-500 hover:text-rose-600"
+                >
+                  삭제
+                </button>
+              )}
             </div>
           ))
         )}
