@@ -21,7 +21,8 @@ type CalendarCell = {
   isHoliday: boolean;
 };
 
-type PageProps = { searchParams?: Promise<{ year?: string; month?: string; date?: string }> };
+type SearchParamsShape = { year?: string; month?: string; date?: string };
+type PageProps = { searchParams?: Promise<SearchParamsShape> };
 
 export default async function Page({ searchParams }: PageProps) {
   const user = await getCurrentUser();
@@ -31,7 +32,7 @@ export default async function Page({ searchParams }: PageProps) {
   }
 
   const now = new Date();
-  const params = await searchParams?.catch(() => ({})) ?? {};
+  const params: SearchParamsShape = await searchParams?.catch((): SearchParamsShape => ({})) ?? {};
   const year = params.year ? parseInt(params.year, 10) : now.getFullYear();
   const month = params.month ? parseInt(params.month, 10) - 1 : now.getMonth();
   const selectedDateStr = params.date ?? null;
