@@ -86,27 +86,32 @@ export async function POST(req: NextRequest) {
 
   await query(
     `
-      insert into public.auth_users (login_id, password, role, must_change_password)
-      values ($1, $2, 'manager', true)
+      insert into public.auth_users (login_id, password, role, must_change_password, branch_name, invite_code)
+      values ($1, $2, 'manager', true, $3, $4)
       on conflict (login_id)
-      do update set role = 'manager', must_change_password = true, password = $2
+      do update set role = 'manager',
+                   must_change_password = true,
+                   password = $2,
+                   branch_name = $3,
+                   invite_code = $4
     `,
-    [managerCodeTrimmed, managerCodeTrimmed],
+    [managerCodeTrimmed, managerCodeTrimmed, invite.branch_name, code],
   );
 
   await query(
     `
-      insert into public.profiles (login_id, full_name, branch_name, birth_date, phone_number, role, is_approved, manager_code)
-      values ($1, $2, $3, $4, $5, 'manager', false, $1)
+      insert into public.profiles (login_id, full_name, branch_name, birth_date, phone_number, role, is_approved, manager_code, invite_code)
+      values ($1, $2, $3, $4, $5, 'manager', false, $1, $6)
       on conflict (login_id)
       do update set full_name = excluded.full_name,
                   branch_name = excluded.branch_name,
                   birth_date = excluded.birth_date,
                   phone_number = excluded.phone_number,
                   role = 'manager',
-                  manager_code = excluded.manager_code
+                  manager_code = excluded.manager_code,
+                  invite_code = excluded.invite_code
     `,
-    [managerCodeTrimmed, fullName, invite.branch_name, birthDate, phoneDigits],
+    [managerCodeTrimmed, fullName, invite.branch_name, birthDate, phoneDigits, code],
   );
 
   await query(
