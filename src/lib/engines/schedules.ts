@@ -37,6 +37,7 @@ export type ScheduleRow = {
   is_all_day: boolean;
   created_by: string;
   created_at: string;
+  is_soft_deleted?: boolean;
 };
 
 export type ScheduleInput = {
@@ -83,10 +84,10 @@ export async function listSchedulesForBranch(params: {
       `
         select id, branch_name, title, description, category,
                dealer_name, location, instructor, target_audience, manager_name,
-               start_at, end_at, is_all_day, created_by, created_at
+               start_at, end_at, is_all_day, created_by, created_at, is_soft_deleted
         from ${schema}.schedules
         where ${where}
-        order by start_at asc
+        order by is_soft_deleted asc, start_at asc
       `,
       values,
     );
@@ -288,12 +289,21 @@ export async function updateSchedule(params: {
 export async function deleteSchedule(params: {
   id: string;
   branchName: string;
+  hardDelete?: boolean;
 }): Promise<void> {
-  const { id, branchName } = params;
+  const { id, branchName, hardDelete } = params;
   const schema = (await getTenantSchemaForBranch(branchName)) ?? "public";
+  if (hardDelete) {
+    await query(
+      `delete from ${schema}.schedules where id = $1 and branch_name = $2`,
+      [id, branchName],
+    );
+    return;
+  }
   await query(
-    `delete from ${schema}.schedules where id = $1 and branch_name = $2`,
+    `update ${schema}.schedules set is_soft_deleted = true where id = $1 and branch_name = $2`,
     [id, branchName],
   );
 }
+
 

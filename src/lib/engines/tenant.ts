@@ -52,7 +52,8 @@ export async function createTenantForAdmin(params: {
         end_at timestamptz not null,
         is_all_day boolean default false,
         created_by uuid not null,
-        created_at timestamptz default timezone('utc'::text, now())
+        created_at timestamptz default timezone('utc'::text, now()),
+        is_soft_deleted boolean default false
       )
     `);
 

@@ -17,6 +17,7 @@ type ScheduleItem = {
   instructor?: string | null;
   target_audience?: string | null;
   manager_name?: string | null;
+   is_soft_deleted?: boolean;
 };
 
 type MemoItem = {
@@ -235,6 +236,7 @@ export default function RightPanel({
                   ? "border-amber-500 bg-amber-50"
                   : "border-slate-200 bg-slate-50";
 
+              const deleted = s.is_soft_deleted;
               return (
                 <button
                   key={s.id}
@@ -258,15 +260,29 @@ export default function RightPanel({
                   }
                   className={`w-full text-left p-3 rounded-lg border border-slate-100 border-l-4 ${colorClass} ${
                     isAdmin ? "cursor-grab active:cursor-grabbing" : ""
-                  }`}
+                  } ${deleted ? "opacity-60" : ""}`}
                   onClick={() => setSelectedSchedule(s)}
                 >
-                  <p className="text-sm font-semibold text-brand-black">
+                  <p
+                    className={`text-sm font-semibold ${
+                      deleted ? "text-slate-400 line-through" : "text-brand-black"
+                    }`}
+                  >
                     {s.title}
                   </p>
-                  <p className="text-xs text-brand-gray mt-0.5">{subText}</p>
+                  <p
+                    className={`text-xs mt-0.5 ${
+                      deleted ? "text-slate-400 line-through" : "text-brand-gray"
+                    }`}
+                  >
+                    {subText}
+                  </p>
                   {s.description && (
-                    <p className="text-xs text-slate-600 mt-1 line-clamp-2">
+                    <p
+                      className={`text-xs mt-1 line-clamp-2 ${
+                        deleted ? "text-slate-400 line-through" : "text-slate-600"
+                      }`}
+                    >
                       {s.description}
                     </p>
                   )}

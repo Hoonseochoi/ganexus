@@ -7,7 +7,10 @@ create table if not exists public.auth_users (
   password text not null,
   role text check (role in ('admin', 'manager')) not null,
   must_change_password boolean default true,
-  created_at timestamptz default timezone('utc'::text, now())
+  created_at timestamptz default timezone('utc'::text, now()),
+  -- 소속 지점(예: GA4-7지점) 및 가입 시 사용한 초대코드
+  branch_name text,
+  invite_code text
 );
 
 -- 초기 Admin 계정(121202739 / 121202739) 시드
@@ -35,7 +38,9 @@ create table if not exists public.profiles (
   is_approved boolean default false,
   role text check (role in ('admin', 'manager')),
   manager_code text,
-  created_at timestamptz default timezone('utc'::text, now())
+  created_at timestamptz default timezone('utc'::text, now()),
+  -- 가입 시 사용한 초대코드 (있다면)
+  invite_code text
 );
 
 
@@ -69,7 +74,9 @@ create table if not exists public.schedules (
   end_at timestamptz not null,
   is_all_day boolean default false,
   created_by uuid references public.profiles(id) not null,
-  created_at timestamptz default timezone('utc'::text, now())
+  created_at timestamptz default timezone('utc'::text, now()),
+  -- 매니저 소프트 삭제용 플래그 (관리자만 완전 삭제 가능)
+  is_soft_deleted boolean default false
 );
 
 -- 4) branch_memos: 지점별 메모 (작성자, 일시, 내용)
@@ -107,6 +114,14 @@ alter table if exists public.profiles add column if not exists email text;
 
 -- 관리자별 전용 스키마(테이블) 라우팅: 해당 지점 데이터가 저장된 스키마명
 alter table if exists public.profiles add column if not exists tenant_schema text;
+
+-- 기존 auth_users/profiles 에도 branch_name / invite_code 컬럼을 안전하게 추가
+alter table if exists public.auth_users add column if not exists branch_name text;
+alter table if exists public.auth_users add column if not exists invite_code text;
+alter table if exists public.profiles add column if not exists invite_code text;
+
+-- 기존 schedules 테이블에 소프트 삭제 플래그 추가
+alter table if exists public.schedules add column if not exists is_soft_deleted boolean default false;
 
 -- RLS 는 Supabase 의 auth.uid() 대신
 -- 애플리케이션 레이어(Next.js)에서 역할/승인 상태를 체크하는 방식으로 처리한다.
