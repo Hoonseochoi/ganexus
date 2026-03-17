@@ -1,0 +1,33 @@
+{
+  "profiles": [
+    {
+      "id": "8554a5d1-3137-44c4-98d6-d6f1da432c6a",
+      "login_id": "121202730",
+      "full_name": "최훈서",
+      "email": "chlgnstj1@naver.com",
+      "branch_name": "GA4-7지점"
+    },
+    {
+      "id": "7f0d38a5-c67b-4e00-b5ff-94e528cf1ed3",
+      "login_id": "121202739",
+      "full_name": "최훈서",
+      "email": null,
+      "branch_name": "GA4-7지점"
+    },
+    {
+      "id": "af8667b6-fd02-4c94-96c3-b9059ff5c1c6",
+      "login_id": "325001957",
+      "full_name": "이예원",
+      "email": null,
+      "branch_name": "GA4-7지점"
+    },
+    {
+      "id": "2e6e4cee-3576-4474-895b-f83323b74f04",
+      "login_id": "324013356",
+      "full_name": "안지현",
+      "email": null,
+      "branch_name": "GA4-7지점"
+    }
+  ],
+  "authUsers": []
+}

@@ -1,0 +1,16 @@
+﻿--- TEST 1: SELECT from public.schedule_edit_logs ---
+[
+  {
+    "id": "934bdd1d-54c9-4ffc-b165-4e2e8d841fb9",
+    "schedule_id": "4c263cd0-6ac0-46c2-b248-5186a2ce3cc3",
+    "modified_by": "7f0d38a5-c67b-4e00-b5ff-94e528cf1ed3",
+    "changed_fields": {
+      "title": {
+        "after": "B",
+        "before": "A"
+      }
+    },
+    "created_at": "2026-03-16T14:38:14.577Z",
+    "branch_name": "GA4-7吏??
+  }
+]

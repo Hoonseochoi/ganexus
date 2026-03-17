@@ -416,7 +416,9 @@ __turbopack_context__.s([
     "loadExternalIsValidProp",
     ()=>loadExternalIsValidProp
 ]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$value$2f$utils$2f$is$2d$motion$2d$value$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/OneDrive/Desktop/GA_NEXUS/node_modules/motion-dom/dist/es/value/utils/is-motion-value.mjs [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$motion$2f$utils$2f$valid$2d$prop$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/OneDrive/Desktop/GA_NEXUS/node_modules/framer-motion/dist/es/motion/utils/valid-prop.mjs [app-ssr] (ecmascript)");
+;
 ;
 let shouldForward = (key)=>!(0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$motion$2f$utils$2f$valid$2d$prop$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["isValidMotionProp"])(key);
 function loadExternalIsValidProp(isValidProp) {
@@ -441,7 +443,11 @@ function loadExternalIsValidProp(isValidProp) {
      * We attempt to import this package but require won't be defined in esm environments, in that case
      * isPropValid will have to be provided via `MotionContext`. In a 6.0.0 this should probably be removed
      * in favour of explicit injection.
-     */ loadExternalIsValidProp((()=>{
+     *
+     * String concatenation prevents bundlers like webpack (e.g. Storybook)
+     * from statically resolving this optional dependency at build time.
+     */ const emotionPkg = "@emotion/is-prop-" + "valid";
+    loadExternalIsValidProp((()=>{
         const e = new Error("Cannot find module '@emotion/is-prop-valid'");
         e.code = 'MODULE_NOT_FOUND';
         throw e;
@@ -459,6 +465,7 @@ function filterProps(props, isDom, forwardMotionProps) {
          * We check the type as it could be used with the `feColorMatrix`
          * element, which we support.
          */ if (key === "values" && typeof props.values === "object") continue;
+        if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$value$2f$utils$2f$is$2d$motion$2d$value$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["isMotionValue"])(props[key])) continue;
         if (shouldForward(key) || forwardMotionProps === true && (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$motion$2f$utils$2f$valid$2d$prop$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["isValidMotionProp"])(key) || !isDom && !(0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$motion$2f$utils$2f$valid$2d$prop$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["isValidMotionProp"])(key) || props["draggable"] && key.startsWith("onDrag")) {
             filteredProps[key] = props[key];
         }
@@ -1077,12 +1084,14 @@ __turbopack_context__.s([
     ()=>ExitAnimationFeature
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$render$2f$Feature$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/OneDrive/Desktop/GA_NEXUS/node_modules/motion-dom/dist/es/render/Feature.mjs [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$render$2f$utils$2f$resolve$2d$dynamic$2d$variants$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/OneDrive/Desktop/GA_NEXUS/node_modules/motion-dom/dist/es/render/utils/resolve-dynamic-variants.mjs [app-ssr] (ecmascript)");
 ;
 let id = 0;
 class ExitAnimationFeature extends __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$render$2f$Feature$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Feature"] {
     constructor(){
         super(...arguments);
         this.id = id++;
+        this.isExitComplete = false;
     }
     update() {
         if (!this.node.presenceContext) return;
@@ -1091,9 +1100,34 @@ class ExitAnimationFeature extends __TURBOPACK__imported__module__$5b$project$5d
         if (!this.node.animationState || isPresent === prevIsPresent) {
             return;
         }
+        if (isPresent && prevIsPresent === false) {
+            /**
+             * When re-entering, if the exit animation already completed
+             * (element is at rest), reset to initial values so the enter
+             * animation replays from the correct position.
+             */ if (this.isExitComplete) {
+                const { initial, custom } = this.node.getProps();
+                if (typeof initial === "string") {
+                    const resolved = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$render$2f$utils$2f$resolve$2d$dynamic$2d$variants$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["resolveVariant"])(this.node, initial, custom);
+                    if (resolved) {
+                        const { transition, transitionEnd, ...target } = resolved;
+                        for(const key in target){
+                            this.node.getValue(key)?.jump(target[key]);
+                        }
+                    }
+                }
+                this.node.animationState.reset();
+                this.node.animationState.animateChanges();
+            } else {
+                this.node.animationState.setActive("exit", false);
+            }
+            this.isExitComplete = false;
+            return;
+        }
         const exitAnimation = this.node.animationState.setActive("exit", !isPresent);
         if (onExitComplete && !isPresent) {
             exitAnimation.then(()=>{
+                this.isExitComplete = true;
                 onExitComplete(this.id);
             });
         }
@@ -1953,7 +1987,7 @@ class VisualElementDragControls {
                 return;
             }
             let transition = constraints && constraints[axis] || {};
-            if (dragSnapToOrigin) transition = {
+            if (dragSnapToOrigin === true || dragSnapToOrigin === axis) transition = {
                 min: 0,
                 max: 0
             };

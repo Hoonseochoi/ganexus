@@ -1,0 +1,26 @@
+[
+  {
+    "column_name": "id",
+    "data_type": "uuid"
+  },
+  {
+    "column_name": "schedule_id",
+    "data_type": "uuid"
+  },
+  {
+    "column_name": "modified_by",
+    "data_type": "uuid"
+  },
+  {
+    "column_name": "changed_fields",
+    "data_type": "jsonb"
+  },
+  {
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone"
+  },
+  {
+    "column_name": "branch_name",
+    "data_type": "text"
+  }
+]

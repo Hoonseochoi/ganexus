@@ -27,10 +27,8 @@ export async function listMemosForBranch(params: {
     }
     const rows = await query<MemoRow & { author_name: string | null }>(
       `
-        select m.id, m.branch_name, m.content, m.created_by, m.created_at,
-               p.full_name as author_name
+        select id, branch_name, content, created_by, created_at, author_name
         from public.branch_memos m
-        left join public.profiles p on p.id = m.created_by
         where ${conditions.join(" and ")}
         order by m.created_at desc
         limit 100
@@ -59,14 +57,15 @@ export async function createMemo(params: {
   branchName: string;
   content: string;
   createdByProfileId: string;
+  createdByName?: string | null;
 }): Promise<MemoRow> {
   const rows = await query<MemoRow>(
     `
-      insert into public.branch_memos (branch_name, content, created_by)
-      values ($1, $2, $3)
-      returning id, branch_name, content, created_by, created_at
+      insert into public.branch_memos (branch_name, content, created_by, author_name)
+      values ($1, $2, $3, $4)
+      returning id, branch_name, content, created_by, created_at, author_name
     `,
-    [params.branchName, params.content, params.createdByProfileId],
+    [params.branchName, params.content, params.createdByProfileId, params.createdByName ?? null],
   );
   return rows[0];
 }

@@ -469,7 +469,7 @@ function AdminPageHeader({ title, description, rightSlot }) {
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                 className: "text-xs text-brand-gray",
-                                children: "GA NEXUS 관리자 설정"
+                                children: "GALENDER 관리자 설정"
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/_components/AdminPageHeader.tsx",
                                 lineNumber: 29,
@@ -536,6 +536,7 @@ function InviteCodesPage() {
     const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(true);
     const [creating, setCreating] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [deletingId, setDeletingId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         const load = async ()=>{
             try {
@@ -557,6 +558,11 @@ function InviteCodesPage() {
     const handleCreate = async (e)=>{
         e.preventDefault();
         setError(null);
+        // 프론트에서도 1개 제한 가드
+        if (codes.length > 0) {
+            setError("이 지점에는 이미 생성된 초대 코드가 있습니다. 기존 코드를 삭제한 뒤 다시 시도해주세요.");
+            return;
+        }
         setCreating(true);
         try {
             const res = await fetch("/api/admin/invite-codes", {
@@ -583,6 +589,32 @@ function InviteCodesPage() {
             setCreating(false);
         }
     };
+    const handleDelete = async (id)=>{
+        if (!window.confirm("해당 초대 코드를 삭제하시겠습니까?")) return;
+        setError(null);
+        setDeletingId(id);
+        try {
+            const res = await fetch("/api/admin/invite-codes", {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    id
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setError(data.message ?? "초대 코드 삭제에 실패했습니다.");
+                return;
+            }
+            setCodes((prev)=>prev.filter((c)=>c.id !== id));
+        } catch  {
+            setError("네트워크 오류로 초대 코드를 삭제할 수 없습니다.");
+        } finally{
+            setDeletingId(null);
+        }
+    };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
         className: "min-h-screen bg-background-light px-4 py-6",
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -593,7 +625,7 @@ function InviteCodesPage() {
                     description: "지점 에이전트 온보딩에 사용할 초대 코드를 생성하고 관리합니다."
                 }, void 0, false, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-                    lineNumber: 71,
+                    lineNumber: 102,
                     columnNumber: 9
                 }, this),
                 error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -601,7 +633,7 @@ function InviteCodesPage() {
                     children: error
                 }, void 0, false, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-                    lineNumber: 76,
+                    lineNumber: 107,
                     columnNumber: 19
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -616,12 +648,12 @@ function InviteCodesPage() {
                         size: "default"
                     }, void 0, false, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-                        lineNumber: 79,
+                        lineNumber: 110,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-                    lineNumber: 78,
+                    lineNumber: 109,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -635,7 +667,7 @@ function InviteCodesPage() {
                                     children: "초대 코드 리스트"
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-                                    lineNumber: 91,
+                                    lineNumber: 122,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -647,13 +679,13 @@ function InviteCodesPage() {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-                                    lineNumber: 94,
+                                    lineNumber: 125,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-                            lineNumber: 90,
+                            lineNumber: 121,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -663,14 +695,14 @@ function InviteCodesPage() {
                                 children: "불러오는 중..."
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-                                lineNumber: 100,
+                                lineNumber: 131,
                                 columnNumber: 15
                             }, this) : codes.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "px-4 py-6 text-xs text-brand-gray",
                                 children: "아직 생성된 초대 코드가 없습니다. 상단 버튼으로 새 코드를 생성하세요."
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-                                lineNumber: 104,
+                                lineNumber: 135,
                                 columnNumber: 15
                             }, this) : codes.map((c)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "px-4 py-3 flex items-center justify-between gap-4 text-sm",
@@ -683,7 +715,7 @@ function InviteCodesPage() {
                                                     children: c.code
                                                 }, void 0, false, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-                                                    lineNumber: 115,
+                                                    lineNumber: 146,
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -702,7 +734,7 @@ function InviteCodesPage() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-                                                    lineNumber: 116,
+                                                    lineNumber: 147,
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -715,7 +747,7 @@ function InviteCodesPage() {
                                                             children: c.used_count
                                                         }, void 0, false, {
                                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-                                                            lineNumber: 128,
+                                                            lineNumber: 159,
                                                             columnNumber: 23
                                                         }, this),
                                                         c.max_uses ? ` / ${c.max_uses}` : " / 제한 없음",
@@ -728,55 +760,77 @@ function InviteCodesPage() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-                                                    lineNumber: 126,
+                                                    lineNumber: 157,
                                                     columnNumber: 21
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-                                            lineNumber: 114,
+                                            lineNumber: 145,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "flex-shrink-0",
-                                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$CopyCodeButton$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CopyCodeButton"], {
-                                                code: c.code
-                                            }, void 0, false, {
-                                                fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-                                                lineNumber: 138,
-                                                columnNumber: 21
-                                            }, this)
-                                        }, void 0, false, {
+                                            className: "flex-shrink-0 flex items-center gap-2",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$CopyCodeButton$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CopyCodeButton"], {
+                                                    code: c.code
+                                                }, void 0, false, {
+                                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
+                                                    lineNumber: 169,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                    type: "button",
+                                                    onClick: ()=>handleDelete(c.id),
+                                                    disabled: deletingId === c.id,
+                                                    className: "w-8 h-8 flex items-center justify-center rounded-full hover:bg-rose-50 disabled:opacity-50",
+                                                    "aria-label": "초대 코드 삭제",
+                                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                        className: "text-rose-500 text-lg",
+                                                        "aria-hidden": true,
+                                                        children: "🗑"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
+                                                        lineNumber: 177,
+                                                        columnNumber: 23
+                                                    }, this)
+                                                }, void 0, false, {
+                                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
+                                                    lineNumber: 170,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-                                            lineNumber: 137,
+                                            lineNumber: 168,
                                             columnNumber: 19
                                         }, this)
                                     ]
                                 }, c.id, true, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-                                    lineNumber: 110,
+                                    lineNumber: 141,
                                     columnNumber: 17
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-                            lineNumber: 98,
+                            lineNumber: 129,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-                    lineNumber: 89,
+                    lineNumber: 120,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-            lineNumber: 70,
+            lineNumber: 101,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/invite-codes/page.tsx",
-        lineNumber: 69,
+        lineNumber: 100,
         columnNumber: 5
     }, this);
 }

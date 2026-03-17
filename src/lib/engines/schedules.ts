@@ -38,6 +38,10 @@ export type ScheduleRow = {
   created_by: string;
   created_at: string;
   is_soft_deleted?: boolean;
+  creator_full_name?: string | null;
+  creator_avatar_url?: string | null;
+  target_full_name?: string | null;
+  target_avatar_url?: string | null;
 };
 
 export type ScheduleInput = {
@@ -54,6 +58,16 @@ export type ScheduleInput = {
   endAt?: string; // ISO (없으면 startAt 과 동일하게 처리)
   isAllDay?: boolean;
   createdByProfileId: string;
+};
+
+export type ScheduleEditLog = {
+  id: string;
+  schedule_id: string;
+  branch_name: string;
+  modified_by: string;
+  modifier_name: string | null;
+  changed_fields: Record<string, { before: unknown; after: unknown }>;
+  created_at: string;
 };
 
 export async function listSchedulesForBranch(params: {
@@ -82,41 +96,52 @@ export async function listSchedulesForBranch(params: {
   try {
     const rows = await query<ScheduleRow>(
       `
-        select id, branch_name, title, description, category,
-               dealer_name, location, instructor, target_audience, manager_name,
-               start_at, end_at, is_all_day, created_by, created_at, is_soft_deleted
-        from ${schema}.schedules
-        where ${where}
-        order by is_soft_deleted asc, start_at asc
+        select s.id, s.branch_name, s.title, s.description, s.category,
+               s.dealer_name, s.location, s.instructor, s.target_audience, s.manager_name,
+               s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at, s.is_soft_deleted,
+               p1.full_name as creator_full_name,
+               p2.full_name as target_full_name
+        from ${schema}.schedules s
+        left join public.profiles p1 on s.created_by::text = p1.id::text
+        left join public.profiles p2 on s.manager_name = p2.full_name and s.branch_name = p2.branch_name
+        where s.${where}
+        order by s.is_soft_deleted asc, s.start_at asc
       `,
       values,
     );
-    return rows;
+    return rows.map(r => ({
+      ...r,
+      category: (LEGACY_TO_CATEGORY[r.category as LegacyCategory] || r.category) as ScheduleCategory
+    }));
   } catch (err) {
     if (isRelationNotFound(err)) {
       console.warn("[schedules] schedules 테이블이 없어 빈 결과를 반환합니다.");
       return [];
     }
     if (isColumnNotFound(err)) {
-      type LegacyRow = Omit<ScheduleRow, "dealer_name" | "location" | "instructor" | "target_audience" | "manager_name"> & { category: LegacyCategory };
+      type LegacyRow = Omit<ScheduleRow, "dealer_name" | "location" | "instructor" | "target_audience" | "manager_name" | "category" | "target_full_name" | "target_avatar_url"> & { category: LegacyCategory };
       const legacy = await query<LegacyRow>(
         `
-          select id, branch_name, title, description, category,
-                 start_at, end_at, is_all_day, created_by, created_at
-          from ${schema}.schedules
-          where ${where}
-          order by start_at asc
+          select s.id, s.branch_name, s.title, s.description, s.category,
+                 s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at,
+                 p.full_name as creator_full_name
+          from ${schema}.schedules s
+          left join public.profiles p on s.created_by::text = p.id::text
+          where s.${where}
+          order by s.start_at asc
         `,
         values,
       );
       return legacy.map((r) => ({
         ...r,
-        category: LEGACY_TO_CATEGORY[r.category],
+        category: LEGACY_TO_CATEGORY[r.category] || (r.category as unknown as ScheduleCategory),
         dealer_name: null,
         location: null,
         instructor: null,
         target_audience: null,
-        manager_name: null,
+        manager_name: r.category === "vacation" ? r.title : null,
+        target_full_name: r.category === "vacation" ? r.title : null,
+        target_avatar_url: null,
       }));
     }
     throw err;
@@ -162,7 +187,7 @@ export async function createSchedule(input: ScheduleInput): Promise<ScheduleRow>
   } catch (err) {
     if (isColumnNotFound(err)) {
       const legacyCategory = CATEGORY_TO_LEGACY[category];
-      type LegacyInsertRow = Omit<ScheduleRow, "dealer_name" | "location" | "instructor" | "target_audience" | "manager_name"> & { category: LegacyCategory };
+      type LegacyInsertRow = Omit<ScheduleRow, "dealer_name" | "location" | "instructor" | "target_audience" | "manager_name" | "category" | "target_full_name" | "target_avatar_url"> & { category: LegacyCategory };
       const rows = await query<LegacyInsertRow>(
         `insert into ${schema}.schedules (branch_name, title, description, category, start_at, end_at, is_all_day, created_by) values ($1, $2, $3, $4, $5, $6, $7, $8) returning id, branch_name, title, description, category, start_at, end_at, is_all_day, created_by, created_at`,
         [
@@ -185,7 +210,99 @@ export async function createSchedule(input: ScheduleInput): Promise<ScheduleRow>
         instructor: null,
         target_audience: null,
         manager_name: null,
+        target_full_name: null,
+        target_avatar_url: null,
       };
+    }
+    throw err;
+  }
+}
+
+async function insertScheduleEditLog(args: {
+  schema: string;
+  scheduleId: string;
+  branchName: string;
+  modifiedBy: string;
+  modifiedByName: string | null;
+  before: ScheduleRow;
+  after: ScheduleRow;
+}) {
+  const changed: ScheduleEditLog["changed_fields"] = {};
+  (
+    [
+      "title",
+      "description",
+      "start_at",
+      "end_at",
+      "category",
+      "dealer_name",
+      "location",
+      "instructor",
+      "target_audience",
+      "manager_name",
+    ] as const
+  ).forEach((field) => {
+    const vBefore = (args.before as any)[field];
+    const vAfter = (args.after as any)[field];
+    let isChanged = false;
+
+    if (vBefore instanceof Date || vAfter instanceof Date || field === "start_at" || field === "end_at") {
+      const tBefore = vBefore ? new Date(vBefore).getTime() : null;
+      const tAfter = vAfter ? new Date(vAfter).getTime() : null;
+      isChanged = tBefore !== tAfter;
+    } else {
+      isChanged = vBefore !== vAfter;
+    }
+
+    if (isChanged) {
+      changed[field] = {
+        before: vBefore,
+        after: vAfter,
+      };
+    }
+  });
+  if (Object.keys(changed).length === 0) return;
+  try {
+    await query(
+      `
+        insert into ${args.schema}.schedule_edit_logs (schedule_id, branch_name, modified_by, modifier_name, changed_fields)
+        values ($1, $2, $3, $4, $5)
+      `,
+      [args.scheduleId, args.branchName, args.modifiedBy, args.modifiedByName ?? null, JSON.stringify(changed)],
+    );
+  } catch (err) {
+    if (isRelationNotFound(err)) {
+      // 로그 테이블이 없으면 로깅만 건너뛴다.
+      return;
+    }
+    throw err;
+  }
+}
+
+export async function getScheduleEditLogs(params: {
+  scheduleId: string;
+  branchName: string;
+}): Promise<ScheduleEditLog[]> {
+  const schema =
+    (await getTenantSchemaForBranch(params.branchName)) ?? "public";
+  try {
+    const rows = await query<ScheduleEditLog>(
+      `
+        select l.id, l.schedule_id, l.branch_name, l.modified_by,
+               COALESCE(l.modifier_name, p.full_name) as modifier_name,
+               l.changed_fields, l.created_at
+        from ${schema}.schedule_edit_logs l
+        left join public.profiles p on l.modified_by::text = p.id::text
+        where l.schedule_id = $1 and l.branch_name = $2
+        order by l.created_at desc
+      `,
+      [params.scheduleId, params.branchName],
+    );
+    return rows;
+  } catch (err) {
+    if (isRelationNotFound(err)) {
+      // 로그 테이블이 아직 없는 스키마는 빈 이력으로 처리
+      return [];
     }
     throw err;
   }
@@ -194,6 +311,8 @@ export async function createSchedule(input: ScheduleInput): Promise<ScheduleRow>
 export async function updateSchedule(params: {
   id: string;
   branchName: string;
+  modifiedBy: string;
+  modifiedByName?: string | null;
   title?: string;
   description?: string | null;
   category?: ScheduleCategory;
@@ -229,7 +348,22 @@ export async function updateSchedule(params: {
   if (params.endAt !== undefined) push("end_at", params.endAt);
   if (params.isAllDay !== undefined) push("is_all_day", params.isAllDay);
 
-  type LegacyRow = Omit<ScheduleRow, "dealer_name" | "location" | "instructor" | "target_audience" | "manager_name"> & { category: LegacyCategory };
+  type LegacyRow = Omit<ScheduleRow, "dealer_name" | "location" | "instructor" | "target_audience" | "manager_name" | "category" | "target_full_name" | "target_avatar_url"> & { category: LegacyCategory };
+
+  let before: ScheduleRow | null = null;
+  try {
+    const rowsBefore = await query<ScheduleRow>(
+      `select id, branch_name, title, description, category, dealer_name, location, instructor, target_audience, manager_name, start_at, end_at, is_all_day, created_by, created_at from ${schema}.schedules where id = $1 and branch_name = $2`,
+      [id, branchName],
+    );
+    before = rowsBefore[0] ?? null;
+  } catch (err) {
+    if (!isColumnNotFound(err)) {
+      throw err;
+    }
+    // 메타 컬럼이 없는 레거시 스키마인 경우, 수정 이력 로깅은 생략
+    before = null;
+  }
 
   const runFull = async (): Promise<ScheduleRow | null> => {
     if (fields.length === 0) {
@@ -267,7 +401,7 @@ export async function updateSchedule(params: {
       );
       const r = rows[0];
       if (!r) return null;
-      return { ...r, category: LEGACY_TO_CATEGORY[r.category], dealer_name: null, location: null, instructor: null, target_audience: null, manager_name: null };
+      return { ...r, category: LEGACY_TO_CATEGORY[r.category], dealer_name: null, location: null, instructor: null, target_audience: null, manager_name: null, target_full_name: null, target_avatar_url: null };
     }
     const rows = await query<LegacyRow>(
       `update ${schema}.schedules set ${legacyFields.join(", ")} where id = $${legacyFields.length + 1} and branch_name = $${legacyFields.length + 2} returning id, branch_name, title, description, category, start_at, end_at, is_all_day, created_by, created_at`,
@@ -275,13 +409,40 @@ export async function updateSchedule(params: {
     );
     const r = rows[0];
     if (!r) return null;
-    return { ...r, category: LEGACY_TO_CATEGORY[r.category], dealer_name: null, location: null, instructor: null, target_audience: null, manager_name: null };
+    return { ...r, category: LEGACY_TO_CATEGORY[r.category], dealer_name: null, location: null, instructor: null, target_audience: null, manager_name: null, target_full_name: null, target_avatar_url: null };
   };
 
   try {
-    return await runFull();
+    const updated = await runFull();
+    if (before && updated) {
+      await insertScheduleEditLog({
+        schema,
+        scheduleId: id,
+        branchName,
+        modifiedBy: params.modifiedBy,
+        modifiedByName: params.modifiedByName ?? null,
+        before,
+        after: updated,
+      });
+    }
+    return updated;
   } catch (err) {
-    if (isColumnNotFound(err)) return runLegacy();
+    if (isColumnNotFound(err)) {
+      const legacyUpdated = await runLegacy();
+      // 레거시 스키마에서는 위에서 before 조회가 실패했을 가능성이 높아 로깅을 건너뜀
+      if (before && legacyUpdated) {
+        await insertScheduleEditLog({
+          schema,
+          scheduleId: id,
+          branchName,
+          modifiedBy: params.modifiedBy,
+          modifiedByName: params.modifiedByName ?? null,
+          before,
+          after: legacyUpdated,
+        });
+      }
+      return legacyUpdated;
+    }
     throw err;
   }
 }
@@ -305,5 +466,3 @@ export async function deleteSchedule(params: {
     [id, branchName],
   );
 }
-
-

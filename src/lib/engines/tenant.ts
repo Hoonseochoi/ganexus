@@ -52,6 +52,7 @@ export async function createTenantForAdmin(params: {
         end_at timestamptz not null,
         is_all_day boolean default false,
         created_by uuid not null,
+        creator_name text,
         created_at timestamptz default timezone('utc'::text, now()),
         is_soft_deleted boolean default false
       )
@@ -95,6 +96,7 @@ export async function createTenantForAdmin(params: {
         body text,
         image_url text,
         created_by uuid not null,
+        author_name text,
         created_at timestamptz default timezone('utc'::text, now())
       )
     `);
@@ -105,6 +107,19 @@ export async function createTenantForAdmin(params: {
         branch_name text not null,
         content text not null,
         created_by uuid not null,
+        author_name text,
+        created_at timestamptz default timezone('utc'::text, now())
+      )
+    `);
+
+    await client.query(`
+      create table if not exists ${schema}.schedule_edit_logs (
+        id uuid default gen_random_uuid() primary key,
+        schedule_id uuid not null,
+        branch_name text not null,
+        modified_by uuid not null,
+        modifier_name text,
+        changed_fields jsonb not null,
         created_at timestamptz default timezone('utc'::text, now())
       )
     `);

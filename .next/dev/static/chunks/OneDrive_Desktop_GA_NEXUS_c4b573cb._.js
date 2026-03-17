@@ -318,7 +318,7 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
-function ManagerLoginPage() {
+function ManagerLoginForm() {
     _s();
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"])();
     const params = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useSearchParams"])();
@@ -414,7 +414,7 @@ function ManagerLoginPage() {
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                             className: "text-xs text-brand-gray mb-1",
-                            children: "GA NEXUS 내부 전용"
+                            children: "GALENDER 내부 전용"
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
                             lineNumber: 102,
@@ -450,29 +450,77 @@ function ManagerLoginPage() {
                     lineNumber: 113,
                     columnNumber: 11
                 }, this),
-                step === "login" ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
-                    onSubmit: handleLogin,
-                    className: "space-y-4",
+                step === "login" ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
                     children: [
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "space-y-1.5",
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
+                            onSubmit: handleLogin,
+                            className: "space-y-4",
                             children: [
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
-                                    className: "text-xs text-brand-gray",
-                                    children: "매니저 코드 (ID)"
-                                }, void 0, false, {
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "space-y-1.5",
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                            className: "text-xs text-brand-gray",
+                                            children: "매니저 코드 (ID)"
+                                        }, void 0, false, {
+                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
+                                            lineNumber: 122,
+                                            columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                            className: "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60",
+                                            value: loginId,
+                                            onChange: (e)=>setLoginId(e.target.value),
+                                            placeholder: prefilledCode ?? "예: MANAGER-XXXX"
+                                        }, void 0, false, {
+                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
+                                            lineNumber: 125,
+                                            columnNumber: 17
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
                                     lineNumber: 121,
                                     columnNumber: 15
                                 }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                                    className: "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60",
-                                    value: loginId,
-                                    onChange: (e)=>setLoginId(e.target.value),
-                                    placeholder: prefilledCode ?? "예: MANAGER-XXXX"
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "space-y-1.5",
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                            className: "text-xs text-brand-gray",
+                                            children: "매니저 코드 (비밀번호)"
+                                        }, void 0, false, {
+                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
+                                            lineNumber: 133,
+                                            columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                            type: "password",
+                                            className: "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60",
+                                            value: password,
+                                            onChange: (e)=>setPassword(e.target.value),
+                                            placeholder: "동일한 매니저 코드를 입력하세요"
+                                        }, void 0, false, {
+                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
+                                            lineNumber: 136,
+                                            columnNumber: 17
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
+                                    lineNumber: 132,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$EclipseButton$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["EclipseButton"], {
+                                    type: "submit",
+                                    disabled: loading,
+                                    isLoading: loading,
+                                    text: loading ? "로그인 중..." : "로그인",
+                                    variant: "primary",
+                                    className: "mt-2 w-full"
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
-                                    lineNumber: 124,
+                                    lineNumber: 144,
                                     columnNumber: 15
                                 }, this)
                             ]
@@ -482,51 +530,35 @@ function ManagerLoginPage() {
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "space-y-1.5",
+                            className: "mt-6 pt-4 border-t border-slate-100 text-center",
                             children: [
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
-                                    className: "text-xs text-brand-gray",
-                                    children: "매니저 코드 (비밀번호)"
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                    className: "text-[11px] text-brand-gray mb-2",
+                                    children: "처음이신가요?"
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
-                                    lineNumber: 132,
+                                    lineNumber: 154,
                                     columnNumber: 15
                                 }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                                    type: "password",
-                                    className: "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60",
-                                    value: password,
-                                    onChange: (e)=>setPassword(e.target.value),
-                                    placeholder: "동일한 매니저 코드를 입력하세요"
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$EclipseButton$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["EclipseButton"], {
+                                    type: "button",
+                                    variant: "outline",
+                                    text: "초대코드로 매니저 가입하기",
+                                    className: "w-full text-xs",
+                                    onClick: ()=>router.push("/apply")
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
-                                    lineNumber: 135,
+                                    lineNumber: 155,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
-                            lineNumber: 131,
-                            columnNumber: 13
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$EclipseButton$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["EclipseButton"], {
-                            type: "submit",
-                            disabled: loading,
-                            isLoading: loading,
-                            text: loading ? "로그인 중..." : "로그인",
-                            variant: "primary",
-                            className: "mt-2 w-full"
-                        }, void 0, false, {
-                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
-                            lineNumber: 143,
+                            lineNumber: 153,
                             columnNumber: 13
                         }, this)
                     ]
-                }, void 0, true, {
-                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
-                    lineNumber: 119,
-                    columnNumber: 11
-                }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
+                }, void 0, true) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
                     onSubmit: handleChangePassword,
                     className: "space-y-4",
                     children: [
@@ -535,7 +567,7 @@ function ManagerLoginPage() {
                             children: "첫 로그인입니다. 안전한 사용을 위해 반드시 새 비밀번호를 설정해주세요."
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
-                            lineNumber: 154,
+                            lineNumber: 166,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -546,7 +578,7 @@ function ManagerLoginPage() {
                                     children: "새 비밀번호"
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
-                                    lineNumber: 158,
+                                    lineNumber: 170,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -557,13 +589,13 @@ function ManagerLoginPage() {
                                     placeholder: "6자 이상 입력"
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
-                                    lineNumber: 159,
+                                    lineNumber: 171,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
-                            lineNumber: 157,
+                            lineNumber: 169,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -574,7 +606,7 @@ function ManagerLoginPage() {
                                     children: "새 비밀번호 확인"
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
-                                    lineNumber: 168,
+                                    lineNumber: 180,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -585,13 +617,13 @@ function ManagerLoginPage() {
                                     placeholder: "다시 한 번 입력"
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
-                                    lineNumber: 169,
+                                    lineNumber: 181,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
-                            lineNumber: 167,
+                            lineNumber: 179,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$EclipseButton$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["EclipseButton"], {
@@ -603,13 +635,13 @@ function ManagerLoginPage() {
                             className: "mt-2 w-full"
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
-                            lineNumber: 177,
+                            lineNumber: 189,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
-                    lineNumber: 153,
+                    lineNumber: 165,
                     columnNumber: 11
                 }, this)
             ]
@@ -624,15 +656,83 @@ function ManagerLoginPage() {
         columnNumber: 5
     }, this);
 }
-_s(ManagerLoginPage, "9cU8nkUrqSMhaET10QYEUVSoaAU=", false, function() {
+_s(ManagerLoginForm, "9cU8nkUrqSMhaET10QYEUVSoaAU=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"],
         __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useSearchParams"]
     ];
 });
-_c = ManagerLoginPage;
-var _c;
-__turbopack_context__.k.register(_c, "ManagerLoginPage");
+_c = ManagerLoginForm;
+function ManagerLoginPage() {
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Suspense"], {
+        fallback: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
+            className: "min-h-screen flex items-center justify-center bg-background-light px-4 py-8",
+            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "w-full max-w-md mx-auto px-6 py-8 rounded-2xl bg-white border border-slate-200 shadow-sm animate-pulse",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "h-16 bg-slate-100 rounded mb-6"
+                    }, void 0, false, {
+                        fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
+                        lineNumber: 210,
+                        columnNumber: 13
+                    }, void 0),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "space-y-4",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "h-10 bg-slate-100 rounded"
+                            }, void 0, false, {
+                                fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
+                                lineNumber: 212,
+                                columnNumber: 15
+                            }, void 0),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "h-10 bg-slate-100 rounded"
+                            }, void 0, false, {
+                                fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
+                                lineNumber: 213,
+                                columnNumber: 15
+                            }, void 0),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "h-11 bg-slate-100 rounded mt-2"
+                            }, void 0, false, {
+                                fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
+                                lineNumber: 214,
+                                columnNumber: 15
+                            }, void 0)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
+                        lineNumber: 211,
+                        columnNumber: 13
+                    }, void 0)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
+                lineNumber: 209,
+                columnNumber: 11
+            }, void 0)
+        }, void 0, false, {
+            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
+            lineNumber: 208,
+            columnNumber: 9
+        }, void 0),
+        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(ManagerLoginForm, {}, void 0, false, {
+            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
+            lineNumber: 220,
+            columnNumber: 7
+        }, this)
+    }, void 0, false, {
+        fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/manager-login/page.tsx",
+        lineNumber: 206,
+        columnNumber: 5
+    }, this);
+}
+_c1 = ManagerLoginPage;
+var _c, _c1;
+__turbopack_context__.k.register(_c, "ManagerLoginForm");
+__turbopack_context__.k.register(_c1, "ManagerLoginPage");
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }

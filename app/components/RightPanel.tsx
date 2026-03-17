@@ -3,8 +3,9 @@
 import { useEffect, useState, useCallback, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { EclipseButton } from "@/app/components/ui/EclipseButton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 
-type ScheduleItem = {
+export type ScheduleItem = {
   id: string;
   title: string;
   description: string | null;
@@ -17,7 +18,11 @@ type ScheduleItem = {
   instructor?: string | null;
   target_audience?: string | null;
   manager_name?: string | null;
-   is_soft_deleted?: boolean;
+  is_soft_deleted?: boolean;
+  creator_full_name?: string | null;
+  creator_avatar_url?: string | null;
+  target_full_name?: string | null;
+  target_avatar_url?: string | null;
 };
 
 type MemoItem = {
@@ -54,6 +59,15 @@ function formatDateTime(iso: string) {
     hour12: false,
   });
 }
+
+type ScheduleEditLogItem = {
+  id: string;
+  schedule_id: string;
+  modified_by: string;
+  modifier_name?: string;
+  created_at: string;
+  changed_fields: Record<string, { before: unknown; after: unknown }>;
+};
 
 function formatDateLabel(iso: string) {
   const d = new Date(iso + "T12:00:00");
@@ -258,34 +272,50 @@ export default function RightPanel({
                         }
                       : undefined
                   }
-                  className={`w-full text-left p-3 rounded-lg border border-slate-100 border-l-4 ${colorClass} ${
+                  className={`w-full text-left p-2.5 rounded-lg border border-slate-100 border-l-4 ${colorClass} ${
                     isAdmin ? "cursor-grab active:cursor-grabbing" : ""
                   } ${deleted ? "opacity-60" : ""}`}
                   onClick={() => setSelectedSchedule(s)}
                 >
-                  <p
-                    className={`text-sm font-semibold ${
-                      deleted ? "text-slate-400 line-through" : "text-brand-black"
-                    }`}
-                  >
-                    {s.title}
-                  </p>
-                  <p
-                    className={`text-xs mt-0.5 ${
-                      deleted ? "text-slate-400 line-through" : "text-brand-gray"
-                    }`}
-                  >
-                    {subText}
-                  </p>
-                  {s.description && (
-                    <p
-                      className={`text-xs mt-1 line-clamp-2 ${
-                        deleted ? "text-slate-400 line-through" : "text-slate-600"
-                      }`}
-                    >
-                      {s.description}
-                    </p>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-6 w-6 border border-white shadow-sm shrink-0">
+                      <AvatarImage src={(s.category === "leave" ? s.target_avatar_url : s.creator_avatar_url) || ""} />
+                      <AvatarFallback className="bg-slate-200 text-slate-600 text-[10px] font-bold">
+                        {(s.category === "leave" ? (s.target_full_name || s.manager_name || s.title) : (s.creator_full_name || s.title))?.[0] || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <p
+                          className={`text-sm font-semibold truncate ${
+                            deleted ? "text-slate-400 line-through" : "text-brand-black"
+                          }`}
+                        >
+                          {s.category === "leave" ? (
+                            `[월차] / ${s.target_full_name || s.manager_name || s.title}`
+                          ) : s.category === "dealer" ? (
+                            `${s.title} / ${formatTime(s.start_at)}`
+                          ) : (
+                            `${s.title} / ${formatTime(s.start_at)}`
+                          )}
+                        </p>
+                        {s.category !== "leave" && !s.is_all_day && (
+                          <span className="text-[10px] text-brand-gray font-medium shrink-0 ml-2">
+                            {formatTime(s.start_at)}
+                          </span>
+                        )}
+                      </div>
+                      {s.description && (
+                        <p
+                          className={`text-[11px] mt-0.5 line-clamp-1 ${
+                            deleted ? "text-slate-400 line-through" : "text-slate-500"
+                          }`}
+                        >
+                          {s.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </button>
               );
             })
@@ -357,17 +387,91 @@ export default function RightPanel({
   );
 }
 
-function ScheduleDetailPopup({
+export function ScheduleDetailPopup({
   schedule,
   onClose,
 }: {
   schedule: ScheduleItem;
   onClose: () => void;
 }) {
+  const router = useRouter();
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState(schedule.title);
+  const [description, setDescription] = useState(schedule.description ?? "");
+  const [saving, setSaving] = useState(false);
+  const [logs, setLogs] = useState<ScheduleEditLogItem[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
+
+  const loadLogs = async () => {
+    setLoadingLogs(true);
+    try {
+      const res = await fetch(`/api/schedules/${schedule.id}/logs`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = null;
+      }
+      if (res.ok && data && typeof data === "object") {
+        setLogs(data.logs ?? []);
+      }
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
+
   const isDealer = schedule.category === "dealer";
   const isInternal = schedule.category === "internal";
   const isPersonal = schedule.category === "personal";
   const isLeave = schedule.category === "leave";
+
+  useEffect(() => {
+    setEditing(false);
+    setTitle(schedule.title);
+    setDescription(schedule.description ?? "");
+    loadLogs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [schedule.id]);
+
+  const formatLogValue = (value: unknown) => {
+    if (value === null || value === undefined) return "없음";
+    if (typeof value === "string" && value.trim() === "") return "없음";
+    return String(value);
+  };
+
+  const handleSave = async () => {
+    if (!title.trim()) {
+      alert("제목을 입력해주세요.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/schedules/${schedule.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim() || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.message ?? "수정에 실패했습니다.");
+        return;
+      }
+      // 서버 데이터 및 우측 패널 리스트 갱신
+      router.refresh();
+      await loadLogs();
+      setEditing(false);
+    } catch {
+      alert("네트워크 오류로 수정에 실패했습니다.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div
@@ -381,18 +485,30 @@ function ScheduleDetailPopup({
         <div className="p-5">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base font-bold text-brand-black">
-              {schedule.title}
+              {editing ? "일정 수정" : title}
             </h2>
-            <EclipseButton
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              aria-label="일정 상세 닫기"
-              className="!h-8 !w-8 !min-w-0 !p-0"
-            >
-              ×
-            </EclipseButton>
+            <div className="flex items-center gap-2">
+              {!editing && (
+                <EclipseButton
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  text="편집"
+                  onClick={() => setEditing(true)}
+                  className="!text-xs"
+                />
+              )}
+              <EclipseButton
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                aria-label="일정 상세 닫기"
+                className="!h-8 !w-8 !min-w-0 !p-0"
+              >
+                ×
+              </EclipseButton>
+            </div>
           </div>
           <p className="text-xs text-brand-gray mb-3">
             {formatDateTime(schedule.start_at)}
@@ -458,11 +574,107 @@ function ScheduleDetailPopup({
               </p>
             )}
           </div>
-          {schedule.description && (
-            <div className="mt-4 pt-3 border-t border-slate-100 text-sm text-slate-700 whitespace-pre-wrap">
-              {schedule.description}
-            </div>
-          )}
+          <div className="mt-4 pt-3 border-t border-slate-100 text-sm text-slate-700 whitespace-pre-wrap">
+            {editing ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                    제목
+                  </label>
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                    설명
+                  </label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={4}
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg resize-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                    placeholder="설명 (선택)"
+                  />
+                </div>
+                <div className="flex justify-end gap-2 pt-1">
+                  <EclipseButton
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    text="취소"
+                    onClick={() => {
+                      setEditing(false);
+                      setTitle(schedule.title);
+                      setDescription(schedule.description ?? "");
+                    }}
+                    disabled={saving}
+                  />
+                  <EclipseButton
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    text={saving ? "저장 중..." : "저장"}
+                    onClick={handleSave}
+                    disabled={saving}
+                    isLoading={saving}
+                  />
+                </div>
+              </div>
+            ) : description ? (
+              description
+            ) : (
+              <span className="text-xs text-brand-gray">설명이 없습니다.</span>
+            )}
+          </div>
+          <div className="mt-4 pt-3 border-t border-slate-100">
+            <p className="text-xs font-semibold text-brand-gray mb-1.5">
+              수정 이력
+            </p>
+            {loadingLogs ? (
+              <p className="text-xs text-brand-gray">불러오는 중...</p>
+            ) : logs.length === 0 ? (
+              <p className="text-xs text-brand-gray">수정 이력이 없습니다.</p>
+            ) : (
+              <ul className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                {logs.map((log) => (
+                  <li
+                    key={log.id}
+                    className="rounded-lg border border-slate-100 bg-slate-50 px-2 py-1.5"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11px] text-brand-gray">
+                        수정자: {log.modifier_name ?? log.modified_by}
+                      </span>
+                      <span className="text-[11px] text-brand-gray">
+                        {new Date(log.created_at).toLocaleString("ko-KR", {
+                          month: "numeric",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: false,
+                        })}
+                      </span>
+                    </div>
+                    <div className="mt-1 space-y-0.5 text-[11px] text-slate-700">
+                      {Object.entries(log.changed_fields).map(
+                        ([field, diff]) => (
+                          <p key={field}>
+                            <span className="font-semibold">{field}</span>:{" "}
+                            {formatLogValue(diff.before)} →{" "}
+                            {formatLogValue(diff.after)}
+                          </p>
+                        ),
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
     </div>

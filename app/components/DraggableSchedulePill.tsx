@@ -1,5 +1,7 @@
 "use client";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
+
 type ScheduleItem = {
   id: string;
   title: string;
@@ -7,20 +9,25 @@ type ScheduleItem = {
   end_at: string;
   is_all_day: boolean;
   category?: string;
+  manager_name?: string | null;
+  creator_full_name?: string | null;
+  creator_avatar_url?: string | null;
+  target_full_name?: string | null;
+  target_avatar_url?: string | null;
 };
 
 const CATEGORY_CLASSES: Record<string, string> = {
-  dealer: "border-blue-500 bg-blue-50 text-blue-800",
-  internal: "border-purple-500 bg-purple-50 text-purple-800",
-  personal: "border-emerald-500 bg-emerald-50 text-emerald-800",
-  leave: "border-amber-500 bg-amber-50 text-amber-800",
-  etc: "border-slate-300 bg-slate-50 text-slate-700",
+  dealer: "border-blue-200 bg-blue-50/80 text-blue-700",
+  internal: "border-purple-200 bg-purple-50/80 text-purple-700",
+  personal: "border-emerald-200 bg-emerald-50/80 text-emerald-700",
+  leave: "border-rose-200 bg-rose-50/80 text-rose-700",
+  etc: "border-slate-200 bg-slate-50/80 text-slate-600",
 };
 
 export default function DraggableSchedulePill({
   schedule,
   isAdmin,
-  className = "text-[10px] p-1.5 border-l-2 rounded truncate",
+  className = "text-[10px] py-1 px-1.5 border rounded-lg flex items-center gap-1.5 transition-all",
   onPillClick,
 }: {
   schedule: ScheduleItem;
@@ -38,15 +45,52 @@ export default function DraggableSchedulePill({
     onPillClick?.();
   };
 
-  const clickableClass = onPillClick ? " cursor-pointer" : "";
+  const clickableClass = onPillClick ? " cursor-pointer hover:shadow-sm" : "";
+
+  const timeStr = new Date(schedule.start_at).toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  const isLeave = schedule.category === "leave";
+  const displayName = isLeave ? (schedule.target_full_name || schedule.manager_name || schedule.title) : (schedule.creator_full_name || schedule.title);
+  const displayAvatar = isLeave ? schedule.target_avatar_url : schedule.creator_avatar_url;
+
+  const content = (
+    <>
+      <Avatar className="w-4 h-4 text-[8px] border border-white shadow-sm shrink-0">
+        <AvatarImage src={displayAvatar || ""} />
+        <AvatarFallback className="bg-slate-200 text-slate-600 font-bold">
+          {displayName?.[0] || "?"}
+        </AvatarFallback>
+      </Avatar>
+      <span className="truncate flex-1 min-w-0">
+        {isLeave ? (
+          <span className="font-bold">
+            [월차] / {displayName}
+          </span>
+        ) : schedule.category === "dealer" ? (
+          <span className="font-semibold">
+            {schedule.title} / {timeStr}
+          </span>
+        ) : (
+          <span className="font-medium">
+            {schedule.title} / {timeStr}
+          </span>
+        )}
+      </span>
+    </>
+  );
 
   if (!isAdmin) {
     return (
       <div className={`${baseClass}${clickableClass}`} onClick={handleClick} role="button" tabIndex={0}>
-        {schedule.title}
+        {content}
       </div>
     );
   }
+
   return (
     <div
       draggable
@@ -67,7 +111,7 @@ export default function DraggableSchedulePill({
       }}
       className={`${baseClass}${clickableClass} cursor-grab active:cursor-grabbing`}
     >
-      {schedule.title}
+      {content}
     </div>
   );
 }

@@ -340,7 +340,7 @@ function AdminPageHeader({ title, description, rightSlot }) {
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                 className: "text-xs text-brand-gray",
-                                children: "GA NEXUS 관리자 설정"
+                                children: "GALENDER 관리자 설정"
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/_components/AdminPageHeader.tsx",
                                 lineNumber: 29,
@@ -399,6 +399,7 @@ __turbopack_context__.s([
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/OneDrive/Desktop/GA_NEXUS/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/OneDrive/Desktop/GA_NEXUS/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/OneDrive/Desktop/GA_NEXUS/node_modules/next/navigation.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$admin$2f$_components$2f$AdminPageHeader$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/OneDrive/Desktop/GA_NEXUS/app/admin/_components/AdminPageHeader.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$EclipseButton$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/OneDrive/Desktop/GA_NEXUS/app/components/ui/EclipseButton.tsx [app-client] (ecmascript)");
 ;
@@ -407,8 +408,10 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
+;
 function AdminSchedulesPage() {
     _s();
+    const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"])();
     const [schedules, setSchedules] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
     const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(true);
     const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
@@ -446,17 +449,25 @@ function AdminSchedulesPage() {
     const [instructor, setInstructor] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
     const [targetAudience, setTargetAudience] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
     const [managerName, setManagerName] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
+    const [userProfile, setUserProfile] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     const load = async ()=>{
         setLoading(true);
         setError(null);
         try {
-            const res = await fetch("/api/schedules");
-            const data = await res.json();
-            if (!res.ok) {
-                setError(data.message ?? "일정을 불러오지 못했습니다.");
-                return;
+            const [schedulesRes, profileRes] = await Promise.all([
+                fetch("/api/schedules"),
+                fetch("/api/auth/profile")
+            ]);
+            const schedulesData = await schedulesRes.json();
+            const profileData = await profileRes.json();
+            if (!schedulesRes.ok) {
+                setError(schedulesData.message ?? "일정을 불러오지 못했습니다.");
+            } else {
+                setSchedules(schedulesData.schedules ?? []);
             }
-            setSchedules(data.schedules ?? []);
+            if (profileRes.ok && profileData.user) {
+                setUserProfile(profileData.user.profile);
+            }
         } catch  {
             setError("네트워크 오류로 일정을 불러오지 못했습니다.");
         } finally{
@@ -468,70 +479,6 @@ function AdminSchedulesPage() {
             load();
         }
     }["AdminSchedulesPage.useEffect"], []);
-    const handleCreate = async (e)=>{
-        e.preventDefault();
-        setError(null);
-        setSuccess(null);
-        if (!title.trim()) {
-            setError("제목을 입력해주세요.");
-            return;
-        }
-        let startAt;
-        if (date) {
-            if (startTime) {
-                startAt = new Date(`${date}T${startTime}:00`).toISOString();
-            } else {
-                startAt = new Date(date + "T00:00:00").toISOString();
-            }
-        }
-        setSubmitting(true);
-        try {
-            const res = await fetch("/api/schedules", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    title: title.trim(),
-                    description: description || null,
-                    category,
-                    startAt,
-                    dealerName: dealerName || null,
-                    location: location || null,
-                    instructor: instructor || null,
-                    targetAudience: targetAudience || null,
-                    managerName: managerName || null
-                })
-            });
-            const data = await res.json();
-            if (!res.ok) {
-                setError(data.message ?? "일정 생성에 실패했습니다.");
-                return;
-            }
-            if (data.schedule) {
-                setSchedules((prev)=>[
-                        data.schedule,
-                        ...prev
-                    ]);
-            }
-            setSuccess("일정이 등록되었습니다. 메인 캘린더에서 확인할 수 있습니다.");
-            setTimeout(()=>setSuccess(null), 3000);
-            setTitle("");
-            setDescription("");
-            setDate("");
-            setStartTime("");
-            setCategory("dealer");
-            setDealerName("");
-            setLocation("");
-            setInstructor("");
-            setTargetAudience("");
-            setManagerName("");
-        } catch  {
-            setError("네트워크 오류로 일정 생성에 실패했습니다.");
-        } finally{
-            setSubmitting(false);
-        }
-    };
     const handleDelete = async (id)=>{
         if (!confirm("해당 일정을 삭제하시겠습니까?")) return;
         setError(null);
@@ -545,6 +492,8 @@ function AdminSchedulesPage() {
                 return;
             }
             setSchedules((prev)=>prev.filter((s)=>s.id !== id));
+            // 캘린더 페이지(서버 컴포넌트)도 즉시 새로고침
+            router.refresh();
         } catch  {
             setError("네트워크 오류로 일정 삭제에 실패했습니다.");
         }
@@ -552,14 +501,14 @@ function AdminSchedulesPage() {
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
         className: "min-h-screen bg-background-light px-4 py-6",
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-            className: "max-w-4xl mx-auto",
+            className: "max-w-6xl mx-auto",
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$admin$2f$_components$2f$AdminPageHeader$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AdminPageHeader"], {
                     title: "일정 관리",
                     description: "지점별 주요 일정(교육, 휴가, 본사 일정 등)을 등록하고 관리합니다."
                 }, void 0, false, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                    lineNumber: 150,
+                    lineNumber: 103,
                     columnNumber: 9
                 }, this),
                 error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -567,7 +516,7 @@ function AdminSchedulesPage() {
                     children: error
                 }, void 0, false, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                    lineNumber: 155,
+                    lineNumber: 108,
                     columnNumber: 19
                 }, this),
                 success && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -575,389 +524,20 @@ function AdminSchedulesPage() {
                     children: success
                 }, void 0, false, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                    lineNumber: 157,
+                    lineNumber: 110,
                     columnNumber: 11
                 }, this),
-                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
-                    className: "mb-6 bg-white border border-slate-200 rounded-xl shadow-sm p-4",
-                    children: [
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
-                            className: "text-sm font-semibold text-brand-black mb-3",
-                            children: "새 일정 등록"
-                        }, void 0, false, {
-                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                            lineNumber: 163,
-                            columnNumber: 11
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
-                            onSubmit: handleCreate,
-                            className: "grid grid-cols-1 md:grid-cols-2 gap-4 text-sm",
-                            children: [
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "md:col-span-2",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                            className: "text-xs text-brand-gray block mb-2",
-                                            children: "카테고리"
-                                        }, void 0, false, {
-                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                            lineNumber: 171,
-                                            columnNumber: 15
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "flex flex-wrap gap-2",
-                                            children: CATEGORIES.map((c)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
-                                                    className: "inline-flex items-center gap-1.5 cursor-pointer",
-                                                    children: [
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                                                            type: "radio",
-                                                            name: "category",
-                                                            value: c.value,
-                                                            checked: category === c.value,
-                                                            onChange: ()=>setCategory(c.value),
-                                                            className: "sr-only"
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                            lineNumber: 178,
-                                                            columnNumber: 21
-                                                        }, this),
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                            className: `px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${category === c.value ? "border-primary bg-primary/10 text-primary" : "border-slate-200 bg-white text-brand-gray hover:border-slate-300"}`,
-                                                            children: c.label
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                            lineNumber: 186,
-                                                            columnNumber: 21
-                                                        }, this)
-                                                    ]
-                                                }, c.value, true, {
-                                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                    lineNumber: 174,
-                                                    columnNumber: 19
-                                                }, this))
-                                        }, void 0, false, {
-                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                            lineNumber: 172,
-                                            columnNumber: 15
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                    lineNumber: 170,
-                                    columnNumber: 13
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "space-y-1.5 md:col-span-2",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
-                                            className: "text-xs text-brand-gray flex items-center gap-1",
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                    children: category === "dealer" ? "대리점명" : category === "leave" ? "매니저명" : "제목"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                    lineNumber: 201,
-                                                    columnNumber: 17
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                    className: "text-[10px] text-red-500 font-medium",
-                                                    children: "**필수"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                    lineNumber: 208,
-                                                    columnNumber: 17
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                            lineNumber: 200,
-                                            columnNumber: 15
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                                            className: "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60",
-                                            value: title,
-                                            onChange: (e)=>setTitle(e.target.value),
-                                            placeholder: category === "dealer" ? "예: GA 대리점" : "예: GA4 교육 / 본사 방문 / 팀 회의"
-                                        }, void 0, false, {
-                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                            lineNumber: 210,
-                                            columnNumber: 15
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                    lineNumber: 199,
-                                    columnNumber: 13
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "space-y-1.5",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
-                                            className: "text-xs text-brand-gray flex items-center gap-1",
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                    children: "날짜"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                    lineNumber: 223,
-                                                    columnNumber: 17
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                    className: "text-[10px] text-red-500 font-medium",
-                                                    children: "**필수"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                    lineNumber: 224,
-                                                    columnNumber: 17
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                            lineNumber: 222,
-                                            columnNumber: 15
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                                            type: "date",
-                                            className: "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60",
-                                            value: date,
-                                            onChange: (e)=>setDate(e.target.value)
-                                        }, void 0, false, {
-                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                            lineNumber: 226,
-                                            columnNumber: 15
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                    lineNumber: 221,
-                                    columnNumber: 13
-                                }, this),
-                                category === "dealer" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "space-y-1.5",
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
-                                                    className: "text-xs text-brand-gray",
-                                                    children: "교육 시작 시간 (텍스트)"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                    lineNumber: 237,
-                                                    columnNumber: 19
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                                                    className: "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60",
-                                                    value: startTime,
-                                                    onChange: (e)=>setStartTime(e.target.value),
-                                                    placeholder: "예: 14:00"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                    lineNumber: 238,
-                                                    columnNumber: 19
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                            lineNumber: 236,
-                                            columnNumber: 17
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "space-y-1.5",
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
-                                                    className: "text-xs text-brand-gray",
-                                                    children: "장소"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                    lineNumber: 246,
-                                                    columnNumber: 19
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                                                    className: "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60",
-                                                    value: location,
-                                                    onChange: (e)=>setLocation(e.target.value),
-                                                    placeholder: "예: 본사 교육장"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                    lineNumber: 247,
-                                                    columnNumber: 19
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                            lineNumber: 245,
-                                            columnNumber: 17
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "space-y-1.5",
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
-                                                    className: "text-xs text-brand-gray",
-                                                    children: "교육자"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                    lineNumber: 255,
-                                                    columnNumber: 19
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                                                    className: "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60",
-                                                    value: instructor,
-                                                    onChange: (e)=>setInstructor(e.target.value),
-                                                    placeholder: "예: 홍길동 매니저"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                    lineNumber: 256,
-                                                    columnNumber: 19
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                            lineNumber: 254,
-                                            columnNumber: 17
-                                        }, this)
-                                    ]
-                                }, void 0, true),
-                                category === "internal" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "space-y-1.5",
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
-                                                    className: "text-xs text-brand-gray",
-                                                    children: "대상자"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                    lineNumber: 268,
-                                                    columnNumber: 19
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                                                    className: "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60",
-                                                    value: targetAudience,
-                                                    onChange: (e)=>setTargetAudience(e.target.value),
-                                                    placeholder: "예: 영업팀 전체"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                    lineNumber: 269,
-                                                    columnNumber: 19
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                            lineNumber: 267,
-                                            columnNumber: 17
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "space-y-1.5",
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
-                                                    className: "text-xs text-brand-gray",
-                                                    children: "장소"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                    lineNumber: 277,
-                                                    columnNumber: 19
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                                                    className: "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60",
-                                                    value: location,
-                                                    onChange: (e)=>setLocation(e.target.value),
-                                                    placeholder: "예: 회의실 A"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                    lineNumber: 278,
-                                                    columnNumber: 19
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                            lineNumber: 276,
-                                            columnNumber: 17
-                                        }, this)
-                                    ]
-                                }, void 0, true),
-                                category === "personal" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "space-y-1.5",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
-                                            className: "text-xs text-brand-gray",
-                                            children: "장소 (선택)"
-                                        }, void 0, false, {
-                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                            lineNumber: 289,
-                                            columnNumber: 17
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                                            className: "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60",
-                                            value: location,
-                                            onChange: (e)=>setLocation(e.target.value),
-                                            placeholder: "예: 외근 위치 등"
-                                        }, void 0, false, {
-                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                            lineNumber: 290,
-                                            columnNumber: 17
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                    lineNumber: 288,
-                                    columnNumber: 15
-                                }, this),
-                                category === "leave" && null,
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "space-y-1.5 md:col-span-2",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
-                                            className: "text-xs text-brand-gray",
-                                            children: "메모 (선택)"
-                                        }, void 0, false, {
-                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                            lineNumber: 300,
-                                            columnNumber: 15
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("textarea", {
-                                            className: "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60 min-h-[60px]",
-                                            value: description,
-                                            onChange: (e)=>setDescription(e.target.value),
-                                            placeholder: "상세 메모를 입력하세요."
-                                        }, void 0, false, {
-                                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                            lineNumber: 301,
-                                            columnNumber: 15
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                    lineNumber: 299,
-                                    columnNumber: 13
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "md:col-span-2 flex justify-end",
-                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$EclipseButton$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["EclipseButton"], {
-                                        type: "submit",
-                                        disabled: submitting,
-                                        isLoading: submitting,
-                                        text: submitting ? "등록 중..." : "+ 일정 등록",
-                                        variant: "primary"
-                                    }, void 0, false, {
-                                        fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                        lineNumber: 309,
-                                        columnNumber: 15
-                                    }, this)
-                                }, void 0, false, {
-                                    fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                    lineNumber: 308,
-                                    columnNumber: 13
-                                }, this)
-                            ]
-                        }, void 0, true, {
-                            fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                            lineNumber: 166,
-                            columnNumber: 11
-                        }, this)
-                    ]
-                }, void 0, true, {
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(ScheduleAddScheduler, {
+                    userFullName: userProfile?.full_name ?? "관리자",
+                    onSuccess: ()=>{
+                        setSuccess("일정이 등록되었습니다.");
+                        load();
+                        router.refresh();
+                        setTimeout(()=>setSuccess(null), 3000);
+                    }
+                }, void 0, false, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                    lineNumber: 162,
+                    lineNumber: 116,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -971,7 +551,7 @@ function AdminSchedulesPage() {
                                     children: "등록된 일정"
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                    lineNumber: 322,
+                                    lineNumber: 129,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -983,13 +563,13 @@ function AdminSchedulesPage() {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                    lineNumber: 325,
+                                    lineNumber: 132,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                            lineNumber: 321,
+                            lineNumber: 128,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -999,14 +579,14 @@ function AdminSchedulesPage() {
                                 children: "불러오는 중..."
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                lineNumber: 331,
+                                lineNumber: 138,
                                 columnNumber: 15
                             }, this) : schedules.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "px-4 py-6 text-xs text-brand-gray",
                                 children: "아직 등록된 일정이 없습니다."
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                lineNumber: 335,
+                                lineNumber: 142,
                                 columnNumber: 15
                             }, this) : schedules.map((s)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "px-4 py-3 flex items-start justify-between gap-3 text-sm",
@@ -1019,7 +599,7 @@ function AdminSchedulesPage() {
                                                     children: s.title
                                                 }, void 0, false, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                    lineNumber: 345,
+                                                    lineNumber: 152,
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1044,7 +624,7 @@ function AdminSchedulesPage() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                    lineNumber: 348,
+                                                    lineNumber: 155,
                                                     columnNumber: 21
                                                 }, this),
                                                 s.description && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1052,13 +632,13 @@ function AdminSchedulesPage() {
                                                     children: s.description
                                                 }, void 0, false, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                                    lineNumber: 365,
+                                                    lineNumber: 172,
                                                     columnNumber: 23
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                            lineNumber: 344,
+                                            lineNumber: 151,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$EclipseButton$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["EclipseButton"], {
@@ -1070,39 +650,43 @@ function AdminSchedulesPage() {
                                             className: "flex-shrink-0"
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                            lineNumber: 370,
+                                            lineNumber: 177,
                                             columnNumber: 19
                                         }, this)
                                     ]
                                 }, s.id, true, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                                    lineNumber: 340,
+                                    lineNumber: 147,
                                     columnNumber: 17
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                            lineNumber: 329,
+                            lineNumber: 136,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-                    lineNumber: 320,
+                    lineNumber: 127,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-            lineNumber: 149,
+            lineNumber: 102,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/admin/schedules/page.tsx",
-        lineNumber: 148,
+        lineNumber: 101,
         columnNumber: 5
     }, this);
 }
-_s(AdminSchedulesPage, "3uIB7DZGZ61l1SMUVNHo2gWDz3s=");
+_s(AdminSchedulesPage, "wqIvYNIOpqGUmGp80mg9kCxWLEo=", false, function() {
+    return [
+        __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"]
+    ];
+});
 _c = AdminSchedulesPage;
 var _c;
 __turbopack_context__.k.register(_c, "AdminSchedulesPage");

@@ -15,6 +15,11 @@ type ScheduleItem = {
   end_at: string;
   is_all_day: boolean;
   category: string;
+  creator_full_name?: string | null;
+  creator_avatar_url?: string | null;
+  target_full_name?: string | null;
+  target_avatar_url?: string | null;
+  manager_name?: string | null;
 };
 
 type CellData = {
@@ -214,6 +219,11 @@ export default function CalendarGridClient({
                                   end_at: ev.end_at,
                                   is_all_day: ev.is_all_day,
                                   category: ev.category,
+                                  creator_full_name: ev.creator_full_name,
+                                  creator_avatar_url: ev.creator_avatar_url,
+                                  target_full_name: ev.target_full_name,
+                                  target_avatar_url: ev.target_avatar_url,
+                                  manager_name: ev.manager_name,
                                 }}
                                 isAdmin={isAdmin}
                                 onPillClick={() => handleCellClick(cell.dateISO)}

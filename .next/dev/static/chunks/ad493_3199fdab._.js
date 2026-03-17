@@ -2291,8 +2291,14 @@ function removeNonTranslationalTransform(visualElement) {
 }
 const positionalValues = {
     // Dimensions
-    width: ({ x }, { paddingLeft = "0", paddingRight = "0" })=>x.max - x.min - parseFloat(paddingLeft) - parseFloat(paddingRight),
-    height: ({ y }, { paddingTop = "0", paddingBottom = "0" })=>y.max - y.min - parseFloat(paddingTop) - parseFloat(paddingBottom),
+    width: ({ x }, { paddingLeft = "0", paddingRight = "0", boxSizing })=>{
+        const width = x.max - x.min;
+        return boxSizing === "border-box" ? width : width - parseFloat(paddingLeft) - parseFloat(paddingRight);
+    },
+    height: ({ y }, { paddingTop = "0", paddingBottom = "0", boxSizing })=>{
+        const height = y.max - y.min;
+        return boxSizing === "border-box" ? height : height - parseFloat(paddingTop) - parseFloat(paddingBottom);
+    },
     top: (_bbox, { top })=>parseFloat(top),
     left: (_bbox, { left })=>parseFloat(left),
     bottom: ({ y }, { top })=>parseFloat(top) + (y.max - y.min),
@@ -2407,7 +2413,7 @@ function createRenderStep(runNextFrame, stepName) {
             const addToCurrentFrame = immediate && isProcessing;
             const queue = addToCurrentFrame ? thisFrame : nextFrame;
             if (keepAlive) toKeepAlive.add(callback);
-            if (!queue.has(callback)) queue.add(callback);
+            queue.add(callback);
             return callback;
         },
         /**
@@ -2429,10 +2435,10 @@ function createRenderStep(runNextFrame, stepName) {
                 return;
             }
             isProcessing = true;
-            [thisFrame, nextFrame] = [
-                nextFrame,
-                thisFrame
-            ];
+            // Swap this frame and the next to avoid GC
+            const prevFrame = thisFrame;
+            thisFrame = nextFrame;
+            nextFrame = prevFrame;
             // Execute this frame
             thisFrame.forEach(triggerCallback);
             /**
@@ -2485,9 +2491,10 @@ function createRenderBatcher(scheduleNextBatch, allowKeepAlive) {
     }, {});
     const { setup, read, resolveKeyframes, preUpdate, update, preRender, render, postRender } = steps;
     const processBatch = ()=>{
-        const timestamp = __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$utils$2f$dist$2f$es$2f$global$2d$config$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["MotionGlobalConfig"].useManualTiming ? state.timestamp : performance.now();
+        const useManualTiming = __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$utils$2f$dist$2f$es$2f$global$2d$config$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["MotionGlobalConfig"].useManualTiming;
+        const timestamp = useManualTiming ? state.timestamp : performance.now();
         runNextFrame = false;
-        if (!__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$utils$2f$dist$2f$es$2f$global$2d$config$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["MotionGlobalConfig"].useManualTiming) {
+        if (!useManualTiming) {
             state.delta = useDefaultElapsed ? 1000 / 60 : Math.max(Math.min(timestamp - state.timestamp, maxElapsed), 1);
         }
         state.timestamp = timestamp;
@@ -6267,7 +6274,9 @@ __turbopack_context__.s([
     "loadExternalIsValidProp",
     ()=>loadExternalIsValidProp
 ]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$value$2f$utils$2f$is$2d$motion$2d$value$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/OneDrive/Desktop/GA_NEXUS/node_modules/motion-dom/dist/es/value/utils/is-motion-value.mjs [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$motion$2f$utils$2f$valid$2d$prop$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/OneDrive/Desktop/GA_NEXUS/node_modules/framer-motion/dist/es/motion/utils/valid-prop.mjs [app-client] (ecmascript)");
+;
 ;
 let shouldForward = (key)=>!(0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$motion$2f$utils$2f$valid$2d$prop$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["isValidMotionProp"])(key);
 function loadExternalIsValidProp(isValidProp) {
@@ -6292,7 +6301,11 @@ function loadExternalIsValidProp(isValidProp) {
      * We attempt to import this package but require won't be defined in esm environments, in that case
      * isPropValid will have to be provided via `MotionContext`. In a 6.0.0 this should probably be removed
      * in favour of explicit injection.
-     */ loadExternalIsValidProp((()=>{
+     *
+     * String concatenation prevents bundlers like webpack (e.g. Storybook)
+     * from statically resolving this optional dependency at build time.
+     */ const emotionPkg = "@emotion/is-prop-" + "valid";
+    loadExternalIsValidProp((()=>{
         const e = new Error("Cannot find module '@emotion/is-prop-valid'");
         e.code = 'MODULE_NOT_FOUND';
         throw e;
@@ -6310,6 +6323,7 @@ function filterProps(props, isDom, forwardMotionProps) {
          * We check the type as it could be used with the `feColorMatrix`
          * element, which we support.
          */ if (key === "values" && typeof props.values === "object") continue;
+        if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$value$2f$utils$2f$is$2d$motion$2d$value$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["isMotionValue"])(props[key])) continue;
         if (shouldForward(key) || forwardMotionProps === true && (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$motion$2f$utils$2f$valid$2d$prop$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["isValidMotionProp"])(key) || !isDom && !(0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$motion$2f$utils$2f$valid$2d$prop$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["isValidMotionProp"])(key) || props["draggable"] && key.startsWith("onDrag")) {
             filteredProps[key] = props[key];
         }
@@ -8288,7 +8302,7 @@ __turbopack_context__.s([
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$utils$2f$dist$2f$es$2f$easing$2f$back$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/OneDrive/Desktop/GA_NEXUS/node_modules/motion-utils/dist/es/easing/back.mjs [app-client] (ecmascript)");
 ;
-const anticipate = (p)=>(p *= 2) < 1 ? 0.5 * (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$utils$2f$dist$2f$es$2f$easing$2f$back$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["backIn"])(p) : 0.5 * (2 - Math.pow(2, -10 * (p - 1)));
+const anticipate = (p)=>p >= 1 ? 1 : (p *= 2) < 1 ? 0.5 * (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$utils$2f$dist$2f$es$2f$easing$2f$back$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["backIn"])(p) : 0.5 * (2 - Math.pow(2, -10 * (p - 1)));
 ;
  //# sourceMappingURL=anticipate.mjs.map
 }),
@@ -9307,7 +9321,9 @@ class AsyncMotionValueAnimation extends __TURBOPACK__imported__module__$5b$proje
         /**
          * If we can't animate this value with the resolved keyframes
          * then we should complete it immediately.
-         */ if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$animation$2f$utils$2f$can$2d$animate$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["canAnimate"])(keyframes, name, type, velocity)) {
+         */ let canAnimateValue = true;
+        if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$animation$2f$utils$2f$can$2d$animate$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["canAnimate"])(keyframes, name, type, velocity)) {
+            canAnimateValue = false;
             if (__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$utils$2f$dist$2f$es$2f$global$2d$config$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["MotionGlobalConfig"].instantAnimations || !delay) {
                 onUpdate?.((0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$animation$2f$keyframes$2f$get$2d$final$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getFinalKeyframe"])(keyframes, options, finalKeyframe));
             }
@@ -9337,7 +9353,10 @@ class AsyncMotionValueAnimation extends __TURBOPACK__imported__module__$5b$proje
          * Animate via WAAPI if possible. If this is a handoff animation, the optimised animation will be running via
          * WAAPI. Therefore, this animation must be JS to ensure it runs "under" the
          * optimised animation.
-         */ const useWaapi = !isHandoff && (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$animation$2f$waapi$2f$supports$2f$waapi$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supportsBrowserAnimation"])(resolvedOptions);
+         *
+         * Also skip WAAPI when keyframes aren't animatable, as the resolved
+         * values may not be valid CSS and would trigger browser warnings.
+         */ const useWaapi = canAnimateValue && !isHandoff && (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$animation$2f$waapi$2f$supports$2f$waapi$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supportsBrowserAnimation"])(resolvedOptions);
         const element = resolvedOptions.motionValue?.owner?.current;
         const animation = useWaapi ? new __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$animation$2f$NativeAnimationExtended$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["NativeAnimationExtended"]({
             ...resolvedOptions,
@@ -10286,12 +10305,14 @@ __turbopack_context__.s([
     ()=>ExitAnimationFeature
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$render$2f$Feature$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/OneDrive/Desktop/GA_NEXUS/node_modules/motion-dom/dist/es/render/Feature.mjs [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$render$2f$utils$2f$resolve$2d$dynamic$2d$variants$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/OneDrive/Desktop/GA_NEXUS/node_modules/motion-dom/dist/es/render/utils/resolve-dynamic-variants.mjs [app-client] (ecmascript)");
 ;
 let id = 0;
 class ExitAnimationFeature extends __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$render$2f$Feature$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Feature"] {
     constructor(){
         super(...arguments);
         this.id = id++;
+        this.isExitComplete = false;
     }
     update() {
         if (!this.node.presenceContext) return;
@@ -10300,9 +10321,34 @@ class ExitAnimationFeature extends __TURBOPACK__imported__module__$5b$project$5d
         if (!this.node.animationState || isPresent === prevIsPresent) {
             return;
         }
+        if (isPresent && prevIsPresent === false) {
+            /**
+             * When re-entering, if the exit animation already completed
+             * (element is at rest), reset to initial values so the enter
+             * animation replays from the correct position.
+             */ if (this.isExitComplete) {
+                const { initial, custom } = this.node.getProps();
+                if (typeof initial === "string") {
+                    const resolved = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$render$2f$utils$2f$resolve$2d$dynamic$2d$variants$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["resolveVariant"])(this.node, initial, custom);
+                    if (resolved) {
+                        const { transition, transitionEnd, ...target } = resolved;
+                        for(const key in target){
+                            this.node.getValue(key)?.jump(target[key]);
+                        }
+                    }
+                }
+                this.node.animationState.reset();
+                this.node.animationState.animateChanges();
+            } else {
+                this.node.animationState.setActive("exit", false);
+            }
+            this.isExitComplete = false;
+            return;
+        }
         const exitAnimation = this.node.animationState.setActive("exit", !isPresent);
         if (onExitComplete && !isPresent) {
             exitAnimation.then(()=>{
+                this.isExitComplete = true;
                 onExitComplete(this.id);
             });
         }
@@ -11551,7 +11597,7 @@ class VisualElementDragControls {
                 return;
             }
             let transition = constraints && constraints[axis] || {};
-            if (dragSnapToOrigin) transition = {
+            if (dragSnapToOrigin === true || dragSnapToOrigin === axis) transition = {
                 min: 0,
                 max: 0
             };
@@ -13935,6 +13981,9 @@ function notifyLayoutUpdate(node) {
                 axisSnapshot.min = layout[axis].min;
                 axisSnapshot.max = axisSnapshot.min + length;
             });
+        } else if (animationType === "x" || animationType === "y") {
+            const snapAxis = animationType === "x" ? "y" : "x";
+            (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$projection$2f$geometry$2f$copy$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["copyAxisInto"])(isShared ? snapshot.measuredBox[snapAxis] : snapshot.layoutBox[snapAxis], layout[snapAxis]);
         } else if (shouldAnimatePositionOnly(animationType, snapshot.layoutBox, layout)) {
             (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$projection$2f$utils$2f$each$2d$axis$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["eachAxis"])((axis)=>{
                 const axisSnapshot = isShared ? snapshot.measuredBox[axis] : snapshot.layoutBox[axis];
@@ -14395,7 +14444,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NE
  * Checks if an element is an HTML element in a way
  * that works across iframes
  */ function isHTMLElement(element) {
-    return (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$utils$2f$dist$2f$es$2f$is$2d$object$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["isObject"])(element) && "offsetHeight" in element;
+    return (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$utils$2f$dist$2f$es$2f$is$2d$object$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["isObject"])(element) && "offsetHeight" in element && !("ownerSVGElement" in element);
 }
 ;
  //# sourceMappingURL=is-html-element.mjs.map
@@ -15006,7 +15055,15 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NE
         __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$frameloop$2f$frame$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["frame"].postRender(scheduleAnimation);
     }, stopAnimation);
     if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$value$2f$utils$2f$is$2d$motion$2d$value$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["isMotionValue"])(source)) {
-        const removeSourceOnChange = source.on("change", (v)=>value.set(parseValue(v, unit)));
+        let skipNextAnimation = options.skipInitialAnimation === true;
+        const removeSourceOnChange = source.on("change", (v)=>{
+            if (skipNextAnimation) {
+                skipNextAnimation = false;
+                value.jump(parseValue(v, unit), false);
+            } else {
+                value.set(parseValue(v, unit));
+            }
+        });
         const removeValueOnDestroy = value.on("destroy", removeSourceOnChange);
         return ()=>{
             removeSourceOnChange();

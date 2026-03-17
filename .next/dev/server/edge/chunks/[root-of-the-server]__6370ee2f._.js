@@ -24,9 +24,12 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NE
 var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$esm$2f$server$2f$web$2f$exports$2f$index$2e$js__$5b$middleware$2d$edge$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/OneDrive/Desktop/GA_NEXUS/node_modules/next/dist/esm/server/web/exports/index.js [middleware-edge] (ecmascript)");
 ;
 const PUBLIC_PATHS = [
+    "/",
     "/login",
+    "/admin/signup",
     "/apply",
     "/api/auth/login",
+    "/api/auth/admin-signup",
     "/api/auth/change-password",
     "/api/auth/logout",
     "/api/invite/validate",
@@ -45,7 +48,9 @@ function middleware(request) {
     const sessionCookie = request.cookies.get("ga_session");
     if (!sessionCookie?.value) {
         const loginUrl = new URL("/login", request.url);
-        loginUrl.searchParams.set("redirectTo", pathname);
+        if (pathname !== "/") {
+            loginUrl.searchParams.set("redirectTo", pathname);
+        }
         return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$esm$2f$server$2f$web$2f$exports$2f$index$2e$js__$5b$middleware$2d$edge$5d$__$28$ecmascript$29$__["NextResponse"].redirect(loginUrl);
     }
     return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$esm$2f$server$2f$web$2f$exports$2f$index$2e$js__$5b$middleware$2d$edge$5d$__$28$ecmascript$29$__["NextResponse"].next();

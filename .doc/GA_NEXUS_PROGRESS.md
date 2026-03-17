@@ -194,6 +194,34 @@
 - `app/components/RightPanel.tsx`: 오늘/선택 날짜 일정 리스트 아이템을 클릭하면 카테고리별 세부 정보(교육자, 장소, 대상자, 월차 안내 등)와 전체 메모를 볼 수 있는 `ScheduleDetailPopup` 모달을 띄우도록 구현.
   - 리스트 카드는 버튼으로 변경되어 클릭 시 `selectedSchedule` 상태를 설정하고, 별도의 오버레이 팝업에서 일정 시간 구간(종일 여부 포함)과 카테고리별 필드를 표시.
 
+## 2026-03-16 – 일정 상세 팝업 공통화 (웹/모바일)
+
+- `app/components/RightPanel.tsx`:
+  - 우측 패널 내부에서만 사용하던 `ScheduleDetailPopup`과 `ScheduleItem` 타입을 export 하여 외부(모바일)에서도 재사용 가능하도록 정리.
+- `app/components/MobileCalendarShell.tsx`:
+  - 모바일 상세 리스트(행 사이 상세 row)에서 일정 아이템을 `<li>`가 아닌 `<button>`으로 렌더링하고, 클릭 시 `selectedSchedule` 상태를 설정.
+  - 선택된 일정이 있을 때 웹과 동일한 `ScheduleDetailPopup`을 오버레이로 띄워, 모바일에서도 동일한 상세 레이아웃/카테고리별 필드를 공유하도록 변경.
+  - 기존 날짜별 간단 요약 리스트 UI는 유지하되, 탭 한 번으로 바로 상세 팝업으로 진입할 수 있게 UX 개선.
+
+## 2026-03-16 – 일정 상세 팝업 인라인 편집
+
+- `app/components/RightPanel.tsx`:
+  - `ScheduleDetailPopup`에 인라인 편집 모드를 추가하고, 상단 헤더 우측에 **편집** 버튼을 배치.
+  - 편집 모드에서 제목/설명을 입력 폼으로 전환하여 수정 가능하게 하고, 취소 시 기존 값으로 롤백.
+  - 저장 시 `/api/schedules/[id]`에 `PATCH` 요청을 보내 제목/설명을 업데이트하며, 성공 시 편집 모드를 종료.
+
+## 2026-03-16 – 일정 수정 이력 로깅 및 상세 팝업 표시
+
+- `src/lib/engines/schedules.ts`:
+  - `ScheduleEditLog` 타입과 `insertScheduleEditLog` 헬퍼를 추가하여, 일정 수정 전/후 값을 비교해 변경된 필드만 `changed_fields` JSON 으로 `schedule_edit_logs` 테이블에 저장.
+  - `getScheduleEditLogs(scheduleId, branchName)`를 추가해 지점 스키마별 수정 이력 목록을 최신순으로 조회.
+  - `updateSchedule`에서 업데이트 전에 기존 행을 조회(`before`), 업데이트 실행 후 결과(`updated`)를 기반으로 diff 를 계산해 수정 이력을 남기도록 변경.
+- `app/api/schedules/[id]/logs/route.ts`:
+  - 인증 및 `profiles.branch_name` 검증 후, 해당 지점/일정 ID에 대한 수정 이력 리스트를 반환하는 `GET /api/schedules/[id]/logs` 라우트 추가.
+- `app/components/RightPanel.tsx` (`ScheduleDetailPopup`):
+  - 하단에 “수정 이력” 섹션을 추가하고, 마운트 시 `/api/schedules/[id]/logs` 호출로 이력을 불러옴.
+  - 로딩/빈 상태를 처리하고, 각 이력에 대해 수정자 ID, 수정 시각, 변경된 필드별 `before → after` 요약을 작은 카드 리스트 형태로 표시.
+
 ## 2026-03-13 – GALENDER 랜딩 페이지 · Hero / Header 컴포넌트
 
 - **랜딩 페이지 구조**

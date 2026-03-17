@@ -1,0 +1,3 @@
+module.exports=[13672,a=>{"use strict";var b=a.i(20549);function c({children:a}){return(0,b.jsx)("html",{lang:"ko",children:(0,b.jsx)("body",{className:"min-h-screen bg-background-light text-slate-900 antialiased font-sans",children:a})})}a.s(["default",()=>c,"metadata",0,{title:"GALENDER",description:"우리만의 GA 캘린더"}])}];
+
+//# sourceMappingURL=OneDrive_Desktop_GA_NEXUS_app_layout_tsx_48b4c8d8._.js.map

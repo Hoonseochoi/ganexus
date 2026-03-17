@@ -20,9 +20,11 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   }
 
   const branchName = user.profile?.branch_name;
-  if (!branchName) {
+  const profileId = user.profile?.id;
+  const fullName = user.profile?.full_name ?? null;
+  if (!branchName || !profileId) {
     return NextResponse.json(
-      { message: "지점 정보가 설정되지 않았습니다." },
+      { message: "지점 정보 또는 프로필 정보가 설정되지 않았습니다." },
       { status: 400 },
     );
   }
@@ -44,6 +46,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   const updated = await updateSchedule({
     id,
     branchName,
+    modifiedBy: profileId,
+    modifiedByName: fullName,
     title: body.title,
     description: body.description,
     category: body.category,
@@ -90,7 +94,11 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     );
   }
 
-  await deleteSchedule({ id, branchName });
+  await deleteSchedule({
+    id,
+    branchName,
+    hardDelete: user.role === "admin",
+  });
   return NextResponse.json({ ok: true });
 }
 

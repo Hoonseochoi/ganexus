@@ -2659,7 +2659,7 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                     } else if (cell.isSaturday) {
                         dayColor = "text-blue-500";
                     }
-                    const isSelected = cell.dateISO === selectedDateStr;
+                    const isSelected = cell.day !== null && cell.dateISO != null && selectedDateStr != null && cell.dateISO === selectedDateStr;
                     const isTodayHighlight = cell.isToday && (!selectedDateStr || selectedDateStr === todayStr);
                     const isHighlight = isSelected || isTodayHighlight;
                     const borderClass = isHighlight ? "border-2 border-primary bg-primary/5 relative" : "border border-slate-100";
@@ -2687,7 +2687,7 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                                     children: cell.day ?? ""
                                                 }, void 0, false, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                                    lineNumber: 172,
+                                                    lineNumber: 176,
                                                     columnNumber: 21
                                                 }, this),
                                                 cell.isToday && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2696,13 +2696,13 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                                     children: "TODAY"
                                                 }, void 0, false, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                                    lineNumber: 176,
+                                                    lineNumber: 180,
                                                     columnNumber: 23
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                            lineNumber: 171,
+                                            lineNumber: 175,
                                             columnNumber: 19
                                         }, this),
                                         cell.day !== null && events.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2722,7 +2722,7 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                                         onPillClick: ()=>handleCellClick(cell.dateISO)
                                                     }, ev.id, false, {
                                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                                        lineNumber: 187,
+                                                        lineNumber: 191,
                                                         columnNumber: 23
                                                     }, this)),
                                                 events.length > 3 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2734,19 +2734,19 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                                    lineNumber: 202,
+                                                    lineNumber: 206,
                                                     columnNumber: 23
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                            lineNumber: 185,
+                                            lineNumber: 189,
                                             columnNumber: 19
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                    lineNumber: 170,
+                                    lineNumber: 174,
                                     columnNumber: 17
                                 }, this),
                                 cell.day !== null && isHighlight && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2768,23 +2768,23 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                         children: "+"
                                     }, void 0, false, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                        lineNumber: 211,
+                                        lineNumber: 215,
                                         columnNumber: 21
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                    lineNumber: 210,
+                                    lineNumber: 214,
                                     columnNumber: 19
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                            lineNumber: 161,
+                            lineNumber: 165,
                             columnNumber: 15
                         }, this)
                     }, cell.key, false, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                        lineNumber: 155,
+                        lineNumber: 159,
                         columnNumber: 13
                     }, this);
                 })
@@ -2805,7 +2805,7 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                             children: "퀵일정"
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                            lineNumber: 241,
+                            lineNumber: 245,
                             columnNumber: 13
                         }, this),
                         quickError && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2813,7 +2813,7 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                             children: quickError
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                            lineNumber: 243,
+                            lineNumber: 247,
                             columnNumber: 15
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -2827,7 +2827,7 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                             children: "일정"
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                            lineNumber: 247,
+                                            lineNumber: 251,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -2840,13 +2840,13 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                             autoFocus: true
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                            lineNumber: 248,
+                                            lineNumber: 252,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                    lineNumber: 246,
+                                    lineNumber: 250,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2856,7 +2856,7 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                             children: "내용"
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                            lineNumber: 259,
+                                            lineNumber: 263,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("textarea", {
@@ -2867,13 +2867,13 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                             rows: 3
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                            lineNumber: 260,
+                                            lineNumber: 264,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                    lineNumber: 258,
+                                    lineNumber: 262,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2889,7 +2889,7 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                             className: "flex-1"
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                            lineNumber: 269,
+                                            lineNumber: 273,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$EclipseButton$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["EclipseButton"], {
@@ -2902,30 +2902,30 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                             className: "flex-1"
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                            lineNumber: 278,
+                                            lineNumber: 282,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                    lineNumber: 268,
+                                    lineNumber: 272,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                            lineNumber: 245,
+                            lineNumber: 249,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                    lineNumber: 237,
+                    lineNumber: 241,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                lineNumber: 236,
+                lineNumber: 240,
                 columnNumber: 9
             }, this)
         ]

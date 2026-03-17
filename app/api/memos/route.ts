@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
     branchName: profile.branch_name,
     content: body.content.trim(),
     createdByProfileId: profile.id,
+    createdByName: profile.full_name ?? null,
   });
 
   return NextResponse.json({ memo: created }, { status: 201 });

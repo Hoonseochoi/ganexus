@@ -1,0 +1,29 @@
+[
+  {
+    "table_name": "sessions"
+  },
+  {
+    "table_name": "auth_users"
+  },
+  {
+    "table_name": "schedule_edit_logs_backup"
+  },
+  {
+    "table_name": "invite_codes"
+  },
+  {
+    "table_name": "schedules"
+  },
+  {
+    "table_name": "notices"
+  },
+  {
+    "table_name": "profiles"
+  },
+  {
+    "table_name": "branch_memos"
+  },
+  {
+    "table_name": "notice_reads"
+  }
+]

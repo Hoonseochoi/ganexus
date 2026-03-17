@@ -250,10 +250,8 @@ async function listMemosForBranch(params) {
             values.push(date);
         }
         const rows = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["query"])(`
-        select m.id, m.branch_name, m.content, m.created_by, m.created_at,
-               p.full_name as author_name
+        select id, branch_name, content, created_by, created_at, author_name
         from public.branch_memos m
-        left join public.profiles p on p.id = m.created_by
         where ${conditions.join(" and ")}
         order by m.created_at desc
         limit 100
@@ -276,13 +274,14 @@ async function listMemosForBranch(params) {
 }
 async function createMemo(params) {
     const rows = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["query"])(`
-      insert into public.branch_memos (branch_name, content, created_by)
-      values ($1, $2, $3)
-      returning id, branch_name, content, created_by, created_at
+      insert into public.branch_memos (branch_name, content, created_by, author_name)
+      values ($1, $2, $3, $4)
+      returning id, branch_name, content, created_by, created_at, author_name
     `, [
         params.branchName,
         params.content,
-        params.createdByProfileId
+        params.createdByProfileId,
+        params.createdByName ?? null
     ]);
     return rows[0];
 }
@@ -365,7 +364,8 @@ async function POST(req) {
     const created = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$memos$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["createMemo"])({
         branchName: profile.branch_name,
         content: body.content.trim(),
-        createdByProfileId: profile.id
+        createdByProfileId: profile.id,
+        createdByName: profile.full_name ?? null
     });
     return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
         memo: created

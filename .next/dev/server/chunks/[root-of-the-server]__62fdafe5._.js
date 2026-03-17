@@ -225,6 +225,8 @@ __turbopack_async_result__();
 return __turbopack_context__.a(async (__turbopack_handle_async_dependencies__, __turbopack_async_result__) => { try {
 
 __turbopack_context__.s([
+    "listAllBranchMembers",
+    ()=>listAllBranchMembers,
     "listManagersForBranch",
     ()=>listManagersForBranch
 ]);
@@ -241,6 +243,17 @@ async function listManagersForBranch(branchName) {
       where branch_name = $1
         and role in ('admin', 'manager')
       order by created_at asc
+    `, [
+        branchName
+    ]);
+    return rows;
+}
+async function listAllBranchMembers(branchName) {
+    const rows = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["query"])(`
+      select id, full_name, branch_name, phone_number, role, created_at
+      from public.profiles
+      where branch_name = $1
+      order by case role when 'admin' then 1 when 'manager' then 2 when 'agent' then 3 else 4 end, created_at asc
     `, [
         branchName
     ]);
@@ -293,9 +306,9 @@ async function GET(_req) {
             status: 400
         });
     }
-    const managers = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$managers$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["listManagersForBranch"])(branchName);
+    const members = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$managers$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["listAllBranchMembers"])(branchName);
     return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-        managers: managers.map((m)=>({
+        managers: members.map((m)=>({
                 id: m.id,
                 name: m.full_name ?? "이름 없음",
                 branch_name: m.branch_name,

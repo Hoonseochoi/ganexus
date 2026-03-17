@@ -225,6 +225,8 @@ __turbopack_async_result__();
 return __turbopack_context__.a(async (__turbopack_handle_async_dependencies__, __turbopack_async_result__) => { try {
 
 __turbopack_context__.s([
+    "DELETE",
+    ()=>DELETE,
     "GET",
     ()=>GET,
     "POST",
@@ -302,6 +304,22 @@ async function POST(req) {
             });
         }
         const { maxUses, expiresAt } = await req.json().catch(()=>({}));
+        // 지점당 초대코드는 1개만 허용한다.
+        const existing = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["query"])(`
+        select id
+        from public.invite_codes
+        where branch_name = $1
+        limit 1
+      `, [
+            profile.branch_name
+        ]);
+        if (existing.length > 0) {
+            return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                message: "이미 생성된 초대 코드가 있습니다. 기존 코드를 삭제한 뒤 다시 시도해주세요."
+            }, {
+                status: 400
+            });
+        }
         const code = generateCode(profile.branch_name);
         const rows = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["query"])(`
       insert into public.invite_codes (code, branch_name, created_by, max_uses, expires_at)
@@ -323,6 +341,59 @@ async function POST(req) {
         console.error("[admin/invite-codes POST]", err);
         return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
             message: "초대 코드 생성 중 오류가 발생했습니다. DB 테이블(profiles, invite_codes)이 있는지 확인해주세요."
+        }, {
+            status: 500
+        });
+    }
+}
+async function DELETE(req) {
+    try {
+        const user = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$auth$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["getCurrentUser"])();
+        if (!user || user.role !== "admin") {
+            return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                message: "관리자 권한이 필요합니다."
+            }, {
+                status: 403
+            });
+        }
+        const profile = user.profile;
+        if (!profile?.branch_name) {
+            return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                message: "지점 정보가 설정되지 않았습니다. 먼저 지점 설정을 완료해주세요."
+            }, {
+                status: 400
+            });
+        }
+        const { id } = await req.json().catch(()=>({}));
+        if (!id) {
+            return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                message: "삭제할 초대 코드 ID가 필요합니다."
+            }, {
+                status: 400
+            });
+        }
+        const result = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["query"])(`
+        delete from public.invite_codes
+        where id = $1 and branch_name = $2
+        returning id
+      `, [
+            id,
+            profile.branch_name
+        ]);
+        if (result.length === 0) {
+            return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                message: "해당 지점에서 찾을 수 없는 초대 코드입니다."
+            }, {
+                status: 404
+            });
+        }
+        return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+            status: "ok"
+        });
+    } catch (err) {
+        console.error("[admin/invite-codes DELETE]", err);
+        return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+            message: "초대 코드 삭제 중 오류가 발생했습니다."
         }, {
             status: 500
         });

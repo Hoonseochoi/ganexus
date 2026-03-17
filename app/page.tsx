@@ -14,6 +14,8 @@ import DesktopShell, { DesktopShellHamburger } from "./components/DesktopShell";
 import CalendarMonthNav from "./components/CalendarMonthNav";
 import CalendarGridClient from "./components/CalendarGridClient";
 import LandingPage from "./components/LandingPage";
+import MobileCalendarShell from "./components/MobileCalendarShell";
+import AdminSettingsMenu from "./components/AdminSettingsMenu";
 
 type CalendarCell = {
   key: number;
@@ -175,26 +177,7 @@ export default async function Page({ searchParams }: PageProps) {
           <span className="text-sm font-medium">Main Calendar</span>
         </button>
         {user?.role === "admin" && (
-          <>
-            <Link
-              href="/admin/branch"
-              className="w-full flex items-center gap-3 px-3 py-2 text-brand-gray hover:bg-slate-50 rounded-lg transition-colors text-left"
-            >
-              <span className="text-sm font-medium">지점 정보 설정</span>
-            </Link>
-            <Link
-              href="/admin/approvals"
-              className="w-full flex items-center gap-3 px-3 py-2 text-brand-gray hover:bg-slate-50 rounded-lg transition-colors text-left"
-            >
-              <span className="text-sm font-medium">에이전트 승인</span>
-            </Link>
-            <Link
-              href="/admin/managers"
-              className="w-full flex items-center gap-3 px-3 py-2 text-brand-gray hover:bg-slate-50 rounded-lg transition-colors text-left"
-            >
-              <span className="text-sm font-medium">매니저 등록</span>
-            </Link>
-          </>
+          <AdminSettingsMenu />
         )}
         <LeftPanelBranchMembers />
         <div className="pt-4 border-t border-slate-100">
@@ -254,7 +237,7 @@ export default async function Page({ searchParams }: PageProps) {
               eventsByDay={Object.fromEntries(
                 Array.from(eventsByDay.entries()).map(([d, list]) => [
                   String(d),
-                  list.map((s) => ({
+                   list.map((s) => ({
                     id: s.id,
                     title: s.title,
                     description: s.description,
@@ -262,6 +245,8 @@ export default async function Page({ searchParams }: PageProps) {
                     end_at: s.end_at,
                     is_all_day: s.is_all_day,
                     category: s.category,
+                    creator_full_name: s.creator_full_name,
+                    creator_avatar_url: s.creator_avatar_url,
                   })),
                 ]),
               )}
@@ -308,110 +293,66 @@ export default async function Page({ searchParams }: PageProps) {
         </DesktopShell>
       </div>
 
-      {/* 모바일: 달력 고정 + 좌/우 패널 슬라이드 */}
-      <div className="flex lg:hidden h-full flex-col">
-        {/* 상단 헤더 */}
-        <header className="px-4 pt-4 pb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white text-xs font-bold">
-              GA
-            </div>
-            <div>
-              <p className="text-[11px] text-brand-gray font-medium">
-                Management Portal
-              </p>
-              <p className="text-sm font-semibold text-brand-black">
-                Main Calendar
-              </p>
-            </div>
-          </div>
-        </header>
-
-        {/* 중앙: 달력 고정 */}
-        <section className="px-4">
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
-              <p className="text-[11px] text-brand-gray font-medium">
-                {mobileMonthLabel}
-              </p>
-              <button className="px-3 py-1.5 rounded-full border border-slate-200 bg-white text-[11px] text-brand-gray font-semibold">
-                Today
-              </button>
-            </div>
-            <CalendarGridClient
-              cells={calendarCells.map((c) => ({
-                key: c.key,
-                day: c.day,
-                dateISO: c.day !== null ? `${year}-${String(month + 1).padStart(2, "0")}-${String(c.day).padStart(2, "0")}` : null,
-                isToday: c.isToday,
-                isSunday: c.isSunday,
-                isSaturday: c.isSaturday,
-                isHoliday: c.isHoliday,
-              }))}
-              eventsByDay={Object.fromEntries(
-                Array.from(eventsByDay.entries()).map(([d, list]) => [
-                  String(d),
-                  list.map((s) => ({
-                    id: s.id,
-                    title: s.title,
-                    description: s.description,
-                    start_at: s.start_at,
-                    end_at: s.end_at,
-                    is_all_day: s.is_all_day,
-                    category: s.category,
-                  })),
-                ]),
-              )}
-              year={year}
-              month={month}
-              isAdmin={user?.role === "admin"}
-              columns={5}
-              selectedDateStr={selectedDateStr}
-              todayStr={todayStr}
-            />
-          </div>
-        </section>
-
-        {/* 하단: 좌/우 패널 슬라이드 영역 */}
-        <section className="mt-4 flex-1">
-          <div className="px-4 text-[11px] text-brand-gray mb-1">
-            좌·우로 넘겨 멤버 / 인사이트를 확인하세요.
-          </div>
-          <div className="flex gap-4 px-4 pb-4 overflow-x-auto snap-x snap-mandatory">
-            {/* Left panel 내용 - Branch Members */}
-            <BranchMembersCard />
-
-            {/* Right panel - 선택한 날짜(또는 오늘) 일정 · 메모 · 공지 */}
-            <div className="min-w-[85vw] snap-center bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-              <RightPanel
-                todaySchedules={schedulesForSelected.map((s) => ({
-                  id: s.id,
-                  title: s.title,
-                  description: s.description,
-                  start_at: s.start_at,
-                  end_at: s.end_at,
-                  is_all_day: s.is_all_day,
-                  category: s.category as "dealer" | "internal" | "personal" | "leave" | "etc",
-                  dealer_name: (s as any).dealer_name ?? null,
-                  location: (s as any).location ?? null,
-                  instructor: (s as any).instructor ?? null,
-                  target_audience: (s as any).target_audience ?? null,
-                  manager_name: (s as any).manager_name ?? null,
-                }))}
-                selectedDateStr={displayDateStr}
-                isAdmin={user?.role === "admin"}
-                canAddSchedule={
-                  user?.role === "admin" ||
-                  user?.role === "manager" ||
-                  user?.role === "agent" ||
-                  user?.profile?.role === "manager" ||
-                  user?.profile?.role === "agent"
-                }
-              />
-            </div>
-          </div>
-        </section>
-      </div>
+      {/* 모바일: 햄버거 메뉴 + 좌측 패널 오버레이 + 날짜별 상세 패널 */}
+      <MobileCalendarShell
+        cells={calendarCells.map((c) => ({
+          key: c.key,
+          day: c.day,
+          dateISO: c.day !== null ? `${year}-${String(month + 1).padStart(2, "0")}-${String(c.day).padStart(2, "0")}` : null,
+          isToday: c.isToday,
+          isSunday: c.isSunday,
+          isSaturday: c.isSaturday,
+          isHoliday: c.isHoliday,
+        }))}
+        eventsByDay={Object.fromEntries(
+          Array.from(eventsByDay.entries()).map(([d, list]) => [
+            String(d),
+            list.map((s) => ({
+              id: s.id,
+              title: s.title,
+              description: s.description,
+              start_at: s.start_at,
+              end_at: s.end_at,
+              is_all_day: s.is_all_day,
+              category: s.category as "dealer" | "internal" | "personal" | "leave" | "etc",
+              dealer_name: (s as any).dealer_name ?? null,
+              location: (s as any).location ?? null,
+              instructor: (s as any).instructor ?? null,
+              target_audience: (s as any).target_audience ?? null,
+              manager_name: (s as any).manager_name ?? null,
+              creator_full_name: s.creator_full_name,
+              creator_avatar_url: s.creator_avatar_url,
+            })),
+          ]),
+        )}
+        year={year}
+        month={month}
+        isAdmin={user?.role === "admin"}
+        todayStr={todayStr}
+        mobileMonthLabel={mobileMonthLabel}
+        eventsByDateStr={Object.fromEntries(
+          Object.entries(eventsByDateStr).map(([k, list]) => [
+            k,
+            list.map((s) => ({
+              id: s.id,
+              title: s.title,
+              description: s.description,
+              start_at: s.start_at,
+              end_at: s.end_at,
+              is_all_day: s.is_all_day,
+              category: s.category as "dealer" | "internal" | "personal" | "leave" | "etc",
+              dealer_name: (s as any).dealer_name ?? null,
+              location: (s as any).location ?? null,
+              instructor: (s as any).instructor ?? null,
+              target_audience: (s as any).target_audience ?? null,
+              manager_name: (s as any).manager_name ?? null,
+              creator_full_name: s.creator_full_name,
+              creator_avatar_url: s.creator_avatar_url,
+            })),
+          ]),
+        )}
+        userFullName={user?.profile?.full_name ?? null}
+      />
     </main>
   );
 }

@@ -2,25 +2,11 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import CalendarGridClient from "./CalendarGridClient";
 import LeftPanelBranchMembers from "./LeftPanelBranchMembers";
-import RightPanel from "./RightPanel";
-
-type ScheduleItem = {
-  id: string;
-  title: string;
-  description: string | null;
-  start_at: string;
-  end_at: string;
-  is_all_day: boolean;
-  category: "dealer" | "internal" | "personal" | "leave" | "etc";
-  dealer_name?: string | null;
-  location?: string | null;
-  instructor?: string | null;
-  target_audience?: string | null;
-  manager_name?: string | null;
-  is_soft_deleted?: boolean;
-};
+import { ScheduleDetailPopup, type ScheduleItem } from "./RightPanel";
+import AdminSettingsMenu from "./AdminSettingsMenu";
 
 type CellData = {
   key: number;
@@ -41,6 +27,7 @@ type Props = {
   todayStr: string;
   mobileMonthLabel: string;
   eventsByDateStr: Record<string, ScheduleItem[]>;
+  userFullName?: string | null;
 };
 
 export default function MobileCalendarShell({
@@ -52,11 +39,22 @@ export default function MobileCalendarShell({
   todayStr,
   mobileMonthLabel,
   eventsByDateStr,
+  userFullName,
 }: Props) {
   const router = useRouter();
   const [mobileLeftOpen, setMobileLeftOpen] = useState(false);
   const [selectedDateForDetail, setSelectedDateForDetail] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState<ScheduleItem | null>(null);
+
+  const goToPrevMonth = () => {
+    const d = new Date(year, month - 1, 1);
+    router.push(`/?year=${d.getFullYear()}&month=${d.getMonth() + 1}`);
+  };
+  const goToNextMonth = () => {
+    const d = new Date(year, month + 1, 1);
+    router.push(`/?year=${d.getFullYear()}&month=${d.getMonth() + 1}`);
+  };
 
   const schedulesForDetail = useMemo(
     () => (selectedDateForDetail ? eventsByDateStr[selectedDateForDetail] ?? [] : []),
@@ -116,7 +114,26 @@ export default function MobileCalendarShell({
           }`}
         >
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
-            <p className="text-[11px] text-brand-gray font-medium">{mobileMonthLabel}</p>
+            {/* 연월 + 화살표 네비게이션 */}
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                aria-label="이전 달"
+                onClick={goToPrevMonth}
+                className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-100 text-brand-gray"
+              >
+                &#8249;
+              </button>
+              <p className="text-sm font-semibold text-brand-black">{mobileMonthLabel}</p>
+              <button
+                type="button"
+                aria-label="다음 달"
+                onClick={goToNextMonth}
+                className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-100 text-brand-gray"
+              >
+                &#8250;
+              </button>
+            </div>
             <div className="flex items-center gap-2">
               <button
                 className="px-3 py-1.5 rounded-full border border-slate-200 bg-white text-[11px] text-brand-gray font-semibold"
@@ -170,47 +187,59 @@ export default function MobileCalendarShell({
                     <p className="text-[11px] text-brand-gray">해당 날짜에는 일정이 없습니다.</p>
                   ) : (
                     <ul className="space-y-1.5 text-[11px]">
-                      {list.map((s) => (
-                        <li
-                          key={s.id}
-                          className={`flex flex-col rounded-lg border border-slate-100 bg-slate-50 px-2 py-1.5 ${
-                            s.is_soft_deleted ? "opacity-60" : ""
-                          }`}
-                        >
-                          <span
-                            className={`font-semibold ${
-                              s.is_soft_deleted ? "text-slate-400 line-through" : "text-brand-black"
+                      {list.map((s) => {
+                        const timeStr = new Date(s.start_at).toLocaleTimeString("ko-KR", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: false,
+                        });
+                        return (
+                          <button
+                            key={s.id}
+                            type="button"
+                            className={`w-full flex items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-2 py-1.5 text-left ${
+                              s.is_soft_deleted ? "opacity-60" : ""
                             }`}
+                            onClick={() => setSelectedSchedule(s)}
                           >
-                            {s.title}
-                          </span>
-                          <span
-                            className={`${
-                              s.is_soft_deleted ? "text-slate-400 line-through" : "text-brand-gray"
-                            }`}
-                          >
-                            {new Date(s.start_at).toLocaleTimeString("ko-KR", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}{" "}
-                            ~{" "}
-                            {new Date(s.end_at).toLocaleTimeString("ko-KR", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                            {s.is_all_day && " (종일)"}
-                          </span>
-                          {s.description && (
-                            <span
-                              className={`line-clamp-2 ${
-                                s.is_soft_deleted ? "text-slate-400 line-through" : "text-slate-600"
-                              }`}
-                            >
-                              {s.description}
-                            </span>
-                          )}
-                        </li>
-                      ))}
+                            <div className="w-6 h-6 rounded-full border border-white shadow-sm overflow-hidden bg-slate-200 shrink-0 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                              {s.category === "leave" ? (
+                                s.target_avatar_url ? (
+                                  <img src={s.target_avatar_url} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                  <span>{(s.target_full_name || s.manager_name || s.title)?.[0] || "?"}</span>
+                                )
+                              ) : s.creator_avatar_url ? (
+                                <img src={s.creator_avatar_url} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <span>{s.creator_full_name?.[0] || "?"}</span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <span
+                                  className={`font-semibold truncate ${
+                                    s.is_soft_deleted ? "text-slate-400 line-through" : "text-brand-black"
+                                  }`}
+                                >
+                                  {s.category === "leave" ? (
+                                    `[월차] / ${s.target_full_name || s.manager_name || s.title}`
+                                  ) : s.category === "dealer" ? (
+                                    `${s.title} / ${timeStr}`
+                                  ) : (
+                                    `${s.title} / ${timeStr}`
+                                  )}
+                                </span>
+                                {s.category !== "leave" && !s.is_all_day && (
+                                  <span className="text-[10px] opacity-60 ml-2 whitespace-nowrap">
+                                    {timeStr}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
                     </ul>
                   )}
                 </div>
@@ -230,19 +259,47 @@ export default function MobileCalendarShell({
             className="w-72 max-w-[80%] h-full bg-white border-r border-slate-200 shadow-xl flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-              <p className="text-sm font-semibold text-brand-black">Branch Members</p>
+            {/* 헤더: 로고 + 사용자 이름 */}
+            <div className="p-5 border-b border-slate-100 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg overflow-hidden bg-white flex items-center justify-center">
+                <img src="/2cigalender.png" alt="GALENDER 로고" className="h-9 w-auto" />
+              </div>
+              <div>
+                <p className="text-base font-bold leading-tight text-brand-black">GALENDER</p>
+                <p className="text-xs text-brand-gray">
+                  {userFullName ? `${userFullName}님, 환영합니다!` : "우리만의 GA 캘린더"}
+                </p>
+              </div>
+            </div>
+
+            {/* 네비게이션 */}
+            <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
               <button
-                type="button"
-                onClick={() => setMobileLeftOpen(false)}
-                className="text-xs text-brand-gray hover:text-brand-black"
+                className="w-full flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg text-left"
+                onClick={() => { setMobileLeftOpen(false); router.push("/"); }}
               >
-                닫기
+                <span className="text-sm font-medium">📅 Main Calendar</span>
               </button>
-            </div>
-            <div className="flex-1 overflow-y-auto">
+
+              {isAdmin && (
+                <AdminSettingsMenu onNavigate={() => setMobileLeftOpen(false)} />
+              )}
+
+              {/* Branch Members 목록 */}
               <LeftPanelBranchMembers />
-            </div>
+
+              {/* 로그아웃 */}
+              <div className="pt-4 border-t border-slate-100">
+                <form action="/api/auth/logout" method="post">
+                  <button
+                    type="submit"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-brand-gray hover:bg-slate-50"
+                  >
+                    로그아웃
+                  </button>
+                </form>
+              </div>
+            </nav>
           </div>
           <button
             type="button"
@@ -251,7 +308,13 @@ export default function MobileCalendarShell({
           />
         </div>
       )}
+
+      {selectedSchedule && (
+        <ScheduleDetailPopup
+          schedule={selectedSchedule}
+          onClose={() => setSelectedSchedule(null)}
+        />
+      )}
     </div>
   );
 }
-
