@@ -11,6 +11,7 @@ export const pool = new Pool({
   connectionString,
   max: 10,
   idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 10_000, // 10 seconds timeout to handle cold starts
 });
 
 /** Postgres 에러 코드: relation does not exist (테이블 미생성 시) */

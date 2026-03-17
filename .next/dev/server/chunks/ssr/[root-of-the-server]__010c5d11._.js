@@ -40,7 +40,8 @@ if (!connectionString) {
 const pool = new __TURBOPACK__imported__module__$5b$externals$5d2f$pg__$5b$external$5d$__$28$pg$2c$__esm_import$2c$__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$pg$29$__["Pool"]({
     connectionString,
     max: 10,
-    idleTimeoutMillis: 30_000
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 10_000
 });
 const PG_CODE_RELATION_NOT_EXIST = "42P01";
 function isRelationNotFound(err) {
