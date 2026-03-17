@@ -239,8 +239,12 @@ function MobileCalendarShellBase({
                           <button
                             key={s.id}
                             type="button"
-                            className={`w-full flex items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-2 py-1.5 text-left ${
+                            className={`w-full flex items-center gap-2 rounded-lg border px-2 py-1.5 text-left ${
                               s.is_soft_deleted ? "opacity-60" : ""
+                            } ${
+                              s.instructor_color
+                                ? "border-transparent bg-slate-900 text-white"
+                                : "border-slate-100 bg-slate-50"
                             }`}
                             onClick={() => setSelectedSchedule(s)}
                           >
@@ -271,7 +275,7 @@ function MobileCalendarShellBase({
                                       <span>{s.target_full_name || s.manager_name || s.title}</span>
                                     </>
                                   ) : s.category === "dealer" ? (
-                                    `${s.title} / ${s.instructor || s.creator_full_name || "교육자"} / ${timeStr}`
+                                    `${s.title}${s.instructor ? ` / ${s.instructor}` : ""} / ${timeStr}`
                                   ) : (
                                     `${s.title} / ${timeStr}`
                                   )}

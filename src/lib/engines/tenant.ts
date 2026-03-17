@@ -71,7 +71,9 @@ export async function createTenantForAdmin(params: {
         manager_code text,
         company text,
         email text,
-        created_at timestamptz default timezone('utc'::text, now())
+        created_at timestamptz default timezone('utc'::text, now()),
+        is_instructor boolean default false,
+        instructor_color text
       )
     `);
 

@@ -32,6 +32,7 @@ export type ScheduleRow = {
   instructor: string | null;
   target_audience: string | null;
   manager_name: string | null;
+  instructor_color?: string | null;
   start_at: string;
   end_at: string;
   is_all_day: boolean;
@@ -76,7 +77,9 @@ export async function listSchedulesForBranch(params: {
   to?: string;
 }): Promise<ScheduleRow[]> {
   const { branchName, from, to } = params;
-  const schema = (await getTenantSchemaForBranch(branchName)) ?? "public";
+  const tenantSchema = await getTenantSchemaForBranch(branchName);
+  const schema = tenantSchema ?? "public";
+  console.log(`[schedules] listSchedulesForBranch: branch=${branchName}, schema=${schema}`);
 
   const conditions = ["branch_name = $1"];
   const values: unknown[] = [branchName];
@@ -100,10 +103,12 @@ export async function listSchedulesForBranch(params: {
                s.dealer_name, s.location, s.instructor, s.target_audience, s.manager_name,
                s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at, s.is_soft_deleted,
                p1.full_name as creator_full_name,
+               p3.instructor_color as instructor_color,
                p2.full_name as target_full_name
         from ${schema}.schedules s
         left join public.profiles p1 on s.created_by::text = p1.id::text
         left join public.profiles p2 on s.manager_name = p2.full_name and s.branch_name = p2.branch_name
+        left join public.profiles p3 on s.instructor = p3.full_name and s.branch_name = p3.branch_name and p3.is_instructor = true
         where s.${where}
         order by s.is_soft_deleted asc, s.start_at asc
       `,
@@ -119,6 +124,46 @@ export async function listSchedulesForBranch(params: {
       return [];
     }
     if (isColumnNotFound(err)) {
+      console.warn("[schedules] listSchedulesForBranch: 컬럼 누락 → instructor만 읽는 최소 쿼리로 재시도");
+      type MidRow = {
+        id: string; branch_name: string; title: string; description: string | null;
+        category: string; instructor: string | null;
+        start_at: string; end_at: string; is_all_day: boolean;
+        created_by: string; created_at: string;
+        creator_full_name?: string | null;
+      };
+      try {
+        const mid = await query<MidRow>(
+          `
+            select s.id, s.branch_name, s.title, s.description, s.category,
+                   s.instructor,
+                   s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at,
+                   p1.full_name as creator_full_name
+            from ${schema}.schedules s
+            left join public.profiles p1 on s.created_by::text = p1.id::text
+            where s.${where}
+            order by s.start_at asc
+          `,
+          values,
+        );
+        return mid.map(r => ({
+          ...r,
+          category: (LEGACY_TO_CATEGORY[r.category as LegacyCategory] || r.category) as ScheduleCategory,
+          dealer_name: null,
+          location: null,
+          instructor: r.instructor,
+          target_audience: null,
+          manager_name: null,
+          instructor_color: null as string | null,
+          is_soft_deleted: false,
+          target_full_name: null,
+          target_avatar_url: null,
+        }));
+      } catch (err2) {
+        if (!isColumnNotFound(err2) && !isRelationNotFound(err2)) throw err2;
+      }
+
+      console.warn("[schedules] listSchedulesForBranch: instructor 컬럼도 없음 → 풀 레거시 폴백");
       type LegacyRow = Omit<ScheduleRow, "dealer_name" | "location" | "instructor" | "target_audience" | "manager_name" | "category" | "target_full_name" | "target_avatar_url"> & { category: LegacyCategory };
       const legacy = await query<LegacyRow>(
         `
@@ -479,10 +524,12 @@ export async function getScheduleById(params: {
               s.dealer_name, s.location, s.instructor, s.target_audience, s.manager_name,
               s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at, s.is_soft_deleted,
               p1.full_name as creator_full_name,
+              p3.instructor_color as instructor_color,
               p2.full_name as target_full_name
        from ${schema}.schedules s
        left join public.profiles p1 on s.created_by::text = p1.id::text
        left join public.profiles p2 on s.manager_name = p2.full_name and s.branch_name = p2.branch_name
+       left join public.profiles p3 on s.instructor = p3.full_name and s.branch_name = p3.branch_name and p3.is_instructor = true
        where s.id = $1 and s.branch_name = $2
        limit 1`,
       [id, branchName],
@@ -494,6 +541,46 @@ export async function getScheduleById(params: {
       return null;
     }
     if (isColumnNotFound(err)) {
+      console.warn("[schedules] getScheduleById: 컬럼 누락 → instructor만 읽는 최소 쿼리로 재시도");
+      type MidRow = {
+        id: string; branch_name: string; title: string; description: string | null;
+        category: string; instructor: string | null;
+        start_at: string; end_at: string; is_all_day: boolean;
+        created_by: string; created_at: string;
+        creator_full_name?: string | null;
+      };
+      try {
+        const midRows = await query<MidRow>(
+          `select s.id, s.branch_name, s.title, s.description, s.category,
+                  s.instructor,
+                  s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at,
+                  p1.full_name as creator_full_name
+           from ${schema}.schedules s
+           left join public.profiles p1 on s.created_by::text = p1.id::text
+           where s.id = $1 and s.branch_name = $2
+           limit 1`,
+          [id, branchName],
+        );
+        const r = midRows[0];
+        if (!r) return null;
+        return {
+          ...r,
+          category: (LEGACY_TO_CATEGORY[r.category as LegacyCategory] || r.category) as ScheduleCategory,
+          dealer_name: null,
+          location: null,
+          instructor: r.instructor,
+          target_audience: null,
+          manager_name: null,
+          instructor_color: null as string | null,
+          is_soft_deleted: false,
+          target_full_name: null,
+          target_avatar_url: null,
+        };
+      } catch (err2) {
+        if (!isColumnNotFound(err2) && !isRelationNotFound(err2)) throw err2;
+      }
+
+      console.warn("[schedules] getScheduleById: instructor 컬럼도 없음 → 풀 레거시 폴백");
       type LegacyRow = Omit<
         ScheduleRow,
         | "dealer_name"

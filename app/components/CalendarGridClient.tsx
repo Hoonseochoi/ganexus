@@ -20,6 +20,8 @@ type ScheduleItem = {
   target_full_name?: string | null;
   target_avatar_url?: string | null;
   manager_name?: string | null;
+  instructor?: string | null;
+  instructor_color?: string | null;
 };
 
 type CellData = {
@@ -165,6 +167,8 @@ function CalendarGridClientBase({
                             target_full_name: ev.target_full_name,
                             target_avatar_url: ev.target_avatar_url,
                             manager_name: ev.manager_name,
+                            instructor: ev.instructor,
+                            instructor_color: ev.instructor_color,
                           }}
                           isAdmin={isAdmin}
                           onPillClick={() => handleCellClick(cell.dateISO)}

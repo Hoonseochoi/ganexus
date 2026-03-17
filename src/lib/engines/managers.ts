@@ -1,4 +1,4 @@
-import { query, isRelationNotFound } from "./db";
+import { query, isRelationNotFound, isColumnNotFound } from "./db";
 import { getTenantSchemaForBranch } from "./tenant";
 
 export type ManagerRow = {
@@ -7,6 +7,8 @@ export type ManagerRow = {
   branch_name: string | null;
   phone_number: string | null;
   role: "admin" | "manager" | "agent" | null;
+  is_instructor?: boolean | null;
+  instructor_color?: string | null;
   created_at: string;
 };
 
@@ -45,29 +47,69 @@ export async function listManagersForBranch(branchName: string): Promise<Manager
  */
 export async function listAllBranchMembers(branchName: string): Promise<ManagerRow[]> {
   // 멤버 관리는 전역 public.profiles 기준으로 조회한다.
-  const rows = await query<ManagerRow>(
-    `
-      select id, full_name, branch_name, phone_number, role, created_at
-      from public.profiles
-      where
-        is_approved = true
-        and role in ('admin', 'manager', 'agent')
-        and (
-          branch_name = $1
-          or invite_code in (
-            select code from public.invite_codes where branch_name = $1
+  try {
+    const rows = await query<ManagerRow>(
+      `
+        select id, full_name, branch_name, phone_number, role,
+               is_instructor, instructor_color,
+               created_at
+        from public.profiles
+        where
+          is_approved = true
+          and role in ('admin', 'manager', 'agent')
+          and (
+            branch_name = $1
+            or invite_code in (
+              select code from public.invite_codes where branch_name = $1
+            )
           )
-        )
-      order by
-        case role
-          when 'admin' then 1
-          when 'manager' then 2
-          else 3
-        end,
-        created_at asc
-    `,
-    [branchName],
-  );
-  return rows;
+        order by
+          case role
+            when 'admin' then 1
+            when 'manager' then 2
+            else 3
+          end,
+          created_at asc
+      `,
+      [branchName],
+    );
+    return rows;
+  } catch (err) {
+    // 아직 is_instructor / instructor_color 컬럼이 없는 레거시 스키마 대응
+    if (isColumnNotFound(err)) {
+      const rows = await query<
+        Omit<ManagerRow, "is_instructor" | "instructor_color">
+      >(
+        `
+          select id, full_name, branch_name, phone_number, role,
+                 created_at
+          from public.profiles
+          where
+            is_approved = true
+            and role in ('admin', 'manager', 'agent')
+            and (
+              branch_name = $1
+              or invite_code in (
+                select code from public.invite_codes where branch_name = $1
+              )
+            )
+          order by
+            case role
+              when 'admin' then 1
+              when 'manager' then 2
+              else 3
+            end,
+            created_at asc
+        `,
+        [branchName],
+      );
+      return rows.map((r) => ({
+        ...r,
+        is_instructor: false,
+        instructor_color: null,
+      }));
+    }
+    throw err;
+  }
 }
 

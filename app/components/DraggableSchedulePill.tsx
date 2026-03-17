@@ -14,6 +14,8 @@ type ScheduleItem = {
   creator_avatar_url?: string | null;
   target_full_name?: string | null;
   target_avatar_url?: string | null;
+  instructor?: string | null;
+  instructor_color?: string | null;
 };
 
 const CATEGORY_CLASSES: Record<string, string> = {
@@ -37,9 +39,15 @@ export default function DraggableSchedulePill({
   onPillClick?: () => void;
   hideAvatar?: boolean;
 }) {
-  const colorClass =
+  let colorClass =
     (schedule.category && CATEGORY_CLASSES[schedule.category]) ||
     CATEGORY_CLASSES.etc;
+
+  if (schedule.instructor_color) {
+    // 교육자 색상이 있는 경우: 글래스모피즘 느낌의 커스텀 색상
+    const base = schedule.instructor_color;
+    colorClass = `border-[${base}] bg-[${base}]/10 text-slate-900`;
+  }
   const baseClass = `${className} ${colorClass}`;
 
   const handleClick = (e: React.MouseEvent) => {
@@ -75,12 +83,14 @@ export default function DraggableSchedulePill({
             [월차]<br />{displayName}
           </span>
         ) : schedule.category === "dealer" ? (
-          <span className="font-semibold text-blue-800">
-            {schedule.title} / {timeStr}
+          <span className="font-semibold">
+            {schedule.title}
+            {schedule.instructor ? ` / ${schedule.instructor}` : ""}
+            {` / ${timeStr}`}
           </span>
         ) : (
           <span className="font-medium">
-            {schedule.title} / {timeStr}
+            {schedule.title} / {schedule.creator_full_name || "작성자"} / {timeStr}
           </span>
         )}
       </span>

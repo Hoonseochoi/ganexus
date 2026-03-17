@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, FormEvent, useMemo, memo } from "reac
 import { useRouter } from "next/navigation";
 import { EclipseButton } from "@/app/components/ui/EclipseButton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
+import { ScheduleAddScheduler } from "@/app/admin/schedules/_components/ScheduleAddScheduler";
 
 export type ScheduleItem = {
   id: string;
@@ -23,6 +24,7 @@ export type ScheduleItem = {
   creator_avatar_url?: string | null;
   target_full_name?: string | null;
   target_avatar_url?: string | null;
+  instructor_color?: string | null;
 };
 
 type MemoItem = {
@@ -243,7 +245,7 @@ function RightPanelBase({
               const isLeave = s.category === "leave";
 
               const subParts: string[] = [];
-              if (isDealer && s.instructor) subParts.push(`교육자 ${s.instructor}`);
+              if (isDealer && s.instructor) subParts.push(`진행자 ${s.instructor}`);
               if (isInternal && s.target_audience)
                 subParts.push(`대상자 ${s.target_audience}`);
               if (isPersonal && s.location) subParts.push(s.location);
@@ -257,7 +259,7 @@ function RightPanelBase({
 
               const subText = subParts.join(" · ");
 
-              const colorClass =
+              let colorClass =
                 s.category === "dealer"
                   ? "border-blue-500 bg-blue-50"
                   : s.category === "internal"
@@ -267,6 +269,10 @@ function RightPanelBase({
                   : s.category === "leave"
                   ? "border-amber-500 bg-amber-50"
                   : "border-slate-200 bg-slate-50";
+
+              if (s.instructor_color) {
+                colorClass = "border-transparent bg-slate-900 text-white";
+              }
 
               const deleted = s.is_soft_deleted;
               return (
@@ -316,7 +322,7 @@ function RightPanelBase({
                               <span>{s.target_full_name || s.manager_name || s.title}</span>
                             </>
                           ) : s.category === "dealer" ? (
-                            `${s.title} / ${s.instructor || s.creator_full_name || "교육자"} / ${formatTime(s.start_at)}`
+                            `${s.title}${s.instructor ? ` / ${s.instructor}` : ""} / ${formatTime(s.start_at)}`
                           ) : (
                             `${s.title} / ${formatTime(s.start_at)}`
                           )}
@@ -430,6 +436,10 @@ export function ScheduleDetailPopup({
   const [logs, setLogs] = useState<ScheduleEditLogItem[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [instructors, setInstructors] = useState<
+    { id: string; name: string; instructor_color: string | null }[]
+  >([]);
+  const [loadingInstructors, setLoadingInstructors] = useState(false);
 
   const loadLogs = async () => {
     setLoadingLogs(true);
@@ -464,6 +474,35 @@ export function ScheduleDetailPopup({
     loadLogs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schedule.id]);
+
+  // 편집 모드에서 교육자 목록 로딩
+  useEffect(() => {
+    if (!editing) return;
+    let cancelled = false;
+    const load = async () => {
+      setLoadingInstructors(true);
+      try {
+        const res = await fetch("/api/admin/managers");
+        const data = await res.json().catch(() => ({}));
+        if (!cancelled && res.ok && Array.isArray(data.managers)) {
+          const list = (data.managers as any[])
+            .filter((m) => m.is_instructor)
+            .map((m) => ({
+              id: m.id as string,
+              name: m.name as string,
+              instructor_color: (m.instructor_color as string) ?? null,
+            }));
+          setInstructors(list);
+        }
+      } finally {
+        if (!cancelled) setLoadingInstructors(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [editing]);
 
   const canDelete =
     !!schedule.creator_full_name &&
@@ -501,218 +540,163 @@ export function ScheduleDetailPopup({
     return String(value);
   };
 
-  const handleSave = async () => {
-    if (!title.trim()) {
-      alert("제목을 입력해주세요.");
-      return;
-    }
-    setSaving(true);
-    try {
-      const res = await fetch(`/api/schedules/${schedule.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: title.trim(),
-          description: description.trim() || null,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data.message ?? "수정에 실패했습니다.");
-        return;
-      }
-      // 서버 데이터 및 우측 패널 리스트 갱신
-      router.refresh();
-      await loadLogs();
-      setEditing(false);
-    } catch {
-      alert("네트워크 오류로 수정에 실패했습니다.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
   return (
     <div
       className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/40"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-2xl shadow-xl max-w-5xl w-full max-h-[95vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-bold text-brand-black">
-              {editing ? "일정 수정" : title}
-            </h2>
-            <div className="flex items-center gap-2">
-              {(isAdmin || canDelete) && (
-                <EclipseButton
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  onClick={handleDelete}
-                  aria-label="일정 삭제"
-                  className="!h-8 !w-8 !min-w-0 !p-0"
-                  disabled={deleting}
-                  isLoading={deleting}
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="h-4 w-4 text-white"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M9 3h6a1 1 0 0 1 .96.73L16.78 5H20a1 1 0 1 1 0 2h-1.1l-.76 11.05A2 2 0 0 1 16.16 20H7.84a2 2 0 0 1-1.98-1.95L5.1 7H4a1 1 0 0 1 0-2h3.22l.82-1.27A1 1 0 0 1 9 3Zm6.9 4H8.1l.72 10.5a0 0 0 0 0 0 0h6.36a0 0 0 0 0 0 0L15.9 7ZM10 9a1 1 0 0 1 1 1v5a1 1 0 1 1-2 0v-5a1 1 0 0 1 1-1Zm4 0a1 1 0 0 1 1 1v5a1 1 0 1 1-2 0v-5a1 1 0 0 1 1-1Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                </EclipseButton>
-              )}
-              {!editing && (
-                <EclipseButton
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  text="편집"
-                  onClick={() => setEditing(true)}
-                  className="!text-xs"
-                />
-              )}
+        <div className="p-4 border-b flex items-center justify-between">
+          <h2 className="text-base font-bold text-brand-black">
+            {editing ? "일정 수정" : schedule.title}
+          </h2>
+          <div className="flex items-center gap-2">
+            {(isAdmin || canDelete) && !editing && (
               <EclipseButton
                 type="button"
-                variant="ghost"
+                variant="destructive"
                 size="icon"
-                onClick={onClose}
-                aria-label="일정 상세 닫기"
+                onClick={handleDelete}
+                aria-label="일정 삭제"
                 className="!h-8 !w-8 !min-w-0 !p-0"
+                disabled={deleting}
+                isLoading={deleting}
               >
-                ×
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-4 w-4 text-white"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M9 3h6a1 1 0 0 1 .96.73L16.78 5H20a1 1 0 1 1 0 2h-1.1l-.76 11.05A2 2 0 0 1 16.16 20H7.84a2 2 0 0 1-1.98-1.95L5.1 7H4a1 1 0 0 1 0-2h3.22l.82-1.27A1 1 0 0 1 9 3Zm6.9 4H8.1l.72 10.5a0 0 0 0 0 0 0h6.36a0 0 0 0 0 0 0L15.9 7ZM10 9a1 1 0 0 1 1 1v5a1 1 0 1 1-2 0v-5a1 1 0 0 1 1-1Zm4 0a1 1 0 0 1 1 1v5a1 1 0 1 1-2 0v-5a1 1 0 0 1 1-1Z"
+                    fill="currentColor"
+                  />
+                </svg>
               </EclipseButton>
+            )}
+            {!editing && (
+              <EclipseButton
+                type="button"
+                variant="outline"
+                size="sm"
+                text="편집"
+                onClick={() => setEditing(true)}
+                className="!text-xs"
+              />
+            )}
+            <EclipseButton
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              aria-label="일정 상세 닫기"
+              className="!h-8 !w-8 !min-w-0 !p-0"
+            >
+              ×
+            </EclipseButton>
+          </div>
+        </div>
+
+        {editing ? (
+          <div className="p-4">
+            {loadingInstructors && (
+              <p className="text-xs text-brand-gray mb-2">
+                교육자 정보를 불러오는 중...
+              </p>
+            )}
+            <ScheduleAddScheduler
+              mode="edit"
+              userFullName={schedule.creator_full_name ?? "관리자"}
+              instructors={instructors}
+              initialSchedule={schedule}
+              submitLabel="수정 완료"
+              onSuccess={async () => {
+                await router.refresh();
+                setEditing(false);
+                onClose();
+              }}
+            />
+          </div>
+        ) : (
+          <div className="p-5">
+            <p className="text-xs text-brand-gray mb-3">
+              {formatDateTime(schedule.start_at)}
+              {schedule.is_all_day ? (
+                " · 종일"
+              ) : (
+                <>
+                  {" "}
+                  ~ {formatDateTime(schedule.end_at)}
+                </>
+              )}
+            </p>
+            <div className="space-y-1.5 text-sm text-slate-800">
+              {isDealer && (
+                <>
+                  {schedule.instructor && (
+                    <p>
+                      <span className="text-brand-gray text-xs mr-1">
+                        교육자
+                      </span>
+                      {schedule.instructor}
+                    </p>
+                  )}
+                  {schedule.location && (
+                    <p>
+                      <span className="text-brand-gray text-xs mr-1">
+                        장소
+                      </span>
+                      {schedule.location}
+                    </p>
+                  )}
+                </>
+              )}
+              {isInternal && (
+                <>
+                  {schedule.target_audience && (
+                    <p>
+                      <span className="text-brand-gray text-xs mr-1">
+                        대상자
+                      </span>
+                      {schedule.target_audience}
+                    </p>
+                  )}
+                  {schedule.location && (
+                    <p>
+                      <span className="text-brand-gray text-xs mr-1">
+                        장소
+                      </span>
+                      {schedule.location}
+                    </p>
+                  )}
+                </>
+              )}
+              {isPersonal && schedule.location && (
+                <p>
+                  <span className="text-brand-gray text-xs mr-1">장소</span>
+                  {schedule.location}
+                </p>
+              )}
+              {isLeave && (
+                <p className="text-xs text-amber-700">
+                  {schedule.title} 매니저님의 월차 일정입니다.
+                </p>
+              )}
+            </div>
+            <div className="mt-4 pt-3 border-t border-slate-100 text-sm text-slate-700 whitespace-pre-wrap">
+              {description ? (
+                description
+              ) : (
+                <span className="text-xs text-brand-gray">설명이 없습니다.</span>
+              )}
             </div>
           </div>
-          <p className="text-xs text-brand-gray mb-3">
-            {formatDateTime(schedule.start_at)}
-            {schedule.is_all_day ? (
-              " · 종일"
-            ) : (
-              <>
-                {" "}
-                ~ {formatDateTime(schedule.end_at)}
-              </>
-            )}
-          </p>
-          <div className="space-y-1.5 text-sm text-slate-800">
-            {isDealer && (
-              <>
-                {schedule.instructor && (
-                  <p>
-                    <span className="text-brand-gray text-xs mr-1">
-                      교육자
-                    </span>
-                    {schedule.instructor}
-                  </p>
-                )}
-                {schedule.location && (
-                  <p>
-                    <span className="text-brand-gray text-xs mr-1">
-                      장소
-                    </span>
-                    {schedule.location}
-                  </p>
-                )}
-              </>
-            )}
-            {isInternal && (
-              <>
-                {schedule.target_audience && (
-                  <p>
-                    <span className="text-brand-gray text-xs mr-1">
-                      대상자
-                    </span>
-                    {schedule.target_audience}
-                  </p>
-                )}
-                {schedule.location && (
-                  <p>
-                    <span className="text-brand-gray text-xs mr-1">
-                      장소
-                    </span>
-                    {schedule.location}
-                  </p>
-                )}
-              </>
-            )}
-            {isPersonal && schedule.location && (
-              <p>
-                <span className="text-brand-gray text-xs mr-1">장소</span>
-                {schedule.location}
-              </p>
-            )}
-            {isLeave && (
-              <p className="text-xs text-amber-700">
-                {schedule.title} 매니저님의 월차 일정입니다.
-              </p>
-            )}
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 text-sm text-slate-700 whitespace-pre-wrap">
-            {editing ? (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
-                    제목
-                  </label>
-                  <input
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
-                    설명
-                  </label>
-                  <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={4}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg resize-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                    placeholder="설명 (선택)"
-                  />
-                </div>
-                <div className="flex justify-end gap-2 pt-1">
-                  <EclipseButton
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    text="취소"
-                    onClick={() => {
-                      setEditing(false);
-                      setTitle(schedule.title);
-                      setDescription(schedule.description ?? "");
-                    }}
-                    disabled={saving}
-                  />
-                  <EclipseButton
-                    type="button"
-                    variant="primary"
-                    size="sm"
-                    text={saving ? "저장 중..." : "저장"}
-                    onClick={handleSave}
-                    disabled={saving}
-                    isLoading={saving}
-                  />
-                </div>
-              </div>
-            ) : description ? (
-              description
-            ) : (
-              <span className="text-xs text-brand-gray">설명이 없습니다.</span>
-            )}
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-100">
+        )}
+
+        <div className="px-5 pb-5 pt-3 border-t border-slate-100">
             <p className="text-xs font-semibold text-brand-gray mb-1.5">
               수정 이력
             </p>
@@ -756,7 +740,6 @@ export function ScheduleDetailPopup({
                 ))}
               </ul>
             )}
-          </div>
         </div>
       </div>
     </div>
