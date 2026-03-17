@@ -208,7 +208,7 @@ export default function CalendarGridClient({
                           )}
                         </div>
                         {cell.day !== null && events.length > 0 && (
-                          <div className="mt-2 space-y-1" onClick={(e) => e.stopPropagation()}>
+                          <div className="mt-1 space-y-0.5" onClick={(e) => e.stopPropagation()}>
                             {events.slice(0, 3).map((ev) => (
                               <DraggableSchedulePill
                                 key={ev.id}

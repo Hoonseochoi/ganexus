@@ -27,7 +27,7 @@ const CATEGORY_CLASSES: Record<string, string> = {
 export default function DraggableSchedulePill({
   schedule,
   isAdmin,
-  className = "text-[10px] py-1 px-1.5 border rounded-lg flex items-center gap-1.5 transition-all",
+  className = "text-[9px] leading-none py-1 px-1 border rounded-lg flex items-start gap-1 transition-all",
   onPillClick,
 }: {
   schedule: ScheduleItem;
@@ -65,13 +65,13 @@ export default function DraggableSchedulePill({
           {displayName?.[0] || "?"}
         </AvatarFallback>
       </Avatar>
-      <span className="truncate flex-1 min-w-0">
+      <span className="line-clamp-2 whitespace-normal flex-1 min-w-0 leading-[1.2]">
         {isLeave ? (
           <span className="font-bold">
-            [월차] / {displayName}
+            [월차]<br />{displayName}
           </span>
         ) : schedule.category === "dealer" ? (
-          <span className="font-semibold">
+          <span className="font-semibold text-blue-800">
             {schedule.title} / {timeStr}
           </span>
         ) : (

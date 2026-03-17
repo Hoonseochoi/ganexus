@@ -218,23 +218,22 @@ export default function MobileCalendarShell({
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between">
                                 <span
-                                  className={`font-semibold truncate ${
+                                  className={`font-semibold line-clamp-2 whitespace-normal flex-1 min-w-0 leading-[1.2] ${
                                     s.is_soft_deleted ? "text-slate-400 line-through" : "text-brand-black"
                                   }`}
                                 >
                                   {s.category === "leave" ? (
-                                    `[월차] / ${s.target_full_name || s.manager_name || s.title}`
+                                    <>
+                                      <span>[월차]</span>
+                                      <br />
+                                      <span>{s.target_full_name || s.manager_name || s.title}</span>
+                                    </>
                                   ) : s.category === "dealer" ? (
                                     `${s.title} / ${timeStr}`
                                   ) : (
                                     `${s.title} / ${timeStr}`
                                   )}
                                 </span>
-                                {s.category !== "leave" && !s.is_all_day && (
-                                  <span className="text-[10px] opacity-60 ml-2 whitespace-nowrap">
-                                    {timeStr}
-                                  </span>
-                                )}
                               </div>
                             </div>
                           </button>

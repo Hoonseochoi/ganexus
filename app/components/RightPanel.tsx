@@ -292,7 +292,11 @@ export default function RightPanel({
                           }`}
                         >
                           {s.category === "leave" ? (
-                            `[월차] / ${s.target_full_name || s.manager_name || s.title}`
+                            <>
+                              <span>[월차]</span>
+                              <br />
+                              <span>{s.target_full_name || s.manager_name || s.title}</span>
+                            </>
                           ) : s.category === "dealer" ? (
                             `${s.title} / ${formatTime(s.start_at)}`
                           ) : (
