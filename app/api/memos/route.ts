@@ -20,7 +20,14 @@ export async function GET(req: NextRequest) {
   const date = searchParams.get("date") ?? undefined;
 
   const memos = await listMemosForBranch({ branchName, date });
-  return NextResponse.json({ memos });
+  return NextResponse.json(
+    { memos },
+    {
+      headers: {
+        "Cache-Control": "private, max-age=15",
+      },
+    },
+  );
 }
 
 export async function POST(req: NextRequest) {

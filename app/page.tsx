@@ -68,15 +68,12 @@ export default async function Page({ searchParams }: PageProps) {
   // 일정 조회 (현재 달 범위만)
   let schedules: ScheduleRow[] = [];
   if (user?.profile?.branch_name) {
-    const startOfMonthISO = new Date(year, month, 1).toISOString();
-    const endOfMonthISO = new Date(
-      year,
-      month + 1,
-      0,
-      23,
-      59,
-      59,
-    ).toISOString();
+    const fromDate = new Date(year, month, 1);
+    fromDate.setDate(fromDate.getDate() - 7);
+    const toDate = new Date(year, month + 1, 0, 23, 59, 59);
+    toDate.setDate(toDate.getDate() + 7);
+    const startOfMonthISO = fromDate.toISOString();
+    const endOfMonthISO = toDate.toISOString();
     schedules = await listSchedulesForBranch({
       branchName: user.profile.branch_name,
       from: startOfMonthISO,

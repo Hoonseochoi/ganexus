@@ -25,7 +25,14 @@ export async function GET() {
   if (notice && user.profile?.id) {
     readByMe = await hasReadNotice(branchName, notice.id, user.profile.id);
   }
-  return NextResponse.json({ notice, readByMe });
+  return NextResponse.json(
+    { notice, readByMe },
+    {
+      headers: {
+        "Cache-Control": "private, max-age=30",
+      },
+    },
+  );
 }
 
 export async function POST(req: NextRequest) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, FormEvent } from "react";
+import { useEffect, useState, useCallback, FormEvent, useMemo, memo } from "react";
 import { useRouter } from "next/navigation";
 import { EclipseButton } from "@/app/components/ui/EclipseButton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
@@ -49,6 +49,10 @@ function formatTime(iso: string) {
   });
 }
 
+const RightPanel = memo(RightPanelBase);
+
+export default RightPanel;
+
 function formatDateTime(iso: string) {
   const d = new Date(iso);
   return d.toLocaleString("ko-KR", {
@@ -74,7 +78,7 @@ function formatDateLabel(iso: string) {
   return d.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
 }
 
-export default function RightPanel({
+function RightPanelBase({
   todaySchedules,
   selectedDateStr,
   isAdmin,
@@ -99,7 +103,7 @@ export default function RightPanel({
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleItem | null>(null);
   const router = useRouter();
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   const fetchNotice = useCallback(async () => {
     setLoadingNotice(true);

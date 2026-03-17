@@ -29,7 +29,14 @@ export async function GET(req: NextRequest) {
     to,
   });
 
-  return NextResponse.json({ schedules });
+  return NextResponse.json(
+    { schedules },
+    {
+      headers: {
+        "Cache-Control": "private, max-age=30",
+      },
+    },
+  );
 }
 
 export async function POST(req: NextRequest) {

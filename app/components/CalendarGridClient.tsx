@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, FormEvent } from "react";
+import { useState, useCallback, useMemo, FormEvent, memo } from "react";
 import { useRouter } from "next/navigation";
 import CalendarCellDropZone from "./CalendarCellDropZone";
 import DraggableSchedulePill from "./DraggableSchedulePill";
@@ -32,7 +32,7 @@ type CellData = {
   isHoliday: boolean;
 };
 
-type Props = {
+export type CalendarGridProps = {
   cells: CellData[];
   eventsByDay: Record<string, ScheduleItem[]>;
   year: number;
@@ -46,7 +46,7 @@ type Props = {
   renderDetailRow?: (dateISO: string) => React.ReactNode;
 };
 
-export default function CalendarGridClient({
+function CalendarGridClientBase({
   cells,
   eventsByDay,
   year,
@@ -58,7 +58,7 @@ export default function CalendarGridClient({
   onDateSelect,
   detailDateISO,
   renderDetailRow,
-}: Props) {
+}: CalendarGridProps) {
   const router = useRouter();
   const rightPanel = useRightPanel();
   const [quickDateISO, setQuickDateISO] = useState<string | null>(null);
@@ -83,7 +83,145 @@ export default function CalendarGridClient({
     rightPanel?.setOpen(true);
   };
 
-  const weekdays = columns === 5 ? ["월", "화", "수", "목", "금"] : ["일", "월", "화", "수", "목", "금", "토"];
+  const weekdays = useMemo(
+    () => (columns === 5 ? ["월", "화", "수", "목", "금"] : ["일", "월", "화", "수", "목", "금", "토"]),
+    [columns],
+  );
+
+  const rows = useMemo(() => {
+    const result: React.ReactNode[] = [];
+    for (let i = 0; i < cells.length; i += columns) {
+      const rowCells = cells.slice(i, i + columns);
+      result.push(
+        rowCells.map((cell) => {
+          const events = cell.day !== null ? (eventsByDay[String(cell.day)] ?? []) : [];
+          let dayColor = "text-slate-800";
+          let dayWeight = "font-normal";
+          if (cell.isToday) {
+            dayColor = "text-brand-black";
+            dayWeight = "font-bold";
+          } else if (cell.isSunday || cell.isHoliday) {
+            dayColor = "text-red-500";
+          } else if (cell.isSaturday) {
+            dayColor = "text-blue-500";
+          }
+
+          const isSelected =
+            cell.day !== null &&
+            cell.dateISO != null &&
+            selectedDateStr != null &&
+            cell.dateISO === selectedDateStr;
+          const isTodayHighlight =
+            cell.isToday && (!selectedDateStr || selectedDateStr === todayStr);
+          const isHighlight = isSelected || isTodayHighlight;
+          const borderClass = isHighlight
+            ? "border-2 border-primary bg-primary/5 relative"
+            : "border border-slate-100";
+
+          return (
+            <CalendarCellDropZone
+              key={cell.key}
+              dateISO={cell.dateISO}
+              isEmpty={cell.day === null}
+              className={`p-2 min-h-[70px] lg:min-h-[120px] cursor-pointer ${borderClass}`}
+            >
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => handleCellClick(cell.dateISO)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") handleCellClick(cell.dateISO);
+                }}
+                className="w-full h-full text-left flex flex-col"
+              >
+                <div className="flex-1 min-h-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className={`font-calendar text-sm ${dayWeight} ${dayColor}`}>
+                      {cell.day ?? ""}
+                    </span>
+                    {cell.isToday && (
+                      <span
+                        className="today-badge-float inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wide bg-primary/15 text-primary border border-primary/30"
+                        aria-label="오늘"
+                      >
+                        TODAY
+                      </span>
+                    )}
+                  </div>
+                  {cell.day !== null && events.length > 0 && (
+                    <div className="mt-1 space-y-0.5" onClick={(e) => e.stopPropagation()}>
+                      {events.slice(0, 3).map((ev) => (
+                        <DraggableSchedulePill
+                          key={ev.id}
+                          schedule={{
+                            id: ev.id,
+                            title: ev.title,
+                            start_at: ev.start_at,
+                            end_at: ev.end_at,
+                            is_all_day: ev.is_all_day,
+                            category: ev.category,
+                            creator_full_name: ev.creator_full_name,
+                            creator_avatar_url: ev.creator_avatar_url,
+                            target_full_name: ev.target_full_name,
+                            target_avatar_url: ev.target_avatar_url,
+                            manager_name: ev.manager_name,
+                          }}
+                          isAdmin={isAdmin}
+                          onPillClick={() => handleCellClick(cell.dateISO)}
+                          hideAvatar={columns === 5}
+                        />
+                      ))}
+                      {events.length > 3 && (
+                        <div className="text-[9px] text-brand-gray">
+                          + {events.length - 3}개 더보기
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {cell.day !== null && isHighlight && (
+                  <div className="mt-auto pt-1 flex justify-end" onClick={(e) => e.stopPropagation()}>
+                    <EclipseButton
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setQuickDateISO(cell.dateISO);
+                        setQuickTitle("");
+                        setQuickContent("");
+                        setQuickError(null);
+                      }}
+                      aria-label="퀵일정 추가"
+                      className="!h-7 !w-7 !min-w-0 !p-0"
+                    >
+                      +
+                    </EclipseButton>
+                  </div>
+                )}
+              </div>
+            </CalendarCellDropZone>
+          );
+        }),
+      );
+
+      if (
+        detailDateISO &&
+        renderDetailRow &&
+        rowCells.some((c) => c.dateISO && c.dateISO === detailDateISO)
+      ) {
+        result.push(
+          <div
+            key={`detail-${detailDateISO}-${i}`}
+            className={columns === 5 ? "col-span-5" : "col-span-7"}
+          >
+            {renderDetailRow(detailDateISO)}
+          </div>,
+        );
+      }
+    }
+    return result;
+  }, [cells, columns, detailDateISO, eventsByDay, renderDetailRow, selectedDateStr, todayStr, handleCellClick]);
 
   const handleQuickSubmit = useCallback(
     async (e: FormEvent) => {
@@ -147,141 +285,7 @@ export default function CalendarGridClient({
         ))}
       </div>
       <div className={`grid ${columns === 5 ? "grid-cols-5" : "grid-cols-7"} flex-1`}>
-        {(() => {
-          const rows: React.ReactNode[] = [];
-          for (let i = 0; i < cells.length; i += columns) {
-            const rowCells = cells.slice(i, i + columns);
-            rows.push(
-              rowCells.map((cell) => {
-                const events = cell.day !== null ? (eventsByDay[String(cell.day)] ?? []) : [];
-                let dayColor = "text-slate-800";
-                let dayWeight = "font-normal";
-                if (cell.isToday) {
-                  dayColor = "text-brand-black";
-                  dayWeight = "font-bold";
-                } else if (cell.isSunday || cell.isHoliday) {
-                  dayColor = "text-red-500";
-                } else if (cell.isSaturday) {
-                  dayColor = "text-blue-500";
-                }
-
-                const isSelected =
-                  cell.day !== null &&
-                  cell.dateISO != null &&
-                  selectedDateStr != null &&
-                  cell.dateISO === selectedDateStr;
-                const isTodayHighlight =
-                  cell.isToday && (!selectedDateStr || selectedDateStr === todayStr);
-                const isHighlight = isSelected || isTodayHighlight;
-                const borderClass = isHighlight
-                  ? "border-2 border-primary bg-primary/5 relative"
-                  : "border border-slate-100";
-
-                return (
-                  <CalendarCellDropZone
-                    key={cell.key}
-                    dateISO={cell.dateISO}
-                    isEmpty={cell.day === null}
-                    className={`p-2 min-h-[70px] lg:min-h-[120px] cursor-pointer ${borderClass}`}
-                  >
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => handleCellClick(cell.dateISO)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") handleCellClick(cell.dateISO);
-                      }}
-                      className="w-full h-full text-left flex flex-col"
-                    >
-                      <div className="flex-1 min-h-0">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className={`font-calendar text-sm ${dayWeight} ${dayColor}`}>
-                            {cell.day ?? ""}
-                          </span>
-                          {cell.isToday && (
-                            <span
-                              className="today-badge-float inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wide bg-primary/15 text-primary border border-primary/30"
-                              aria-label="오늘"
-                            >
-                              TODAY
-                            </span>
-                          )}
-                        </div>
-                        {cell.day !== null && events.length > 0 && (
-                          <div className="mt-1 space-y-0.5" onClick={(e) => e.stopPropagation()}>
-                            {events.slice(0, 3).map((ev) => (
-                              <DraggableSchedulePill
-                                key={ev.id}
-                                schedule={{
-                                  id: ev.id,
-                                  title: ev.title,
-                                  start_at: ev.start_at,
-                                  end_at: ev.end_at,
-                                  is_all_day: ev.is_all_day,
-                                  category: ev.category,
-                                  creator_full_name: ev.creator_full_name,
-                                  creator_avatar_url: ev.creator_avatar_url,
-                                  target_full_name: ev.target_full_name,
-                                  target_avatar_url: ev.target_avatar_url,
-                                  manager_name: ev.manager_name,
-                                }}
-                                isAdmin={isAdmin}
-                                onPillClick={() => handleCellClick(cell.dateISO)}
-                                hideAvatar={columns === 5}
-                              />
-                            ))}
-                            {events.length > 3 && (
-                              <div className="text-[9px] text-brand-gray">
-                                + {events.length - 3}개 더보기
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      {cell.day !== null && isHighlight && (
-                        <div className="mt-auto pt-1 flex justify-end" onClick={(e) => e.stopPropagation()}>
-                          <EclipseButton
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setQuickDateISO(cell.dateISO);
-                              setQuickTitle("");
-                              setQuickContent("");
-                              setQuickError(null);
-                            }}
-                            aria-label="퀵일정 추가"
-                            className="!h-7 !w-7 !min-w-0 !p-0"
-                          >
-                            +
-                          </EclipseButton>
-                        </div>
-                      )}
-                    </div>
-                  </CalendarCellDropZone>
-                );
-              }),
-            );
-
-            if (
-              detailDateISO &&
-              renderDetailRow &&
-              rowCells.some((c) => c.dateISO && c.dateISO === detailDateISO)
-            ) {
-              rows.push(
-                <div
-                  key={`detail-${detailDateISO}-${i}`}
-                  className={columns === 5 ? "col-span-5" : "col-span-7"}
-                >
-                  {renderDetailRow(detailDateISO)}
-                </div>,
-              );
-            }
-          }
-
-          return rows;
-        })()}
+        {rows}
       </div>
 
       {quickDateISO && (
@@ -344,3 +348,7 @@ export default function CalendarGridClient({
     </>
   );
 }
+
+const CalendarGridClient = memo(CalendarGridClientBase);
+
+export default CalendarGridClient;

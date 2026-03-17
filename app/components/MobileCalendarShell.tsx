@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, memo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import CalendarGridClient from "./CalendarGridClient";
@@ -30,7 +30,7 @@ type Props = {
   userFullName?: string | null;
 };
 
-export default function MobileCalendarShell({
+function MobileCalendarShellBase({
   cells,
   eventsByDay,
   year,
@@ -46,14 +46,19 @@ export default function MobileCalendarShell({
   const [selectedDateForDetail, setSelectedDateForDetail] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleItem | null>(null);
+  const [navLoading, setNavLoading] = useState(false);
 
   const goToPrevMonth = () => {
+    setNavLoading(true);
     const d = new Date(year, month - 1, 1);
     router.push(`/?year=${d.getFullYear()}&month=${d.getMonth() + 1}`);
+    setTimeout(() => setNavLoading(false), 600);
   };
   const goToNextMonth = () => {
+    setNavLoading(true);
     const d = new Date(year, month + 1, 1);
     router.push(`/?year=${d.getFullYear()}&month=${d.getMonth() + 1}`);
+    setTimeout(() => setNavLoading(false), 600);
   };
 
   const schedulesForDetail = useMemo(
@@ -82,7 +87,6 @@ export default function MobileCalendarShell({
     setSelectedDateForDetail(null);
   };
 
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBtn, setShowInstallBtn] = useState(false);
 
   useEffect(() => {
@@ -142,7 +146,7 @@ export default function MobileCalendarShell({
         <div
           className={`bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm transition-all duration-200 ${
             detailOpen ? "translate-y-0" : ""
-          }`}
+          } ${navLoading ? "opacity-70" : ""}`}
         >
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
             {/* 연월 + 화살표 네비게이션 */}
@@ -151,16 +155,21 @@ export default function MobileCalendarShell({
                 type="button"
                 aria-label="이전 달"
                 onClick={goToPrevMonth}
-                className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-100 text-brand-gray"
+                className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-100 text-brand-gray disabled:opacity-50"
+                disabled={navLoading}
               >
                 &#8249;
               </button>
-              <p className="text-sm font-semibold text-brand-black">{mobileMonthLabel}</p>
+              <p className="text-sm font-semibold text-brand-black">
+                {mobileMonthLabel}
+                {navLoading && <span className="ml-1 text-[10px] text-brand-gray">로딩...</span>}
+              </p>
               <button
                 type="button"
                 aria-label="다음 달"
                 onClick={goToNextMonth}
-                className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-100 text-brand-gray"
+                className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-100 text-brand-gray disabled:opacity-50"
+                disabled={navLoading}
               >
                 &#8250;
               </button>
@@ -350,3 +359,7 @@ export default function MobileCalendarShell({
     </div>
   );
 }
+
+const MobileCalendarShell = memo(MobileCalendarShellBase);
+
+export default MobileCalendarShell;
