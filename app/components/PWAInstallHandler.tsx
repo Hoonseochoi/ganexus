@@ -6,17 +6,32 @@ import { EclipseButton } from "./ui/EclipseButton";
 export default function PWAInstallHandler() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showPopup, setShowPopup] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
+    // Check if current display mode is standalone
+    if (window.matchMedia("(display-mode: standalone)").matches) {
+      setIsInstalled(true);
+    }
+
     const handleBeforeInstallPrompt = (e: any) => {
       // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
       // Stash the event so it can be triggered later.
       setDeferredPrompt(e);
       
+      // Update global flag
+      if (typeof window !== "undefined") {
+        (window as any).pwaCanInstall = true;
+        // Trigger a custom event to notify other components to re-render if needed
+        window.dispatchEvent(new CustomEvent('pwaStateChange'));
+      }
+
       // Show popup logic: only on mobile and only if not already installed
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (isMobile) {
+      const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+
+      if (isMobile && !isStandalone) {
         // Check session storage to only show once per session
         const hasShown = sessionStorage.getItem("pwa-prompt-shown");
         if (!hasShown) {
@@ -26,10 +41,21 @@ export default function PWAInstallHandler() {
       }
     };
 
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+      if (typeof window !== "undefined") {
+        (window as any).pwaCanInstall = false;
+        window.dispatchEvent(new CustomEvent('pwaStateChange'));
+      }
+    };
+
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, []);
 
@@ -46,6 +72,10 @@ export default function PWAInstallHandler() {
     // We've used the prompt, and can't use it again, throw it away
     setDeferredPrompt(null);
     setShowPopup(false);
+    if (typeof window !== "undefined") {
+      (window as any).pwaCanInstall = false;
+      window.dispatchEvent(new CustomEvent('pwaStateChange'));
+    }
   };
 
   // Expose the install function to window so the header button can use it
@@ -56,7 +86,7 @@ export default function PWAInstallHandler() {
     }
   }, [deferredPrompt]);
 
-  if (!showPopup) return null;
+  if (!showPopup || isInstalled) return null;
 
   return (
     <div className="fixed top-4 left-4 right-4 z-[100] animate-in fade-in slide-in-from-top-4 duration-500">

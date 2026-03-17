@@ -286,15 +286,24 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NE
 function PWAInstallHandler() {
     const [deferredPrompt, setDeferredPrompt] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [showPopup, setShowPopup] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [isInstalled, setIsInstalled] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        // Check if current display mode is standalone
+        if (window.matchMedia("(display-mode: standalone)").matches) {
+            setIsInstalled(true);
+        }
         const handleBeforeInstallPrompt = (e)=>{
             // Prevent the mini-infobar from appearing on mobile
             e.preventDefault();
             // Stash the event so it can be triggered later.
             setDeferredPrompt(e);
+            // Update global flag
+            if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
+            ;
             // Show popup logic: only on mobile and only if not already installed
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-            if (isMobile) {
+            const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+            if (isMobile && !isStandalone) {
                 // Check session storage to only show once per session
                 const hasShown = sessionStorage.getItem("pwa-prompt-shown");
                 if (!hasShown) {
@@ -303,9 +312,17 @@ function PWAInstallHandler() {
                 }
             }
         };
+        const handleAppInstalled = ()=>{
+            setIsInstalled(true);
+            setDeferredPrompt(null);
+            if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
+            ;
+        };
         window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+        window.addEventListener("appinstalled", handleAppInstalled);
         return ()=>{
             window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+            window.removeEventListener("appinstalled", handleAppInstalled);
         };
     }, []);
     const handleInstallClick = async ()=>{
@@ -318,6 +335,8 @@ function PWAInstallHandler() {
         // We've used the prompt, and can't use it again, throw it away
         setDeferredPrompt(null);
         setShowPopup(false);
+        if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
+        ;
     };
     // Expose the install function to window so the header button can use it
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
@@ -326,7 +345,7 @@ function PWAInstallHandler() {
     }, [
         deferredPrompt
     ]);
-    if (!showPopup) return null;
+    if (!showPopup || isInstalled) return null;
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "fixed top-4 left-4 right-4 z-[100] animate-in fade-in slide-in-from-top-4 duration-500",
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -343,12 +362,12 @@ function PWAInstallHandler() {
                                 className: "w-7 h-7"
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/PWAInstallHandler.tsx",
-                                lineNumber: 66,
+                                lineNumber: 96,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/PWAInstallHandler.tsx",
-                            lineNumber: 65,
+                            lineNumber: 95,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -358,7 +377,7 @@ function PWAInstallHandler() {
                                     children: "GALENDER 앱 설치"
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/PWAInstallHandler.tsx",
-                                    lineNumber: 69,
+                                    lineNumber: 99,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -366,19 +385,19 @@ function PWAInstallHandler() {
                                     children: "홈 화면에 추가하여 더 편하게 사용하세요."
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/PWAInstallHandler.tsx",
-                                    lineNumber: 70,
+                                    lineNumber: 100,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/PWAInstallHandler.tsx",
-                            lineNumber: 68,
+                            lineNumber: 98,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/PWAInstallHandler.tsx",
-                    lineNumber: 64,
+                    lineNumber: 94,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -390,7 +409,7 @@ function PWAInstallHandler() {
                             children: "나중에"
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/PWAInstallHandler.tsx",
-                            lineNumber: 74,
+                            lineNumber: 104,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$EclipseButton$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["EclipseButton"], {
@@ -401,24 +420,24 @@ function PWAInstallHandler() {
                             className: "!py-2 !px-4 !text-[11px]"
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/PWAInstallHandler.tsx",
-                            lineNumber: 80,
+                            lineNumber: 110,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/PWAInstallHandler.tsx",
-                    lineNumber: 73,
+                    lineNumber: 103,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/PWAInstallHandler.tsx",
-            lineNumber: 63,
+            lineNumber: 93,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/PWAInstallHandler.tsx",
-        lineNumber: 62,
+        lineNumber: 92,
         columnNumber: 5
     }, this);
 }

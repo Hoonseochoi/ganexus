@@ -227,6 +227,7 @@ export default function CalendarGridClient({
                                 }}
                                 isAdmin={isAdmin}
                                 onPillClick={() => handleCellClick(cell.dateISO)}
+                                hideAvatar={columns === 5}
                               />
                             ))}
                             {events.length > 3 && (

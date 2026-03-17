@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import CalendarGridClient from "./CalendarGridClient";
@@ -82,6 +82,26 @@ export default function MobileCalendarShell({
     setSelectedDateForDetail(null);
   };
 
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBtn, setShowInstallBtn] = useState(false);
+
+  useEffect(() => {
+    const updatePwaStatus = () => {
+      const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+      const canInstall = !!(window as any).pwaCanInstall;
+      setShowInstallBtn(!isStandalone && canInstall);
+    };
+
+    updatePwaStatus();
+    window.addEventListener('pwaStateChange', updatePwaStatus);
+    window.addEventListener('beforeinstallprompt', updatePwaStatus);
+
+    return () => {
+      window.removeEventListener('pwaStateChange', updatePwaStatus);
+      window.removeEventListener('beforeinstallprompt', updatePwaStatus);
+    };
+  }, []);
+
   return (
     <div className="flex lg:hidden h-full flex-col">
       {/* 상단 헤더 */}
@@ -100,13 +120,15 @@ export default function MobileCalendarShell({
                 <span className="w-4 h-0.5 bg-slate-700 rounded" />
               </span>
             </button>
-            <button
-              type="button"
-              onClick={() => (window as any).triggerPWAInstall?.()}
-              className="px-3 py-1.5 rounded-full bg-slate-900 text-[11px] text-white font-bold shadow-sm active:scale-95 transition-transform"
-            >
-              앱 설치
-            </button>
+            {showInstallBtn && (
+              <button
+                type="button"
+                onClick={() => (window as any).triggerPWAInstall?.()}
+                className="px-3 py-1.5 rounded-full bg-slate-900 text-[11px] text-white font-bold shadow-sm active:scale-95 transition-transform"
+              >
+                앱 설치
+              </button>
+            )}
           </div>
           <div className="flex flex-col items-end">
             <p className="text-[11px] text-brand-gray font-medium">Management Portal</p>
@@ -238,7 +260,7 @@ export default function MobileCalendarShell({
                                       <span>{s.target_full_name || s.manager_name || s.title}</span>
                                     </>
                                   ) : s.category === "dealer" ? (
-                                    `${s.title} / ${timeStr}`
+                                    `${s.title} / ${s.instructor || s.creator_full_name || "교육자"} / ${timeStr}`
                                   ) : (
                                     `${s.title} / ${timeStr}`
                                   )}

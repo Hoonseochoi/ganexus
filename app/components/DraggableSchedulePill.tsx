@@ -29,11 +29,13 @@ export default function DraggableSchedulePill({
   isAdmin,
   className = "text-[9px] leading-none py-1 px-1 border rounded-lg flex items-start gap-1 transition-all",
   onPillClick,
+  hideAvatar = false,
 }: {
   schedule: ScheduleItem;
   isAdmin: boolean;
   className?: string;
   onPillClick?: () => void;
+  hideAvatar?: boolean;
 }) {
   const colorClass =
     (schedule.category && CATEGORY_CLASSES[schedule.category]) ||
@@ -59,12 +61,14 @@ export default function DraggableSchedulePill({
 
   const content = (
     <>
-      <Avatar className="w-4 h-4 text-[8px] border border-white shadow-sm shrink-0">
-        <AvatarImage src={displayAvatar || ""} />
-        <AvatarFallback className="bg-slate-200 text-slate-600 font-bold">
-          {displayName?.[0] || "?"}
-        </AvatarFallback>
-      </Avatar>
+      {!hideAvatar && (
+        <Avatar className="w-4 h-4 text-[8px] border border-white shadow-sm shrink-0">
+          <AvatarImage src={displayAvatar || ""} />
+          <AvatarFallback className="bg-slate-200 text-slate-600 font-bold">
+            {displayName?.[0] || "?"}
+          </AvatarFallback>
+        </Avatar>
+      )}
       <span className="line-clamp-2 whitespace-normal flex-1 min-w-0 leading-[1.2]">
         {isLeave ? (
           <span className="font-bold">

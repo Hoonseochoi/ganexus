@@ -298,7 +298,7 @@ export default function RightPanel({
                               <span>{s.target_full_name || s.manager_name || s.title}</span>
                             </>
                           ) : s.category === "dealer" ? (
-                            `${s.title} / ${formatTime(s.start_at)}`
+                            `${s.title} / ${s.instructor || s.creator_full_name || "교육자"} / ${formatTime(s.start_at)}`
                           ) : (
                             `${s.title} / ${formatTime(s.start_at)}`
                           )}

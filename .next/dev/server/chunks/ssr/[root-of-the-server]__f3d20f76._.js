@@ -400,7 +400,7 @@ function RightPanel({ todaySchedules, selectedDateStr, isAdmin, canAddSchedule }
                                                                         columnNumber: 31
                                                                     }, this)
                                                                 ]
-                                                            }, void 0, true) : s.category === "dealer" ? `${s.title} / ${formatTime(s.start_at)}` : `${s.title} / ${formatTime(s.start_at)}`
+                                                            }, void 0, true) : s.category === "dealer" ? `${s.title} / ${s.instructor || s.creator_full_name || "교육자"} / ${formatTime(s.start_at)}` : `${s.title} / ${formatTime(s.start_at)}`
                                                         }, void 0, false, {
                                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
                                                             lineNumber: 289,
@@ -2359,7 +2359,7 @@ const CATEGORY_CLASSES = {
     leave: "border-rose-200 bg-rose-50/80 text-rose-700",
     etc: "border-slate-200 bg-slate-50/80 text-slate-600"
 };
-function DraggableSchedulePill({ schedule, isAdmin, className = "text-[9px] leading-none py-1 px-1 border rounded-lg flex items-start gap-1 transition-all", onPillClick }) {
+function DraggableSchedulePill({ schedule, isAdmin, className = "text-[9px] leading-none py-1 px-1 border rounded-lg flex items-start gap-1 transition-all", onPillClick, hideAvatar = false }) {
     const colorClass = schedule.category && CATEGORY_CLASSES[schedule.category] || CATEGORY_CLASSES.etc;
     const baseClass = `${className} ${colorClass}`;
     const handleClick = (e)=>{
@@ -2377,29 +2377,29 @@ function DraggableSchedulePill({ schedule, isAdmin, className = "text-[9px] lead
     const displayAvatar = isLeave ? schedule.target_avatar_url : schedule.creator_avatar_url;
     const content = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
         children: [
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Avatar"], {
+            !hideAvatar && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Avatar"], {
                 className: "w-4 h-4 text-[8px] border border-white shadow-sm shrink-0",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["AvatarImage"], {
                         src: displayAvatar || ""
                     }, void 0, false, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-                        lineNumber: 63,
-                        columnNumber: 9
+                        lineNumber: 66,
+                        columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["AvatarFallback"], {
                         className: "bg-slate-200 text-slate-600 font-bold",
                         children: displayName?.[0] || "?"
                     }, void 0, false, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-                        lineNumber: 64,
-                        columnNumber: 9
+                        lineNumber: 67,
+                        columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-                lineNumber: 62,
-                columnNumber: 7
+                lineNumber: 65,
+                columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                 className: "line-clamp-2 whitespace-normal flex-1 min-w-0 leading-[1.2]",
@@ -2409,14 +2409,14 @@ function DraggableSchedulePill({ schedule, isAdmin, className = "text-[9px] lead
                         "[월차]",
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {}, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-                            lineNumber: 71,
+                            lineNumber: 75,
                             columnNumber: 17
                         }, this),
                         displayName
                     ]
                 }, void 0, true, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-                    lineNumber: 70,
+                    lineNumber: 74,
                     columnNumber: 11
                 }, this) : schedule.category === "dealer" ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                     className: "font-semibold text-blue-800",
@@ -2427,7 +2427,7 @@ function DraggableSchedulePill({ schedule, isAdmin, className = "text-[9px] lead
                     ]
                 }, void 0, true, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-                    lineNumber: 74,
+                    lineNumber: 78,
                     columnNumber: 11
                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                     className: "font-medium",
@@ -2438,12 +2438,12 @@ function DraggableSchedulePill({ schedule, isAdmin, className = "text-[9px] lead
                     ]
                 }, void 0, true, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-                    lineNumber: 78,
+                    lineNumber: 82,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-                lineNumber: 68,
+                lineNumber: 72,
                 columnNumber: 7
             }, this)
         ]
@@ -2457,7 +2457,7 @@ function DraggableSchedulePill({ schedule, isAdmin, className = "text-[9px] lead
             children: content
         }, void 0, false, {
             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-            lineNumber: 88,
+            lineNumber: 92,
             columnNumber: 7
         }, this);
     }
@@ -2482,7 +2482,7 @@ function DraggableSchedulePill({ schedule, isAdmin, className = "text-[9px] lead
         children: content
     }, void 0, false, {
         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-        lineNumber: 95,
+        lineNumber: 99,
         columnNumber: 5
     }, this);
 }
@@ -2701,7 +2701,8 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                                                     manager_name: ev.manager_name
                                                                 },
                                                                 isAdmin: isAdmin,
-                                                                onPillClick: ()=>handleCellClick(cell.dateISO)
+                                                                onPillClick: ()=>handleCellClick(cell.dateISO),
+                                                                hideAvatar: columns === 5
                                                             }, ev.id, false, {
                                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
                                                                 lineNumber: 213,
@@ -2716,7 +2717,7 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                                            lineNumber: 233,
+                                                            lineNumber: 234,
                                                             columnNumber: 31
                                                         }, this)
                                                     ]
@@ -2750,12 +2751,12 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                                 children: "+"
                                             }, void 0, false, {
                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                                lineNumber: 242,
+                                                lineNumber: 243,
                                                 columnNumber: 27
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                            lineNumber: 241,
+                                            lineNumber: 242,
                                             columnNumber: 25
                                         }, this)
                                     ]
@@ -2776,7 +2777,7 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                 children: renderDetailRow(detailDateISO)
                             }, `detail-${detailDateISO}-${i}`, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                lineNumber: 272,
+                                lineNumber: 273,
                                 columnNumber: 17
                             }, this));
                         }
@@ -2800,7 +2801,7 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                             children: "퀵일정"
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                            lineNumber: 292,
+                            lineNumber: 293,
                             columnNumber: 13
                         }, this),
                         quickError && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2808,7 +2809,7 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                             children: quickError
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                            lineNumber: 294,
+                            lineNumber: 295,
                             columnNumber: 15
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -2822,7 +2823,7 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                             children: "일정"
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                            lineNumber: 298,
+                                            lineNumber: 299,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -2835,13 +2836,13 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                             autoFocus: true
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                            lineNumber: 299,
+                                            lineNumber: 300,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                    lineNumber: 297,
+                                    lineNumber: 298,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2851,7 +2852,7 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                             children: "내용"
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                            lineNumber: 310,
+                                            lineNumber: 311,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("textarea", {
@@ -2862,13 +2863,13 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                             rows: 3
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                            lineNumber: 311,
+                                            lineNumber: 312,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                    lineNumber: 309,
+                                    lineNumber: 310,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2884,7 +2885,7 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                             className: "flex-1"
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                            lineNumber: 320,
+                                            lineNumber: 321,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$EclipseButton$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["EclipseButton"], {
@@ -2897,30 +2898,30 @@ function CalendarGridClient({ cells, eventsByDay, year, month, isAdmin, columns,
                                             className: "flex-1"
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                            lineNumber: 329,
+                                            lineNumber: 330,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                                    lineNumber: 319,
+                                    lineNumber: 320,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                            lineNumber: 296,
+                            lineNumber: 297,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                    lineNumber: 288,
+                    lineNumber: 289,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/CalendarGridClient.tsx",
-                lineNumber: 287,
+                lineNumber: 288,
                 columnNumber: 9
             }, this)
         ]
@@ -3893,6 +3894,22 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
         setDetailOpen(false);
         setSelectedDateForDetail(null);
     };
+    const [deferredPrompt, setDeferredPrompt] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [showInstallBtn, setShowInstallBtn] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        const updatePwaStatus = ()=>{
+            const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+            const canInstall = !!window.pwaCanInstall;
+            setShowInstallBtn(!isStandalone && canInstall);
+        };
+        updatePwaStatus();
+        window.addEventListener('pwaStateChange', updatePwaStatus);
+        window.addEventListener('beforeinstallprompt', updatePwaStatus);
+        return ()=>{
+            window.removeEventListener('pwaStateChange', updatePwaStatus);
+            window.removeEventListener('beforeinstallprompt', updatePwaStatus);
+        };
+    }, []);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "flex lg:hidden h-full flex-col",
         children: [
@@ -3917,48 +3934,48 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                                                 className: "w-4 h-0.5 bg-slate-700 rounded"
                                             }, void 0, false, {
                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                lineNumber: 98,
+                                                lineNumber: 118,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 className: "w-4 h-0.5 bg-slate-700 rounded"
                                             }, void 0, false, {
                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                lineNumber: 99,
+                                                lineNumber: 119,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 className: "w-4 h-0.5 bg-slate-700 rounded"
                                             }, void 0, false, {
                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                lineNumber: 100,
+                                                lineNumber: 120,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                        lineNumber: 97,
+                                        lineNumber: 117,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                    lineNumber: 91,
+                                    lineNumber: 111,
                                     columnNumber: 13
                                 }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                showInstallBtn && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                     type: "button",
                                     onClick: ()=>window.triggerPWAInstall?.(),
                                     className: "px-3 py-1.5 rounded-full bg-slate-900 text-[11px] text-white font-bold shadow-sm active:scale-95 transition-transform",
                                     children: "앱 설치"
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                    lineNumber: 103,
-                                    columnNumber: 13
+                                    lineNumber: 124,
+                                    columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                            lineNumber: 90,
+                            lineNumber: 110,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3969,7 +3986,7 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                                     children: "Management Portal"
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                    lineNumber: 112,
+                                    lineNumber: 134,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3977,24 +3994,24 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                                     children: "GALENDER"
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                    lineNumber: 113,
+                                    lineNumber: 135,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                            lineNumber: 111,
+                            lineNumber: 133,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                    lineNumber: 89,
+                    lineNumber: 109,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                lineNumber: 88,
+                lineNumber: 108,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -4016,7 +4033,7 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                                             children: "‹"
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                            lineNumber: 128,
+                                            lineNumber: 150,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4024,7 +4041,7 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                                             children: mobileMonthLabel
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                            lineNumber: 136,
+                                            lineNumber: 158,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -4035,13 +4052,13 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                                             children: "›"
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                            lineNumber: 137,
+                                            lineNumber: 159,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                    lineNumber: 127,
+                                    lineNumber: 149,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4054,7 +4071,7 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                                             children: "Today"
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                            lineNumber: 147,
+                                            lineNumber: 169,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -4064,19 +4081,19 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                                             children: "일정 추가"
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                            lineNumber: 154,
+                                            lineNumber: 176,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                    lineNumber: 146,
+                                    lineNumber: 168,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                            lineNumber: 125,
+                            lineNumber: 147,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$CalendarGridClient$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -4111,7 +4128,7 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                    lineNumber: 179,
+                                                    lineNumber: 201,
                                                     columnNumber: 21
                                                 }, void 0),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -4121,13 +4138,13 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                                                     children: "닫기"
                                                 }, void 0, false, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                    lineNumber: 187,
+                                                    lineNumber: 209,
                                                     columnNumber: 21
                                                 }, void 0)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                            lineNumber: 178,
+                                            lineNumber: 200,
                                             columnNumber: 19
                                         }, void 0),
                                         list.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4135,7 +4152,7 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                                             children: "해당 날짜에는 일정이 없습니다."
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                            lineNumber: 196,
+                                            lineNumber: 218,
                                             columnNumber: 21
                                         }, void 0) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
                                             className: "space-y-1.5 text-[11px]",
@@ -4158,13 +4175,13 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                                                                 className: "w-full h-full object-cover"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                                lineNumber: 217,
+                                                                lineNumber: 239,
                                                                 columnNumber: 35
                                                             }, void 0) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                 children: (s.target_full_name || s.manager_name || s.title)?.[0] || "?"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                                lineNumber: 219,
+                                                                lineNumber: 241,
                                                                 columnNumber: 35
                                                             }, void 0) : s.creator_avatar_url ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
                                                                 src: s.creator_avatar_url,
@@ -4172,18 +4189,18 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                                                                 className: "w-full h-full object-cover"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                                lineNumber: 222,
+                                                                lineNumber: 244,
                                                                 columnNumber: 33
                                                             }, void 0) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                 children: s.creator_full_name?.[0] || "?"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                                lineNumber: 224,
+                                                                lineNumber: 246,
                                                                 columnNumber: 33
                                                             }, void 0)
                                                         }, void 0, false, {
                                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                            lineNumber: 214,
+                                                            lineNumber: 236,
                                                             columnNumber: 29
                                                         }, void 0),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4198,71 +4215,71 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                                                                                 children: "[월차]"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                                                lineNumber: 236,
+                                                                                lineNumber: 258,
                                                                                 columnNumber: 39
                                                                             }, void 0),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {}, void 0, false, {
                                                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                                                lineNumber: 237,
+                                                                                lineNumber: 259,
                                                                                 columnNumber: 39
                                                                             }, void 0),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                                 children: s.target_full_name || s.manager_name || s.title
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                                                lineNumber: 238,
+                                                                                lineNumber: 260,
                                                                                 columnNumber: 39
                                                                             }, void 0)
                                                                         ]
-                                                                    }, void 0, true) : s.category === "dealer" ? `${s.title} / ${timeStr}` : `${s.title} / ${timeStr}`
+                                                                    }, void 0, true) : s.category === "dealer" ? `${s.title} / ${s.instructor || s.creator_full_name || "교육자"} / ${timeStr}` : `${s.title} / ${timeStr}`
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                                    lineNumber: 229,
+                                                                    lineNumber: 251,
                                                                     columnNumber: 33
                                                                 }, void 0)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                                lineNumber: 228,
+                                                                lineNumber: 250,
                                                                 columnNumber: 31
                                                             }, void 0)
                                                         }, void 0, false, {
                                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                            lineNumber: 227,
+                                                            lineNumber: 249,
                                                             columnNumber: 29
                                                         }, void 0)
                                                     ]
                                                 }, s.id, true, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                    lineNumber: 206,
+                                                    lineNumber: 228,
                                                     columnNumber: 27
                                                 }, void 0);
                                             })
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                            lineNumber: 198,
+                                            lineNumber: 220,
                                             columnNumber: 21
                                         }, void 0)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                    lineNumber: 177,
+                                    lineNumber: 199,
                                     columnNumber: 17
                                 }, void 0);
                             }
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                            lineNumber: 163,
+                            lineNumber: 185,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                    lineNumber: 120,
+                    lineNumber: 142,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                lineNumber: 119,
+                lineNumber: 141,
                 columnNumber: 7
             }, this),
             mobileLeftOpen && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4284,12 +4301,12 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                                             className: "h-9 w-auto"
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                            lineNumber: 273,
+                                            lineNumber: 295,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                        lineNumber: 272,
+                                        lineNumber: 294,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4299,7 +4316,7 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                                                 children: "GALENDER"
                                             }, void 0, false, {
                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                lineNumber: 276,
+                                                lineNumber: 298,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4307,19 +4324,19 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                                                 children: userFullName ? `${userFullName}님, 환영합니다!` : "우리만의 GA 캘린더"
                                             }, void 0, false, {
                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                lineNumber: 277,
+                                                lineNumber: 299,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                        lineNumber: 275,
+                                        lineNumber: 297,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                lineNumber: 271,
+                                lineNumber: 293,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
@@ -4336,24 +4353,24 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                                             children: "📅 Main Calendar"
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                            lineNumber: 289,
+                                            lineNumber: 311,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                        lineNumber: 285,
+                                        lineNumber: 307,
                                         columnNumber: 15
                                     }, this),
                                     isAdmin && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$AdminSettingsMenu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
                                         onNavigate: ()=>setMobileLeftOpen(false)
                                     }, void 0, false, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                        lineNumber: 293,
+                                        lineNumber: 315,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$LeftPanelBranchMembers$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                        lineNumber: 297,
+                                        lineNumber: 319,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4367,29 +4384,29 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                                                 children: "로그아웃"
                                             }, void 0, false, {
                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                                lineNumber: 302,
+                                                lineNumber: 324,
                                                 columnNumber: 19
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                            lineNumber: 301,
+                                            lineNumber: 323,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                        lineNumber: 300,
+                                        lineNumber: 322,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                                lineNumber: 284,
+                                lineNumber: 306,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                        lineNumber: 266,
+                        lineNumber: 288,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -4398,13 +4415,13 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                         className: "flex-1 bg-black/40"
                     }, void 0, false, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                        lineNumber: 312,
+                        lineNumber: 334,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                lineNumber: 262,
+                lineNumber: 284,
                 columnNumber: 9
             }, this),
             selectedSchedule && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$RightPanel$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ScheduleDetailPopup"], {
@@ -4412,13 +4429,13 @@ function MobileCalendarShell({ cells, eventsByDay, year, month, isAdmin, todaySt
                 onClose: ()=>setSelectedSchedule(null)
             }, void 0, false, {
                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-                lineNumber: 321,
+                lineNumber: 343,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/MobileCalendarShell.tsx",
-        lineNumber: 86,
+        lineNumber: 106,
         columnNumber: 5
     }, this);
 }
