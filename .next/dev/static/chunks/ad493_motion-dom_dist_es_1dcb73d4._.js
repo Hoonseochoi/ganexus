@@ -1059,8 +1059,14 @@ function removeNonTranslationalTransform(visualElement) {
 }
 const positionalValues = {
     // Dimensions
-    width: ({ x }, { paddingLeft = "0", paddingRight = "0" })=>x.max - x.min - parseFloat(paddingLeft) - parseFloat(paddingRight),
-    height: ({ y }, { paddingTop = "0", paddingBottom = "0" })=>y.max - y.min - parseFloat(paddingTop) - parseFloat(paddingBottom),
+    width: ({ x }, { paddingLeft = "0", paddingRight = "0", boxSizing })=>{
+        const width = x.max - x.min;
+        return boxSizing === "border-box" ? width : width - parseFloat(paddingLeft) - parseFloat(paddingRight);
+    },
+    height: ({ y }, { paddingTop = "0", paddingBottom = "0", boxSizing })=>{
+        const height = y.max - y.min;
+        return boxSizing === "border-box" ? height : height - parseFloat(paddingTop) - parseFloat(paddingBottom);
+    },
     top: (_bbox, { top })=>parseFloat(top),
     left: (_bbox, { left })=>parseFloat(left),
     bottom: ({ y }, { top })=>parseFloat(top) + (y.max - y.min),
@@ -1153,7 +1159,7 @@ function createRenderStep(runNextFrame, stepName) {
             const addToCurrentFrame = immediate && isProcessing;
             const queue = addToCurrentFrame ? thisFrame : nextFrame;
             if (keepAlive) toKeepAlive.add(callback);
-            if (!queue.has(callback)) queue.add(callback);
+            queue.add(callback);
             return callback;
         },
         /**
@@ -1175,10 +1181,10 @@ function createRenderStep(runNextFrame, stepName) {
                 return;
             }
             isProcessing = true;
-            [thisFrame, nextFrame] = [
-                nextFrame,
-                thisFrame
-            ];
+            // Swap this frame and the next to avoid GC
+            const prevFrame = thisFrame;
+            thisFrame = nextFrame;
+            nextFrame = prevFrame;
             // Execute this frame
             thisFrame.forEach(triggerCallback);
             /**
@@ -1231,9 +1237,10 @@ function createRenderBatcher(scheduleNextBatch, allowKeepAlive) {
     }, {});
     const { setup, read, resolveKeyframes, preUpdate, update, preRender, render, postRender } = steps;
     const processBatch = ()=>{
-        const timestamp = __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$utils$2f$dist$2f$es$2f$global$2d$config$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["MotionGlobalConfig"].useManualTiming ? state.timestamp : performance.now();
+        const useManualTiming = __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$utils$2f$dist$2f$es$2f$global$2d$config$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["MotionGlobalConfig"].useManualTiming;
+        const timestamp = useManualTiming ? state.timestamp : performance.now();
         runNextFrame = false;
-        if (!__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$utils$2f$dist$2f$es$2f$global$2d$config$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["MotionGlobalConfig"].useManualTiming) {
+        if (!useManualTiming) {
             state.delta = useDefaultElapsed ? 1000 / 60 : Math.max(Math.min(timestamp - state.timestamp, maxElapsed), 1);
         }
         state.timestamp = timestamp;
@@ -6345,7 +6352,9 @@ class AsyncMotionValueAnimation extends __TURBOPACK__imported__module__$5b$proje
         /**
          * If we can't animate this value with the resolved keyframes
          * then we should complete it immediately.
-         */ if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$animation$2f$utils$2f$can$2d$animate$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["canAnimate"])(keyframes, name, type, velocity)) {
+         */ let canAnimateValue = true;
+        if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$animation$2f$utils$2f$can$2d$animate$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["canAnimate"])(keyframes, name, type, velocity)) {
+            canAnimateValue = false;
             if (__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$utils$2f$dist$2f$es$2f$global$2d$config$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["MotionGlobalConfig"].instantAnimations || !delay) {
                 onUpdate?.((0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$animation$2f$keyframes$2f$get$2d$final$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getFinalKeyframe"])(keyframes, options, finalKeyframe));
             }
@@ -6375,7 +6384,10 @@ class AsyncMotionValueAnimation extends __TURBOPACK__imported__module__$5b$proje
          * Animate via WAAPI if possible. If this is a handoff animation, the optimised animation will be running via
          * WAAPI. Therefore, this animation must be JS to ensure it runs "under" the
          * optimised animation.
-         */ const useWaapi = !isHandoff && (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$animation$2f$waapi$2f$supports$2f$waapi$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supportsBrowserAnimation"])(resolvedOptions);
+         *
+         * Also skip WAAPI when keyframes aren't animatable, as the resolved
+         * values may not be valid CSS and would trigger browser warnings.
+         */ const useWaapi = canAnimateValue && !isHandoff && (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$animation$2f$waapi$2f$supports$2f$waapi$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supportsBrowserAnimation"])(resolvedOptions);
         const element = resolvedOptions.motionValue?.owner?.current;
         const animation = useWaapi ? new __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$animation$2f$NativeAnimationExtended$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["NativeAnimationExtended"]({
             ...resolvedOptions,
@@ -9434,6 +9446,9 @@ function notifyLayoutUpdate(node) {
                 axisSnapshot.min = layout[axis].min;
                 axisSnapshot.max = axisSnapshot.min + length;
             });
+        } else if (animationType === "x" || animationType === "y") {
+            const snapAxis = animationType === "x" ? "y" : "x";
+            (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$projection$2f$geometry$2f$copy$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["copyAxisInto"])(isShared ? snapshot.measuredBox[snapAxis] : snapshot.layoutBox[snapAxis], layout[snapAxis]);
         } else if (shouldAnimatePositionOnly(animationType, snapshot.layoutBox, layout)) {
             (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$projection$2f$utils$2f$each$2d$axis$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["eachAxis"])((axis)=>{
                 const axisSnapshot = isShared ? snapshot.measuredBox[axis] : snapshot.layoutBox[axis];
@@ -9782,7 +9797,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NE
  * Checks if an element is an HTML element in a way
  * that works across iframes
  */ function isHTMLElement(element) {
-    return (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$utils$2f$dist$2f$es$2f$is$2d$object$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["isObject"])(element) && "offsetHeight" in element;
+    return (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$utils$2f$dist$2f$es$2f$is$2d$object$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["isObject"])(element) && "offsetHeight" in element && !("ownerSVGElement" in element);
 }
 ;
  //# sourceMappingURL=is-html-element.mjs.map
@@ -10068,7 +10083,15 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NE
         __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$frameloop$2f$frame$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["frame"].postRender(scheduleAnimation);
     }, stopAnimation);
     if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$motion$2d$dom$2f$dist$2f$es$2f$value$2f$utils$2f$is$2d$motion$2d$value$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["isMotionValue"])(source)) {
-        const removeSourceOnChange = source.on("change", (v)=>value.set(parseValue(v, unit)));
+        let skipNextAnimation = options.skipInitialAnimation === true;
+        const removeSourceOnChange = source.on("change", (v)=>{
+            if (skipNextAnimation) {
+                skipNextAnimation = false;
+                value.jump(parseValue(v, unit), false);
+            } else {
+                value.set(parseValue(v, unit));
+            }
+        });
         const removeValueOnDestroy = value.on("destroy", removeSourceOnChange);
         return ()=>{
             removeSourceOnChange();

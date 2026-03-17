@@ -87,18 +87,27 @@ export default function MobileCalendarShell({
       {/* 상단 헤더 */}
       <header className="px-4 pt-4 pb-3">
         <div className="flex items-center justify-between gap-2">
-          <button
-            type="button"
-            aria-label="메뉴 열기"
-            onClick={() => setMobileLeftOpen(true)}
-            className="w-9 h-9 rounded-full border border-slate-200 bg-white flex items-center justify-center"
-          >
-            <span className="flex flex-col gap-0.5" aria-hidden>
-              <span className="w-4 h-0.5 bg-slate-700 rounded" />
-              <span className="w-4 h-0.5 bg-slate-700 rounded" />
-              <span className="w-4 h-0.5 bg-slate-700 rounded" />
-            </span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-label="메뉴 열기"
+              onClick={() => setMobileLeftOpen(true)}
+              className="w-9 h-9 rounded-full border border-slate-200 bg-white flex items-center justify-center shrink-0"
+            >
+              <span className="flex flex-col gap-0.5" aria-hidden>
+                <span className="w-4 h-0.5 bg-slate-700 rounded" />
+                <span className="w-4 h-0.5 bg-slate-700 rounded" />
+                <span className="w-4 h-0.5 bg-slate-700 rounded" />
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => (window as any).triggerPWAInstall?.()}
+              className="px-3 py-1.5 rounded-full bg-slate-900 text-[11px] text-white font-bold shadow-sm active:scale-95 transition-transform"
+            >
+              앱 설치
+            </button>
+          </div>
           <div className="flex flex-col items-end">
             <p className="text-[11px] text-brand-gray font-medium">Management Portal</p>
             <p className="text-sm font-semibold text-brand-black">GALENDER</p>

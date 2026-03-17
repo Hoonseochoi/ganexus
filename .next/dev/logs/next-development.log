@@ -21949,3 +21949,38 @@ https://react.dev/link/hydration-mismatch
 [01:51:08.149] Server  LOG     ✓ Compiled in 36ms
 [01:51:10.226] Server  LOG     ✓ Compiled in 67ms
 [01:51:12.294] Server  LOG     ✓ Compiled in 70ms
+[01:53:58.259] Server  LOG     ✓ Compiled in 60ms
+[01:54:01.365] Server  LOG     ✓ Compiled in 1124ms
+[01:54:01.473] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/layout.tsx:19:13
+Parsing ecmascript source code failed
+  17 |         />
+  18 |       </head>
+> 19 |       <body className="min-h-screen bg-background-light text-slate-900 antialiased font-sans">
+     |             ^^^^^^^^^
+  20 |         <PWAInstallHandler />
+  21 |         {children}
+  22 |       </body>
+
+Expected ';', '}' or <eof>
+[01:54:02.607] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/layout.tsx:19:13
+Parsing ecmascript source code failed
+  17 |         />
+  18 |       </head>
+> 19 |       <body className="min-h-screen bg-background-light text-slate-900 antialiased font-sans">
+     |             ^^^^^^^^^
+  20 |         <PWAInstallHandler />
+  21 |         {children}
+  22 |       </body>
+
+Expected ';', '}' or <eof>
+[01:54:02.608] Browser ERROR   ./OneDrive/Desktop/GA_NEXUS/app/layout.tsx:19:13
+Parsing ecmascript source code failed
+  17 |         />
+  18 |       </head>
+> 19 |       <body className="min-h-screen bg-background-light text-slate-900 antialiased font-sans">
+     |             ^^^^^^^^^
+  20 |         <PWAInstallHandler />
+  21 |         {children}
+  22 |       </body>
+
+Expected ';', '}' or <eof>
