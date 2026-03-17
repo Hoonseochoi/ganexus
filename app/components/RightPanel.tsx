@@ -46,6 +46,7 @@ function formatTime(iso: string) {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+    timeZone: "Asia/Seoul",
   });
 }
 
@@ -61,6 +62,7 @@ function formatDateTime(iso: string) {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+    timeZone: "Asia/Seoul",
   });
 }
 
@@ -75,7 +77,12 @@ type ScheduleEditLogItem = {
 
 function formatDateLabel(iso: string) {
   const d = new Date(iso + "T12:00:00");
-  return d.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
+  return d.toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "Asia/Seoul",
+  });
 }
 
 function RightPanelBase({
@@ -103,7 +110,12 @@ function RightPanelBase({
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleItem | null>(null);
   const router = useRouter();
 
-  const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const todayStr = useMemo(() => {
+    const now = new Date();
+    const koreaString = now.toLocaleString("en-US", { timeZone: "Asia/Seoul" });
+    const koreaNow = new Date(koreaString);
+    return koreaNow.toISOString().slice(0, 10);
+  }, []);
 
   const fetchNotice = useCallback(async () => {
     setLoadingNotice(true);

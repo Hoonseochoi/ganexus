@@ -30,6 +30,18 @@ type CalendarCell = {
 type SearchParamsShape = { year?: string; month?: string; date?: string };
 type PageProps = { searchParams?: Promise<SearchParamsShape> };
 
+function getKoreaNow(): Date {
+  const now = new Date();
+  const koreaString = now.toLocaleString("en-US", { timeZone: "Asia/Seoul" });
+  return new Date(koreaString);
+}
+
+function getKoreaDateFromISO(iso: string): Date {
+  const d = new Date(iso);
+  const koreaString = d.toLocaleString("en-US", { timeZone: "Asia/Seoul" });
+  return new Date(koreaString);
+}
+
 export default async function Page({ searchParams }: PageProps) {
   const user = await getCurrentUser();
 
@@ -41,7 +53,7 @@ export default async function Page({ searchParams }: PageProps) {
     redirect("/pending-approval");
   }
 
-  const now = new Date();
+  const now = getKoreaNow();
   const params: SearchParamsShape = await searchParams?.catch((): SearchParamsShape => ({})) ?? {};
   const year = params.year ? parseInt(params.year, 10) : now.getFullYear();
   const month = params.month ? parseInt(params.month, 10) - 1 : now.getMonth();
@@ -84,7 +96,7 @@ export default async function Page({ searchParams }: PageProps) {
   const eventsByDay = new Map<number, ScheduleRow[]>();
   const eventsByDateStr: Record<string, ScheduleRow[]> = {};
   for (const s of schedules) {
-    const d = new Date(s.start_at);
+    const d = getKoreaDateFromISO(s.start_at);
     if (d.getFullYear() === year && d.getMonth() === month) {
       const day = d.getDate();
       if (!eventsByDay.has(day)) eventsByDay.set(day, []);
