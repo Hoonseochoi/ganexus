@@ -24221,3 +24221,10 @@ Expected ';', '}' or <eof>
 [01:59:02.195] Server  WARN    ⚠ Fast Refresh had to perform a full reload due to a runtime error.
 [01:59:02.195] Server  WARN    ⚠ Fast Refresh had to perform a full reload due to a runtime error.
 [01:59:02.197] Server  WARN    ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:59:25.935] Server  LOG     ✓ Compiled in 34.7s
+[01:59:59.714] Server  ERROR   ⨯ error: Authentication timed out
+[01:59:59.986] Server  ERROR   ⨯ error: Authentication timed out
+[02:00:00.195] Server  ERROR   ⨯ error: Authentication timed out
+[02:00:10.725] Server  ERROR   ⨯ error: Authentication timed out
+[02:00:10.750] Server  ERROR   ⨯ error: Authentication timed out
+[02:00:10.825] Server  ERROR   ⨯ error: Authentication timed out

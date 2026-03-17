@@ -1,2 +1,0 @@
-﻿--- Tables in neon_auth ---
-invitation, user, session, organization, account, verification, jwks, member, project_config
