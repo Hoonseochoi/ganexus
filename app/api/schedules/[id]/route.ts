@@ -118,7 +118,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   await deleteSchedule({
     id,
     branchName,
-    hardDelete: user.role === "admin",
+    hardDelete: user.role === "admin" || isAuthor,
   });
   return NextResponse.json({ ok: true });
 }
