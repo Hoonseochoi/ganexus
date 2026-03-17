@@ -277,6 +277,8 @@ export default async function Page({ searchParams }: PageProps) {
                   instructor: (s as any).instructor ?? null,
                   target_audience: (s as any).target_audience ?? null,
                   manager_name: (s as any).manager_name ?? null,
+                  creator_full_name: s.creator_full_name,
+                  creator_avatar_url: s.creator_avatar_url,
                 }))}
                 selectedDateStr={displayDateStr}
                 isAdmin={user?.role === "admin"}
@@ -287,6 +289,7 @@ export default async function Page({ searchParams }: PageProps) {
                   user?.profile?.role === "manager" ||
                   user?.profile?.role === "agent"
                 }
+                currentUserFullName={user?.profile?.full_name ?? null}
               />
             </RightPanelCollapseWrapper>
           </DesktopRightPanelProvider>

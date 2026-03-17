@@ -466,3 +466,69 @@ export async function deleteSchedule(params: {
     [id, branchName],
   );
 }
+
+export async function getScheduleById(params: {
+  id: string;
+  branchName: string;
+}): Promise<ScheduleRow | null> {
+  const { id, branchName } = params;
+  const schema = (await getTenantSchemaForBranch(branchName)) ?? "public";
+  try {
+    const rows = await query<ScheduleRow>(
+      `select s.id, s.branch_name, s.title, s.description, s.category,
+              s.dealer_name, s.location, s.instructor, s.target_audience, s.manager_name,
+              s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at, s.is_soft_deleted,
+              p1.full_name as creator_full_name,
+              p2.full_name as target_full_name
+       from ${schema}.schedules s
+       left join public.profiles p1 on s.created_by::text = p1.id::text
+       left join public.profiles p2 on s.manager_name = p2.full_name and s.branch_name = p2.branch_name
+       where s.id = $1 and s.branch_name = $2
+       limit 1`,
+      [id, branchName],
+    );
+    return rows[0] ?? null;
+  } catch (err) {
+    if (isRelationNotFound(err)) {
+      console.warn("[schedules] schedules 테이블이 없어 null을 반환합니다.");
+      return null;
+    }
+    if (isColumnNotFound(err)) {
+      type LegacyRow = Omit<
+        ScheduleRow,
+        | "dealer_name"
+        | "location"
+        | "instructor"
+        | "target_audience"
+        | "manager_name"
+        | "category"
+        | "target_full_name"
+        | "target_avatar_url"
+      > & { category: LegacyCategory };
+      const rows = await query<LegacyRow>(
+        `select s.id, s.branch_name, s.title, s.description, s.category,
+                s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at,
+                p.full_name as creator_full_name
+         from ${schema}.schedules s
+         left join public.profiles p on s.created_by::text = p.id::text
+         where s.id = $1 and s.branch_name = $2
+         limit 1`,
+        [id, branchName],
+      );
+      const r = rows[0];
+      if (!r) return null;
+      return {
+        ...r,
+        category: LEGACY_TO_CATEGORY[r.category as LegacyCategory] || (r.category as ScheduleCategory),
+        dealer_name: null,
+        location: null,
+        instructor: null,
+        target_audience: null,
+        manager_name: r.category === "vacation" ? r.title : null,
+        target_full_name: r.category === "vacation" ? r.title : null,
+        target_avatar_url: null,
+      };
+    }
+    throw err;
+  }
+}

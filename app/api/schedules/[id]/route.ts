@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/src/lib/engines/auth";
-import { updateSchedule, deleteSchedule } from "@/src/lib/engines/schedules";
+import {
+  updateSchedule,
+  deleteSchedule,
+  getScheduleById,
+} from "@/src/lib/engines/schedules";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -87,10 +91,27 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   }
 
   const branchName = user.profile?.branch_name;
-  if (!branchName) {
+  const profileId = user.profile?.id;
+  if (!branchName || !profileId) {
     return NextResponse.json(
       { message: "지점 정보가 설정되지 않았습니다." },
       { status: 400 },
+    );
+  }
+
+  const schedule = await getScheduleById({ id, branchName });
+  if (!schedule) {
+    return NextResponse.json(
+      { message: "해당 일정을 찾을 수 없습니다." },
+      { status: 404 },
+    );
+  }
+
+  const isAuthor = String(schedule.created_by) === String(profileId);
+  if (!isAuthor && user.role !== "admin") {
+    return NextResponse.json(
+      { message: "일정 삭제 권한이 없습니다." },
+      { status: 403 },
     );
   }
 

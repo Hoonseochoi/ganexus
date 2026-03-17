@@ -79,11 +79,13 @@ export default function RightPanel({
   selectedDateStr,
   isAdmin,
   canAddSchedule,
+  currentUserFullName,
 }: {
   todaySchedules: ScheduleItem[];
   selectedDateStr?: string | null;
   isAdmin: boolean;
   canAddSchedule?: boolean;
+  currentUserFullName?: string | null;
 }) {
   const [notice, setNotice] = useState<NoticeItem>(null);
   const [readByMe, setReadByMe] = useState(false);
@@ -384,6 +386,8 @@ export default function RightPanel({
       {selectedSchedule && (
         <ScheduleDetailPopup
           schedule={selectedSchedule}
+          isAdmin={isAdmin}
+          currentUserFullName={currentUserFullName}
           onClose={() => setSelectedSchedule(null)}
         />
       )}
@@ -394,9 +398,13 @@ export default function RightPanel({
 export function ScheduleDetailPopup({
   schedule,
   onClose,
+  isAdmin,
+  currentUserFullName,
 }: {
   schedule: ScheduleItem;
   onClose: () => void;
+  isAdmin?: boolean;
+  currentUserFullName?: string | null;
 }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
@@ -405,6 +413,7 @@ export function ScheduleDetailPopup({
   const [saving, setSaving] = useState(false);
   const [logs, setLogs] = useState<ScheduleEditLogItem[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const loadLogs = async () => {
     setLoadingLogs(true);
@@ -439,6 +448,36 @@ export function ScheduleDetailPopup({
     loadLogs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schedule.id]);
+
+  const canDelete =
+    !!schedule.creator_full_name &&
+    !!currentUserFullName &&
+    schedule.creator_full_name === currentUserFullName;
+
+  const handleDelete = async () => {
+    if (!isAdmin && !canDelete) {
+      alert("일정 삭제 권한이 없습니다.");
+      return;
+    }
+    if (!window.confirm("해당 일정을 삭제하시겠습니까?")) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/schedules/${schedule.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data.message ?? "일정 삭제에 실패했습니다.");
+        return;
+      }
+      router.refresh();
+      onClose();
+    } catch {
+      alert("네트워크 오류로 일정 삭제에 실패했습니다.");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const formatLogValue = (value: unknown) => {
     if (value === null || value === undefined) return "없음";
@@ -492,6 +531,29 @@ export function ScheduleDetailPopup({
               {editing ? "일정 수정" : title}
             </h2>
             <div className="flex items-center gap-2">
+              {(isAdmin || canDelete) && (
+                <EclipseButton
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  onClick={handleDelete}
+                  aria-label="일정 삭제"
+                  className="!h-8 !w-8 !min-w-0 !p-0"
+                  disabled={deleting}
+                  isLoading={deleting}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-4 w-4 text-white"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M9 3h6a1 1 0 0 1 .96.73L16.78 5H20a1 1 0 1 1 0 2h-1.1l-.76 11.05A2 2 0 0 1 16.16 20H7.84a2 2 0 0 1-1.98-1.95L5.1 7H4a1 1 0 0 1 0-2h3.22l.82-1.27A1 1 0 0 1 9 3Zm6.9 4H8.1l.72 10.5a0 0 0 0 0 0 0h6.36a0 0 0 0 0 0 0L15.9 7ZM10 9a1 1 0 0 1 1 1v5a1 1 0 1 1-2 0v-5a1 1 0 0 1 1-1Zm4 0a1 1 0 0 1 1 1v5a1 1 0 1 1-2 0v-5a1 1 0 0 1 1-1Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </EclipseButton>
+              )}
               {!editing && (
                 <EclipseButton
                   type="button"

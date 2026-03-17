@@ -342,6 +342,8 @@ export default function MobileCalendarShell({
       {selectedSchedule && (
         <ScheduleDetailPopup
           schedule={selectedSchedule}
+          isAdmin={isAdmin}
+          currentUserFullName={userFullName ?? undefined}
           onClose={() => setSelectedSchedule(null)}
         />
       )}
