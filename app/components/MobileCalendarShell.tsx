@@ -29,6 +29,8 @@ type Props = {
   eventsByDateStr: Record<string, ScheduleItem[]>;
   userFullName?: string | null;
   branchName?: string | null;
+  onMonthChange?: (year: number, month: number) => void;
+  monthLoading?: boolean;
 };
 
 function parseHexColor(hex: string | null | undefined): { r: number; g: number; b: number } | null {
@@ -61,6 +63,8 @@ function MobileCalendarShellBase({
   eventsByDateStr,
   userFullName,
   branchName,
+  onMonthChange,
+  monthLoading = false,
 }: Props) {
   const router = useRouter();
   const [mobileLeftOpen, setMobileLeftOpen] = useState(false);
@@ -69,16 +73,27 @@ function MobileCalendarShellBase({
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleItem | null>(null);
   const [navLoading, setNavLoading] = useState(false);
 
+  const buildMonthHref = (y: number, m: number) => `/?year=${y}&month=${m + 1}`;
+  const isNavigating = onMonthChange ? monthLoading : navLoading;
+
   const goToPrevMonth = () => {
-    setNavLoading(true);
     const d = new Date(year, month - 1, 1);
-    router.push(`/?year=${d.getFullYear()}&month=${d.getMonth() + 1}`);
+    if (onMonthChange) {
+      onMonthChange(d.getFullYear(), d.getMonth());
+      return;
+    }
+    setNavLoading(true);
+    router.push(buildMonthHref(d.getFullYear(), d.getMonth()));
     setTimeout(() => setNavLoading(false), 600);
   };
   const goToNextMonth = () => {
-    setNavLoading(true);
     const d = new Date(year, month + 1, 1);
-    router.push(`/?year=${d.getFullYear()}&month=${d.getMonth() + 1}`);
+    if (onMonthChange) {
+      onMonthChange(d.getFullYear(), d.getMonth());
+      return;
+    }
+    setNavLoading(true);
+    router.push(buildMonthHref(d.getFullYear(), d.getMonth()));
     setTimeout(() => setNavLoading(false), 600);
   };
 
@@ -127,6 +142,14 @@ function MobileCalendarShellBase({
     };
   }, []);
 
+  useEffect(() => {
+    if (onMonthChange) return;
+    const prev = new Date(year, month - 1, 1);
+    const next = new Date(year, month + 1, 1);
+    router.prefetch(buildMonthHref(prev.getFullYear(), prev.getMonth()));
+    router.prefetch(buildMonthHref(next.getFullYear(), next.getMonth()));
+  }, [month, onMonthChange, router, year]);
+
   return (
     <div className="flex lg:hidden h-full flex-col">
       {/* 상단 헤더 */}
@@ -168,7 +191,7 @@ function MobileCalendarShellBase({
         <div
           className={`bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm transition-all duration-200 ${
             detailOpen ? "translate-y-0" : ""
-          } ${navLoading ? "opacity-70" : ""}`}
+          } ${isNavigating ? "opacity-70" : ""}`}
         >
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
             {/* 연월 + 화살표 네비게이션 */}
@@ -178,20 +201,20 @@ function MobileCalendarShellBase({
                 aria-label="이전 달"
                 onClick={goToPrevMonth}
                 className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-100 text-brand-gray disabled:opacity-50"
-                disabled={navLoading}
+                disabled={isNavigating}
               >
                 &#8249;
               </button>
               <p className="text-sm font-semibold text-brand-black">
                 {mobileMonthLabel}
-                {navLoading && <span className="ml-1 text-[10px] text-brand-gray">로딩...</span>}
+                {isNavigating && <span className="ml-1 text-[10px] text-brand-gray">로딩...</span>}
               </p>
               <button
                 type="button"
                 aria-label="다음 달"
                 onClick={goToNextMonth}
                 className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-100 text-brand-gray disabled:opacity-50"
-                disabled={navLoading}
+                disabled={isNavigating}
               >
                 &#8250;
               </button>

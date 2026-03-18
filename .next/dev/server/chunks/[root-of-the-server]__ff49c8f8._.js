@@ -65,6 +65,7 @@ var __turbopack_async_dependencies__ = __turbopack_handle_async_dependencies__([
 [__TURBOPACK__imported__module__$5b$externals$5d2f$pg__$5b$external$5d$__$28$pg$2c$__esm_import$2c$__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$pg$29$__] = __turbopack_async_dependencies__.then ? (await __turbopack_async_dependencies__)() : __turbopack_async_dependencies__;
 ;
 const connectionString = process.env.NEON_DATABASE_URL;
+const DB_QUERY_SLOW_MS = Number(process.env.DB_QUERY_SLOW_MS ?? 200);
 if (!connectionString) {
     // 실제 런타임에서는 .env.local 에서 설정해야 함
     console.warn("[db] NEON_DATABASE_URL 환경 변수가 설정되지 않았습니다.");
@@ -72,8 +73,12 @@ if (!connectionString) {
 const pool = new __TURBOPACK__imported__module__$5b$externals$5d2f$pg__$5b$external$5d$__$28$pg$2c$__esm_import$2c$__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$pg$29$__["Pool"]({
     connectionString,
     max: 10,
-    idleTimeoutMillis: 30_000
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 10_000
 });
+function compactSql(sql) {
+    return sql.replace(/\s+/g, " ").trim().slice(0, 220);
+}
 const PG_CODE_RELATION_NOT_EXIST = "42P01";
 function isRelationNotFound(err) {
     return err !== null && typeof err === "object" && "code" in err && err.code === PG_CODE_RELATION_NOT_EXIST;
@@ -85,9 +90,18 @@ function isColumnNotFound(err) {
 }
 async function query(text, params) {
     const client = await pool.connect();
+    const startedAt = Date.now();
     try {
         const result = await client.query(text, params);
+        const elapsedMs = Date.now() - startedAt;
+        if (elapsedMs >= DB_QUERY_SLOW_MS) {
+            console.warn(`[db] slow query ${elapsedMs}ms :: ${compactSql(text)}`);
+        }
         return result.rows;
+    } catch (err) {
+        const elapsedMs = Date.now() - startedAt;
+        console.error(`[db] query failed after ${elapsedMs}ms :: ${compactSql(text)}`);
+        throw err;
     } finally{
         client.release();
     }
@@ -294,7 +308,9 @@ async function createTenantForAdmin(params) {
         manager_code text,
         company text,
         email text,
-        created_at timestamptz default timezone('utc'::text, now())
+        created_at timestamptz default timezone('utc'::text, now()),
+        is_instructor boolean default false,
+        instructor_color text
       )
     `);
         await client.query(`
@@ -396,8 +412,12 @@ __turbopack_context__.s([
     ()=>createSchedule,
     "deleteSchedule",
     ()=>deleteSchedule,
+    "getScheduleById",
+    ()=>getScheduleById,
     "getScheduleEditLogs",
     ()=>getScheduleEditLogs,
+    "invalidateScheduleListCache",
+    ()=>invalidateScheduleListCache,
     "listSchedulesForBranch",
     ()=>listSchedulesForBranch,
     "updateSchedule",
@@ -412,6 +432,8 @@ var __turbopack_async_dependencies__ = __turbopack_handle_async_dependencies__([
 [__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$tenant$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__] = __turbopack_async_dependencies__.then ? (await __turbopack_async_dependencies__)() : __turbopack_async_dependencies__;
 ;
 ;
+const SCHEDULE_LIST_CACHE_TTL_MS = Number(process.env.SCHEDULE_LIST_CACHE_TTL_MS ?? 15_000);
+const SCHEDULE_LIST_CACHE_MAX_ENTRIES = Number(process.env.SCHEDULE_LIST_CACHE_MAX_ENTRIES ?? 200);
 const LEGACY_TO_CATEGORY = {
     education: "dealer",
     vacation: "leave",
@@ -425,9 +447,59 @@ const CATEGORY_TO_LEGACY = {
     leave: "vacation",
     etc: "etc"
 };
+const scheduleListCache = new Map();
+function buildScheduleListCacheKey(args) {
+    const branch = encodeURIComponent(args.branchName);
+    const from = encodeURIComponent(args.from ?? "");
+    const to = encodeURIComponent(args.to ?? "");
+    return `schema=${args.schema}|branch=${branch}|from=${from}|to=${to}`;
+}
+function getScheduleListFromCache(key) {
+    const entry = scheduleListCache.get(key);
+    if (!entry) return null;
+    if (entry.expiresAt <= Date.now()) {
+        scheduleListCache.delete(key);
+        return null;
+    }
+    return entry.rows;
+}
+function setScheduleListCache(key, rows) {
+    if (scheduleListCache.size >= SCHEDULE_LIST_CACHE_MAX_ENTRIES) {
+        const oldestKey = scheduleListCache.keys().next().value;
+        if (oldestKey) scheduleListCache.delete(oldestKey);
+    }
+    scheduleListCache.set(key, {
+        expiresAt: Date.now() + SCHEDULE_LIST_CACHE_TTL_MS,
+        rows
+    });
+}
+function invalidateScheduleListCache(branchName) {
+    if (!branchName) {
+        scheduleListCache.clear();
+        return;
+    }
+    const branchMarker = `branch=${encodeURIComponent(branchName)}|`;
+    for (const key of scheduleListCache.keys()){
+        if (key.includes(branchMarker)) {
+            scheduleListCache.delete(key);
+        }
+    }
+}
 async function listSchedulesForBranch(params) {
     const { branchName, from, to } = params;
-    const schema = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$tenant$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["getTenantSchemaForBranch"])(branchName) ?? "public";
+    const tenantSchema = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$tenant$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["getTenantSchemaForBranch"])(branchName);
+    const schema = tenantSchema ?? "public";
+    console.log(`[schedules] listSchedulesForBranch: branch=${branchName}, schema=${schema}`);
+    const cacheKey = buildScheduleListCacheKey({
+        schema,
+        branchName,
+        from,
+        to
+    });
+    const cachedRows = getScheduleListFromCache(cacheKey);
+    if (cachedRows) {
+        return cachedRows;
+    }
     const conditions = [
         "branch_name = $1"
     ];
@@ -445,36 +517,85 @@ async function listSchedulesForBranch(params) {
     const where = conditions.join(" and ");
     try {
         const rows = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["query"])(`
-        select id, branch_name, title, description, category,
-               dealer_name, location, instructor, target_audience, manager_name,
-               start_at, end_at, is_all_day, created_by, created_at, is_soft_deleted
-        from ${schema}.schedules
-        where ${where}
-        order by is_soft_deleted asc, start_at asc
+        select s.id, s.branch_name, s.title, s.description, s.category,
+               s.dealer_name, s.location, s.instructor, s.target_audience, s.manager_name,
+               s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at, s.is_soft_deleted,
+               p1.full_name as creator_full_name,
+               p3.instructor_color as instructor_color,
+               p2.full_name as target_full_name
+        from ${schema}.schedules s
+        left join public.profiles p1 on s.created_by::text = p1.id::text
+        left join public.profiles p2 on s.manager_name = p2.full_name and s.branch_name = p2.branch_name
+        left join public.profiles p3 on s.instructor = p3.full_name and s.branch_name = p3.branch_name and p3.is_instructor = true
+        where s.${where}
+        order by s.is_soft_deleted asc, s.start_at asc
       `, values);
-        return rows;
+        const mappedRows = rows.map((r)=>({
+                ...r,
+                category: LEGACY_TO_CATEGORY[r.category] || r.category
+            }));
+        setScheduleListCache(cacheKey, mappedRows);
+        return mappedRows;
     } catch (err) {
         if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["isRelationNotFound"])(err)) {
             console.warn("[schedules] schedules 테이블이 없어 빈 결과를 반환합니다.");
+            setScheduleListCache(cacheKey, []);
             return [];
         }
         if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["isColumnNotFound"])(err)) {
+            console.warn("[schedules] listSchedulesForBranch: 컬럼 누락 → instructor만 읽는 최소 쿼리로 재시도");
+            try {
+                const mid = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["query"])(`
+            select s.id, s.branch_name, s.title, s.description, s.category,
+                   s.instructor,
+                   s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at,
+                   p1.full_name as creator_full_name
+            from ${schema}.schedules s
+            left join public.profiles p1 on s.created_by::text = p1.id::text
+            where s.${where}
+            order by s.start_at asc
+          `, values);
+                const mappedMid = mid.map((r)=>({
+                        ...r,
+                        category: LEGACY_TO_CATEGORY[r.category] || r.category,
+                        dealer_name: null,
+                        location: null,
+                        instructor: r.instructor,
+                        target_audience: null,
+                        manager_name: null,
+                        instructor_color: null,
+                        is_soft_deleted: false,
+                        target_full_name: null,
+                        target_avatar_url: null
+                    }));
+                setScheduleListCache(cacheKey, mappedMid);
+                return mappedMid;
+            } catch (err2) {
+                if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["isColumnNotFound"])(err2) && !(0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["isRelationNotFound"])(err2)) throw err2;
+            }
+            console.warn("[schedules] listSchedulesForBranch: instructor 컬럼도 없음 → 풀 레거시 폴백");
             const legacy = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["query"])(`
-          select id, branch_name, title, description, category,
-                 start_at, end_at, is_all_day, created_by, created_at
-          from ${schema}.schedules
-          where ${where}
-          order by start_at asc
+          select s.id, s.branch_name, s.title, s.description, s.category,
+                 s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at,
+                 p.full_name as creator_full_name
+          from ${schema}.schedules s
+          left join public.profiles p on s.created_by::text = p.id::text
+          where s.${where}
+          order by s.start_at asc
         `, values);
-            return legacy.map((r)=>({
+            const mappedLegacy = legacy.map((r)=>({
                     ...r,
-                    category: LEGACY_TO_CATEGORY[r.category],
+                    category: LEGACY_TO_CATEGORY[r.category] || r.category,
                     dealer_name: null,
                     location: null,
                     instructor: null,
                     target_audience: null,
-                    manager_name: null
+                    manager_name: r.category === "vacation" ? r.title : null,
+                    target_full_name: r.category === "vacation" ? r.title : null,
+                    target_avatar_url: null
                 }));
+            setScheduleListCache(cacheKey, mappedLegacy);
+            return mappedLegacy;
         }
         throw err;
     }
@@ -510,6 +631,7 @@ async function createSchedule(input) {
             input.isAllDay ?? false,
             input.createdByProfileId
         ]);
+        invalidateScheduleListCache(input.branchName);
         return rows[0];
     } catch (err) {
         if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["isColumnNotFound"])(err)) {
@@ -525,6 +647,7 @@ async function createSchedule(input) {
                 input.createdByProfileId
             ]);
             const r = rows[0];
+            invalidateScheduleListCache(input.branchName);
             return {
                 ...r,
                 category,
@@ -532,7 +655,9 @@ async function createSchedule(input) {
                 location: null,
                 instructor: null,
                 target_audience: null,
-                manager_name: null
+                manager_name: null,
+                target_full_name: null,
+                target_avatar_url: null
             };
         }
         throw err;
@@ -597,7 +722,7 @@ async function getScheduleEditLogs(params) {
                COALESCE(l.modifier_name, p.full_name) as modifier_name,
                l.changed_fields, l.created_at
         from ${schema}.schedule_edit_logs l
-        left join ${schema}.profiles p on l.modified_by::text = p.id::text
+        left join public.profiles p on l.modified_by::text = p.id::text
         where l.schedule_id = $1 and l.branch_name = $2
         order by l.created_at desc
       `, [
@@ -616,6 +741,7 @@ async function getScheduleEditLogs(params) {
 async function updateSchedule(params) {
     const { id, branchName } = params;
     const schema = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$tenant$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["getTenantSchemaForBranch"])(branchName) ?? "public";
+    const requestedUpdate = params.title !== undefined || params.description !== undefined || params.category !== undefined || params.dealerName !== undefined || params.location !== undefined || params.instructor !== undefined || params.targetAudience !== undefined || params.managerName !== undefined || params.startAt !== undefined || params.endAt !== undefined || params.isAllDay !== undefined;
     const fields = [];
     const values = [];
     function push(field, value) {
@@ -689,7 +815,9 @@ async function updateSchedule(params) {
                 location: null,
                 instructor: null,
                 target_audience: null,
-                manager_name: null
+                manager_name: null,
+                target_full_name: null,
+                target_avatar_url: null
             };
         }
         const rows = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["query"])(`update ${schema}.schedules set ${legacyFields.join(", ")} where id = $${legacyFields.length + 1} and branch_name = $${legacyFields.length + 2} returning id, branch_name, title, description, category, start_at, end_at, is_all_day, created_by, created_at`, [
@@ -706,7 +834,9 @@ async function updateSchedule(params) {
             location: null,
             instructor: null,
             target_audience: null,
-            manager_name: null
+            manager_name: null,
+            target_full_name: null,
+            target_avatar_url: null
         };
     };
     try {
@@ -721,6 +851,9 @@ async function updateSchedule(params) {
                 before,
                 after: updated
             });
+        }
+        if (updated && requestedUpdate) {
+            invalidateScheduleListCache(branchName);
         }
         return updated;
     } catch (err) {
@@ -738,6 +871,9 @@ async function updateSchedule(params) {
                     after: legacyUpdated
                 });
             }
+            if (legacyUpdated && requestedUpdate) {
+                invalidateScheduleListCache(branchName);
+            }
             return legacyUpdated;
         }
         throw err;
@@ -751,12 +887,99 @@ async function deleteSchedule(params) {
             id,
             branchName
         ]);
+        invalidateScheduleListCache(branchName);
         return;
     }
     await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["query"])(`update ${schema}.schedules set is_soft_deleted = true where id = $1 and branch_name = $2`, [
         id,
         branchName
     ]);
+    invalidateScheduleListCache(branchName);
+}
+async function getScheduleById(params) {
+    const { id, branchName } = params;
+    const schema = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$tenant$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["getTenantSchemaForBranch"])(branchName) ?? "public";
+    try {
+        const rows = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["query"])(`select s.id, s.branch_name, s.title, s.description, s.category,
+              s.dealer_name, s.location, s.instructor, s.target_audience, s.manager_name,
+              s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at, s.is_soft_deleted,
+              p1.full_name as creator_full_name,
+              p3.instructor_color as instructor_color,
+              p2.full_name as target_full_name
+       from ${schema}.schedules s
+       left join public.profiles p1 on s.created_by::text = p1.id::text
+       left join public.profiles p2 on s.manager_name = p2.full_name and s.branch_name = p2.branch_name
+       left join public.profiles p3 on s.instructor = p3.full_name and s.branch_name = p3.branch_name and p3.is_instructor = true
+       where s.id = $1 and s.branch_name = $2
+       limit 1`, [
+            id,
+            branchName
+        ]);
+        return rows[0] ?? null;
+    } catch (err) {
+        if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["isRelationNotFound"])(err)) {
+            console.warn("[schedules] schedules 테이블이 없어 null을 반환합니다.");
+            return null;
+        }
+        if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["isColumnNotFound"])(err)) {
+            console.warn("[schedules] getScheduleById: 컬럼 누락 → instructor만 읽는 최소 쿼리로 재시도");
+            try {
+                const midRows = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["query"])(`select s.id, s.branch_name, s.title, s.description, s.category,
+                  s.instructor,
+                  s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at,
+                  p1.full_name as creator_full_name
+           from ${schema}.schedules s
+           left join public.profiles p1 on s.created_by::text = p1.id::text
+           where s.id = $1 and s.branch_name = $2
+           limit 1`, [
+                    id,
+                    branchName
+                ]);
+                const r = midRows[0];
+                if (!r) return null;
+                return {
+                    ...r,
+                    category: LEGACY_TO_CATEGORY[r.category] || r.category,
+                    dealer_name: null,
+                    location: null,
+                    instructor: r.instructor,
+                    target_audience: null,
+                    manager_name: null,
+                    instructor_color: null,
+                    is_soft_deleted: false,
+                    target_full_name: null,
+                    target_avatar_url: null
+                };
+            } catch (err2) {
+                if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["isColumnNotFound"])(err2) && !(0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["isRelationNotFound"])(err2)) throw err2;
+            }
+            console.warn("[schedules] getScheduleById: instructor 컬럼도 없음 → 풀 레거시 폴백");
+            const rows = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["query"])(`select s.id, s.branch_name, s.title, s.description, s.category,
+                s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at,
+                p.full_name as creator_full_name
+         from ${schema}.schedules s
+         left join public.profiles p on s.created_by::text = p.id::text
+         where s.id = $1 and s.branch_name = $2
+         limit 1`, [
+                id,
+                branchName
+            ]);
+            const r = rows[0];
+            if (!r) return null;
+            return {
+                ...r,
+                category: LEGACY_TO_CATEGORY[r.category] || r.category,
+                dealer_name: null,
+                location: null,
+                instructor: null,
+                target_audience: null,
+                manager_name: r.category === "vacation" ? r.title : null,
+                target_full_name: r.category === "vacation" ? r.title : null,
+                target_avatar_url: null
+            };
+        }
+        throw err;
+    }
 }
 __turbopack_async_result__();
 } catch(e) { __turbopack_async_result__(e); } }, false);}),
@@ -783,6 +1006,7 @@ var __turbopack_async_dependencies__ = __turbopack_handle_async_dependencies__([
 ;
 ;
 async function PATCH(req, { params }) {
+    const startedAt = Date.now();
     const { id } = await params;
     const user = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$auth$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["getCurrentUser"])();
     if (!user) {
@@ -835,11 +1059,18 @@ async function PATCH(req, { params }) {
             status: 404
         });
     }
+    const elapsedMs = Date.now() - startedAt;
     return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
         schedule: updated
+    }, {
+        headers: {
+            "Server-Timing": `app;dur=${elapsedMs}`,
+            "X-Response-Time": `${elapsedMs}ms`
+        }
     });
 }
 async function DELETE(_req, { params }) {
+    const startedAt = Date.now();
     const { id } = await params;
     const user = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$auth$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["getCurrentUser"])();
     if (!user) {
@@ -858,20 +1089,46 @@ async function DELETE(_req, { params }) {
         });
     }
     const branchName = user.profile?.branch_name;
-    if (!branchName) {
+    const profileId = user.profile?.id;
+    if (!branchName || !profileId) {
         return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
             message: "지점 정보가 설정되지 않았습니다."
         }, {
             status: 400
         });
     }
+    const schedule = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$schedules$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["getScheduleById"])({
+        id,
+        branchName
+    });
+    if (!schedule) {
+        return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+            message: "해당 일정을 찾을 수 없습니다."
+        }, {
+            status: 404
+        });
+    }
+    const isAuthor = String(schedule.created_by) === String(profileId);
+    if (!isAuthor && user.role !== "admin") {
+        return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+            message: "일정 삭제 권한이 없습니다."
+        }, {
+            status: 403
+        });
+    }
     await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$schedules$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["deleteSchedule"])({
         id,
         branchName,
-        hardDelete: user.role === "admin"
+        hardDelete: user.role === "admin" || isAuthor
     });
+    const elapsedMs = Date.now() - startedAt;
     return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
         ok: true
+    }, {
+        headers: {
+            "Server-Timing": `app;dur=${elapsedMs}`,
+            "X-Response-Time": `${elapsedMs}ms`
+        }
     });
 }
 __turbopack_async_result__();

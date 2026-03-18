@@ -9,6 +9,7 @@ import {
 type Params = { params: Promise<{ id: string }> };
 
 export async function PATCH(req: NextRequest, { params }: Params) {
+  const startedAt = Date.now();
   const { id } = await params;
   const user = await getCurrentUser();
   if (!user) {
@@ -72,10 +73,20 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     );
   }
 
-  return NextResponse.json({ schedule: updated });
+  const elapsedMs = Date.now() - startedAt;
+  return NextResponse.json(
+    { schedule: updated },
+    {
+      headers: {
+        "Server-Timing": `app;dur=${elapsedMs}`,
+        "X-Response-Time": `${elapsedMs}ms`,
+      },
+    },
+  );
 }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
+  const startedAt = Date.now();
   const { id } = await params;
   const user = await getCurrentUser();
   if (!user) {
@@ -120,6 +131,15 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     branchName,
     hardDelete: user.role === "admin" || isAuthor,
   });
-  return NextResponse.json({ ok: true });
+  const elapsedMs = Date.now() - startedAt;
+  return NextResponse.json(
+    { ok: true },
+    {
+      headers: {
+        "Server-Timing": `app;dur=${elapsedMs}`,
+        "X-Response-Time": `${elapsedMs}ms`,
+      },
+    },
+  );
 }
 

@@ -65,6 +65,7 @@ var __turbopack_async_dependencies__ = __turbopack_handle_async_dependencies__([
 [__TURBOPACK__imported__module__$5b$externals$5d2f$pg__$5b$external$5d$__$28$pg$2c$__esm_import$2c$__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$pg$29$__] = __turbopack_async_dependencies__.then ? (await __turbopack_async_dependencies__)() : __turbopack_async_dependencies__;
 ;
 const connectionString = process.env.NEON_DATABASE_URL;
+const DB_QUERY_SLOW_MS = Number(process.env.DB_QUERY_SLOW_MS ?? 200);
 if (!connectionString) {
     // 실제 런타임에서는 .env.local 에서 설정해야 함
     console.warn("[db] NEON_DATABASE_URL 환경 변수가 설정되지 않았습니다.");
@@ -72,8 +73,12 @@ if (!connectionString) {
 const pool = new __TURBOPACK__imported__module__$5b$externals$5d2f$pg__$5b$external$5d$__$28$pg$2c$__esm_import$2c$__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$pg$29$__["Pool"]({
     connectionString,
     max: 10,
-    idleTimeoutMillis: 30_000
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 10_000
 });
+function compactSql(sql) {
+    return sql.replace(/\s+/g, " ").trim().slice(0, 220);
+}
 const PG_CODE_RELATION_NOT_EXIST = "42P01";
 function isRelationNotFound(err) {
     return err !== null && typeof err === "object" && "code" in err && err.code === PG_CODE_RELATION_NOT_EXIST;
@@ -85,9 +90,18 @@ function isColumnNotFound(err) {
 }
 async function query(text, params) {
     const client = await pool.connect();
+    const startedAt = Date.now();
     try {
         const result = await client.query(text, params);
+        const elapsedMs = Date.now() - startedAt;
+        if (elapsedMs >= DB_QUERY_SLOW_MS) {
+            console.warn(`[db] slow query ${elapsedMs}ms :: ${compactSql(text)}`);
+        }
         return result.rows;
+    } catch (err) {
+        const elapsedMs = Date.now() - startedAt;
+        console.error(`[db] query failed after ${elapsedMs}ms :: ${compactSql(text)}`);
+        throw err;
     } finally{
         client.release();
     }

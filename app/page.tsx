@@ -5,27 +5,11 @@ import {
   listSchedulesForBranch,
   type ScheduleRow,
 } from "@/src/lib/engines/schedules";
-import { getHolidays } from "korean-holidays";
-import RightPanel from "./components/RightPanel";
-import BranchMembersCard from "./components/BranchMembersCard";
 import LeftPanelBranchMembers from "./components/LeftPanelBranchMembers";
-import RightPanelCollapseWrapper, { DesktopRightPanelProvider } from "./components/RightPanelCollapseWrapper";
-import DesktopShell, { DesktopShellHamburger } from "./components/DesktopShell";
-import CalendarMonthNav from "./components/CalendarMonthNav";
-import CalendarGridClient from "./components/CalendarGridClient";
 import LandingPage from "./components/LandingPage";
-import MobileCalendarShell from "./components/MobileCalendarShell";
 import AdminSettingsMenu from "./components/AdminSettingsMenu";
-
-type CalendarCell = {
-  key: number;
-  day: number | null;
-  date: Date | null;
-  isToday: boolean;
-  isSunday: boolean;
-  isSaturday: boolean;
-  isHoliday: boolean;
-};
+import CalendarPageClientShell from "./components/CalendarPageClientShell";
+import { buildCalendarMonthData, getCalendarFetchRange } from "@/src/lib/calendar/month-view";
 
 type SearchParamsShape = { year?: string; month?: string; date?: string };
 type PageProps = { searchParams?: Promise<SearchParamsShape> };
@@ -33,12 +17,6 @@ type PageProps = { searchParams?: Promise<SearchParamsShape> };
 function getKoreaNow(): Date {
   const now = new Date();
   const koreaString = now.toLocaleString("en-US", { timeZone: "Asia/Seoul" });
-  return new Date(koreaString);
-}
-
-function getKoreaDateFromISO(iso: string): Date {
-  const d = new Date(iso);
-  const koreaString = d.toLocaleString("en-US", { timeZone: "Asia/Seoul" });
   return new Date(koreaString);
 }
 
@@ -58,115 +36,17 @@ export default async function Page({ searchParams }: PageProps) {
   const year = params.year ? parseInt(params.year, 10) : now.getFullYear();
   const month = params.month ? parseInt(params.month, 10) - 1 : now.getMonth();
   const selectedDateStr = params.date ?? null;
-  const todayYear = now.getFullYear();
-  const todayMonth = now.getMonth();
-  const todayDate = now.getDate();
-  const todayStr = `${todayYear}-${String(todayMonth + 1).padStart(2, "0")}-${String(todayDate).padStart(2, "0")}`;
 
-  const lastDate = new Date(year, month + 1, 0).getDate();
-  const mobileMonthLabel = new Date(year, month + 1, 0).toLocaleString("ko-KR", {
-    month: "long",
-    year: "numeric",
-  });
-
-  // 공휴일 계산 (해당 연도 전체)
-  const holidaysForYear = getHolidays(year);
-  const holidaySet = new Set(
-    holidaysForYear.map((h) =>
-      h.date.toISOString().slice(0, 10),
-    ),
-  );
-
-  // 일정 조회 (현재 달 범위만)
   let schedules: ScheduleRow[] = [];
   if (user?.profile?.branch_name) {
-    const fromDate = new Date(year, month, 1);
-    fromDate.setDate(fromDate.getDate() - 7);
-    const toDate = new Date(year, month + 1, 0, 23, 59, 59);
-    toDate.setDate(toDate.getDate() + 7);
-    const startOfMonthISO = fromDate.toISOString();
-    const endOfMonthISO = toDate.toISOString();
+    const { from, to } = getCalendarFetchRange(year, month);
     schedules = await listSchedulesForBranch({
       branchName: user.profile.branch_name,
-      from: startOfMonthISO,
-      to: endOfMonthISO,
+      from,
+      to,
     });
   }
-
-  const uniqueSchedules: ScheduleRow[] = [];
-  const seenScheduleIds = new Set<string>();
-  for (const schedule of schedules) {
-    if (seenScheduleIds.has(schedule.id)) continue;
-    seenScheduleIds.add(schedule.id);
-    uniqueSchedules.push(schedule);
-  }
-
-  const eventsByDay = new Map<number, ScheduleRow[]>();
-  const eventsByDateStr: Record<string, ScheduleRow[]> = {};
-  for (const s of uniqueSchedules) {
-    const d = getKoreaDateFromISO(s.start_at);
-    if (d.getFullYear() === year && d.getMonth() === month) {
-      const day = d.getDate();
-      if (!eventsByDay.has(day)) eventsByDay.set(day, []);
-      eventsByDay.get(day)!.push(s);
-      const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      if (!eventsByDateStr[iso]) eventsByDateStr[iso] = [];
-      eventsByDateStr[iso].push(s);
-    }
-  }
-
-  // 월~금만 표시 (5열), 토·일 숨김
-  const daysToShow: number[] = [];
-  for (let d = 1; d <= lastDate; d++) {
-    const w = new Date(year, month, d).getDay();
-    if (w >= 1 && w <= 5) daysToShow.push(d);
-  }
-  const firstWeekdayInMonth = daysToShow.length ? new Date(year, month, daysToShow[0]).getDay() : 1;
-  const offset = firstWeekdayInMonth - 1;
-  const totalCells = Math.ceil((offset + daysToShow.length) / 5) * 5;
-
-  const calendarCells: CalendarCell[] = [];
-  let key = 0;
-  for (let i = 0; i < offset; i++) {
-    calendarCells.push({
-      key: key++,
-      day: null,
-      date: null,
-      isToday: false,
-      isSunday: false,
-      isSaturday: false,
-      isHoliday: false,
-    });
-  }
-  for (const dayNumber of daysToShow) {
-    const date = new Date(year, month, dayNumber);
-    const weekday = date.getDay();
-    const iso = `${year}-${String(month + 1).padStart(2, "0")}-${String(dayNumber).padStart(2, "0")}`;
-    const isHoliday = holidaySet.has(iso);
-    calendarCells.push({
-      key: key++,
-      day: dayNumber,
-      date,
-      isToday: year === todayYear && month === todayMonth && dayNumber === todayDate,
-      isSunday: weekday === 0,
-      isSaturday: weekday === 6,
-      isHoliday,
-    });
-  }
-  for (let i = offset + daysToShow.length; i < totalCells; i++) {
-    calendarCells.push({
-      key: key++,
-      day: null,
-      date: null,
-      isToday: false,
-      isSunday: false,
-      isSaturday: false,
-      isHoliday: false,
-    });
-  }
-
-  const displayDateStr = selectedDateStr ?? (year === todayYear && month === todayMonth ? todayStr : null);
-  const schedulesForSelected = displayDateStr ? (eventsByDateStr[displayDateStr] ?? []) : [];
+  const initialMonthData = buildCalendarMonthData({ year, month, schedules });
 
   const leftPanel = (
     <>
@@ -217,166 +97,19 @@ export default async function Page({ searchParams }: PageProps) {
 
   return (
     <main className="h-screen bg-background-light">
-      {/* 데스크탑: 좌측 패널 오버레이(기본 숨김) + 캘린더 확장 */}
-      <div className="hidden lg:flex h-full overflow-hidden">
-        <DesktopShell leftPanel={leftPanel}>
-          <DesktopRightPanelProvider>
-          {/* Main Calendar: 패널 열릴 때 왼쪽으로 밀리는 모션용 transition */}
-          <section className="flex-1 overflow-y-auto flex flex-col min-w-0 transition-[flex-basis] duration-300 ease-out">
-            <header className="h-16 border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 bg-background-light z-10 bg-opacity-95 backdrop-blur-sm">
-              <div className="flex items-center gap-4">
-                <DesktopShellHamburger />
-                <CalendarMonthNav year={year} month={month} />
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <input
-                    className="pl-3 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-primary focus:border-primary w-44 max-w-[180px] text-brand-gray placeholder:text-brand-gray/60"
-                    placeholder="Search events..."
-                    type="text"
-                  />
-                </div>
-              </div>
-            </header>
-
-        <div className="flex-1 p-6">
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm h-full flex flex-col">
-            <CalendarGridClient
-              cells={calendarCells.map((c) => ({
-                key: c.key,
-                day: c.day,
-                dateISO: c.day !== null ? `${year}-${String(month + 1).padStart(2, "0")}-${String(c.day).padStart(2, "0")}` : null,
-                isToday: c.isToday,
-                isSunday: c.isSunday,
-                isSaturday: c.isSaturday,
-                isHoliday: c.isHoliday,
-              }))}
-              eventsByDay={Object.fromEntries(
-                Array.from(eventsByDay.entries()).map(([d, list]) => [
-                  String(d),
-                   list.map((s) => ({
-                    id: s.id,
-                    title: s.title,
-                    description: s.description,
-                    start_at: s.start_at,
-                    end_at: s.end_at,
-                    is_all_day: s.is_all_day,
-                    category: s.category,
-                    creator_full_name: s.creator_full_name,
-                    creator_avatar_url: s.creator_avatar_url,
-                    instructor: s.instructor ?? null,
-                    instructor_color: s.instructor_color ?? null,
-                  })),
-                ]),
-              )}
-              year={year}
-              month={month}
-              isAdmin={user?.role === "admin"}
-              columns={5}
-              selectedDateStr={selectedDateStr}
-              todayStr={todayStr}
-            />
-          </div>
-        </div>
-        </section>
-
-            {/* Right Panel: 선택한 날짜(또는 오늘) 일정 · 메모 · 공지 (>> 로 닫기) */}
-            <RightPanelCollapseWrapper>
-              <RightPanel
-                todaySchedules={schedulesForSelected.map((s) => ({
-                  id: s.id,
-                  title: s.title,
-                  description: s.description,
-                  start_at: s.start_at,
-                  end_at: s.end_at,
-                  is_all_day: s.is_all_day,
-                  category: s.category as "dealer" | "internal" | "personal" | "leave" | "etc",
-                  dealer_name: s.dealer_name ?? null,
-                  location: s.location ?? null,
-                  instructor: s.instructor ?? null,
-                  target_audience: s.target_audience ?? null,
-                  manager_name: s.manager_name ?? null,
-                  creator_full_name: s.creator_full_name,
-                  creator_avatar_url: s.creator_avatar_url,
-                  instructor_color: s.instructor_color ?? null,
-                }))}
-                selectedDateStr={displayDateStr}
-                isAdmin={user?.role === "admin"}
-                canAddSchedule={
-                  user?.role === "admin" ||
-                  user?.role === "manager" ||
-                  user?.role === "agent" ||
-                  user?.profile?.role === "manager" ||
-                  user?.profile?.role === "agent"
-                }
-                currentUserFullName={user?.profile?.full_name ?? null}
-              />
-            </RightPanelCollapseWrapper>
-          </DesktopRightPanelProvider>
-        </DesktopShell>
-      </div>
-
-      {/* 모바일: 햄버거 메뉴 + 좌측 패널 오버레이 + 날짜별 상세 패널 */}
-      <MobileCalendarShell
-        cells={calendarCells.map((c) => ({
-          key: c.key,
-          day: c.day,
-          dateISO: c.day !== null ? `${year}-${String(month + 1).padStart(2, "0")}-${String(c.day).padStart(2, "0")}` : null,
-          isToday: c.isToday,
-          isSunday: c.isSunday,
-          isSaturday: c.isSaturday,
-          isHoliday: c.isHoliday,
-        }))}
-        eventsByDay={Object.fromEntries(
-          Array.from(eventsByDay.entries()).map(([d, list]) => [
-            String(d),
-            list.map((s) => ({
-              id: s.id,
-              title: s.title,
-              description: s.description,
-              start_at: s.start_at,
-              end_at: s.end_at,
-              is_all_day: s.is_all_day,
-              category: s.category as "dealer" | "internal" | "personal" | "leave" | "etc",
-              dealer_name: s.dealer_name ?? null,
-              location: s.location ?? null,
-              instructor: s.instructor ?? null,
-              target_audience: s.target_audience ?? null,
-              manager_name: s.manager_name ?? null,
-              creator_full_name: s.creator_full_name,
-              creator_avatar_url: s.creator_avatar_url,
-              instructor_color: s.instructor_color ?? null,
-            })),
-          ]),
-        )}
-        year={year}
-        month={month}
+      <CalendarPageClientShell
+        leftPanel={leftPanel}
+        initialMonthData={initialMonthData}
+        initialSelectedDateStr={selectedDateStr}
         isAdmin={user?.role === "admin"}
-        todayStr={todayStr}
-        mobileMonthLabel={mobileMonthLabel}
-        eventsByDateStr={Object.fromEntries(
-          Object.entries(eventsByDateStr).map(([k, list]) => [
-            k,
-            list.map((s) => ({
-              id: s.id,
-              title: s.title,
-              description: s.description,
-              start_at: s.start_at,
-              end_at: s.end_at,
-              is_all_day: s.is_all_day,
-              category: s.category as "dealer" | "internal" | "personal" | "leave" | "etc",
-              dealer_name: s.dealer_name ?? null,
-              location: s.location ?? null,
-              instructor: s.instructor ?? null,
-              target_audience: s.target_audience ?? null,
-              manager_name: s.manager_name ?? null,
-              creator_full_name: s.creator_full_name,
-              creator_avatar_url: s.creator_avatar_url,
-              instructor_color: s.instructor_color ?? null,
-            })),
-          ]),
-        )}
-        userFullName={user?.profile?.full_name ?? null}
+        canAddSchedule={
+          user?.role === "admin" ||
+          user?.role === "manager" ||
+          user?.role === "agent" ||
+          user?.profile?.role === "manager" ||
+          user?.profile?.role === "agent"
+        }
+        currentUserFullName={user?.profile?.full_name ?? null}
         branchName={user?.profile?.branch_name ?? null}
       />
     </main>

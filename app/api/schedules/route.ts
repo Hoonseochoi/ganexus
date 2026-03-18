@@ -4,8 +4,10 @@ import {
   createSchedule,
   listSchedulesForBranch,
 } from "@/src/lib/engines/schedules";
+import { buildCalendarMonthData, getCalendarFetchRange } from "@/src/lib/calendar/month-view";
 
 export async function GET(req: NextRequest) {
+  const startedAt = Date.now();
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ message: "인증이 필요합니다." }, { status: 401 });
@@ -20,8 +22,18 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url);
-  const from = searchParams.get("from") ?? undefined;
-  const to = searchParams.get("to") ?? undefined;
+  const requestedYear = Number(searchParams.get("year"));
+  const requestedMonth = Number(searchParams.get("month"));
+  const hasMonthRequest = Number.isInteger(requestedYear) && Number.isInteger(requestedMonth) && requestedMonth >= 1 && requestedMonth <= 12;
+
+  let from = searchParams.get("from") ?? undefined;
+  let to = searchParams.get("to") ?? undefined;
+
+  if (hasMonthRequest && (!from || !to)) {
+    const range = getCalendarFetchRange(requestedYear, requestedMonth - 1);
+    from = from ?? range.from;
+    to = to ?? range.to;
+  }
 
   const schedules = await listSchedulesForBranch({
     branchName,
@@ -29,11 +41,28 @@ export async function GET(req: NextRequest) {
     to,
   });
 
+  const elapsedMs = Date.now() - startedAt;
+
+  const payload: {
+    schedules: Awaited<ReturnType<typeof listSchedulesForBranch>>;
+    monthData?: ReturnType<typeof buildCalendarMonthData>;
+  } = { schedules };
+
+  if (hasMonthRequest) {
+    payload.monthData = buildCalendarMonthData({
+      year: requestedYear,
+      month: requestedMonth - 1,
+      schedules,
+    });
+  }
+
   return NextResponse.json(
-    { schedules },
+    payload,
     {
       headers: {
         "Cache-Control": "private, max-age=30",
+        "Server-Timing": `app;dur=${elapsedMs}`,
+        "X-Response-Time": `${elapsedMs}ms`,
       },
     },
   );

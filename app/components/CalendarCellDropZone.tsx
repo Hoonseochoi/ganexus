@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import { notifyCalendarMonthDataChanged } from "@/src/lib/calendar/month-client-cache";
 
 type DragPayload = {
   id: string;
@@ -101,7 +102,10 @@ export default function CalendarCellDropZone({
         }),
       });
 
-      if (res.ok) router.refresh();
+      if (res.ok) {
+        notifyCalendarMonthDataChanged();
+        router.refresh();
+      }
     },
     [dateISO, isEmpty, router],
   );

@@ -1,6 +1,7 @@
 import { Pool, type QueryResultRow } from "pg";
 
 const connectionString = process.env.NEON_DATABASE_URL;
+const DB_QUERY_SLOW_MS = Number(process.env.DB_QUERY_SLOW_MS ?? 200);
 
 if (!connectionString) {
   // 실제 런타임에서는 .env.local 에서 설정해야 함
@@ -13,6 +14,10 @@ export const pool = new Pool({
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 10_000, // 10 seconds timeout to handle cold starts
 });
+
+function compactSql(sql: string): string {
+  return sql.replace(/\s+/g, " ").trim().slice(0, 220);
+}
 
 /** Postgres 에러 코드: relation does not exist (테이블 미생성 시) */
 export const PG_CODE_RELATION_NOT_EXIST = "42P01";
@@ -38,9 +43,18 @@ export async function query<T extends QueryResultRow = QueryResultRow>(
   params?: unknown[]
 ): Promise<T[]> {
   const client = await pool.connect();
+  const startedAt = Date.now();
   try {
     const result = await client.query<T>(text, params);
+    const elapsedMs = Date.now() - startedAt;
+    if (elapsedMs >= DB_QUERY_SLOW_MS) {
+      console.warn(`[db] slow query ${elapsedMs}ms :: ${compactSql(text)}`);
+    }
     return result.rows;
+  } catch (err) {
+    const elapsedMs = Date.now() - startedAt;
+    console.error(`[db] query failed after ${elapsedMs}ms :: ${compactSql(text)}`);
+    throw err;
   } finally {
     client.release();
   }

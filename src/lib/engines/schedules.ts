@@ -1,6 +1,9 @@
 import { query, isRelationNotFound, isColumnNotFound } from "./db";
 import { getTenantSchemaForBranch } from "./tenant";
 
+const SCHEDULE_LIST_CACHE_TTL_MS = Number(process.env.SCHEDULE_LIST_CACHE_TTL_MS ?? 15_000);
+const SCHEDULE_LIST_CACHE_MAX_ENTRIES = Number(process.env.SCHEDULE_LIST_CACHE_MAX_ENTRIES ?? 200);
+
 export type ScheduleCategory = "dealer" | "internal" | "personal" | "leave" | "etc";
 
 /** DB에 메타 컬럼이 없을 때 읽어오는 레거시 행 (category는 구 enum) */
@@ -71,6 +74,59 @@ export type ScheduleEditLog = {
   created_at: string;
 };
 
+type ScheduleListCacheEntry = {
+  expiresAt: number;
+  rows: ScheduleRow[];
+};
+
+const scheduleListCache = new Map<string, ScheduleListCacheEntry>();
+
+function buildScheduleListCacheKey(args: {
+  schema: string;
+  branchName: string;
+  from?: string;
+  to?: string;
+}): string {
+  const branch = encodeURIComponent(args.branchName);
+  const from = encodeURIComponent(args.from ?? "");
+  const to = encodeURIComponent(args.to ?? "");
+  return `schema=${args.schema}|branch=${branch}|from=${from}|to=${to}`;
+}
+
+function getScheduleListFromCache(key: string): ScheduleRow[] | null {
+  const entry = scheduleListCache.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt <= Date.now()) {
+    scheduleListCache.delete(key);
+    return null;
+  }
+  return entry.rows;
+}
+
+function setScheduleListCache(key: string, rows: ScheduleRow[]): void {
+  if (scheduleListCache.size >= SCHEDULE_LIST_CACHE_MAX_ENTRIES) {
+    const oldestKey = scheduleListCache.keys().next().value;
+    if (oldestKey) scheduleListCache.delete(oldestKey);
+  }
+  scheduleListCache.set(key, {
+    expiresAt: Date.now() + SCHEDULE_LIST_CACHE_TTL_MS,
+    rows,
+  });
+}
+
+export function invalidateScheduleListCache(branchName?: string): void {
+  if (!branchName) {
+    scheduleListCache.clear();
+    return;
+  }
+  const branchMarker = `branch=${encodeURIComponent(branchName)}|`;
+  for (const key of scheduleListCache.keys()) {
+    if (key.includes(branchMarker)) {
+      scheduleListCache.delete(key);
+    }
+  }
+}
+
 export async function listSchedulesForBranch(params: {
   branchName: string;
   from?: string;
@@ -80,6 +136,11 @@ export async function listSchedulesForBranch(params: {
   const tenantSchema = await getTenantSchemaForBranch(branchName);
   const schema = tenantSchema ?? "public";
   console.log(`[schedules] listSchedulesForBranch: branch=${branchName}, schema=${schema}`);
+  const cacheKey = buildScheduleListCacheKey({ schema, branchName, from, to });
+  const cachedRows = getScheduleListFromCache(cacheKey);
+  if (cachedRows) {
+    return cachedRows;
+  }
 
   const conditions = ["branch_name = $1"];
   const values: unknown[] = [branchName];
@@ -114,13 +175,16 @@ export async function listSchedulesForBranch(params: {
       `,
       values,
     );
-    return rows.map(r => ({
+    const mappedRows = rows.map(r => ({
       ...r,
       category: (LEGACY_TO_CATEGORY[r.category as LegacyCategory] || r.category) as ScheduleCategory
     }));
+    setScheduleListCache(cacheKey, mappedRows);
+    return mappedRows;
   } catch (err) {
     if (isRelationNotFound(err)) {
       console.warn("[schedules] schedules 테이블이 없어 빈 결과를 반환합니다.");
+      setScheduleListCache(cacheKey, []);
       return [];
     }
     if (isColumnNotFound(err)) {
@@ -146,7 +210,7 @@ export async function listSchedulesForBranch(params: {
           `,
           values,
         );
-        return mid.map(r => ({
+        const mappedMid = mid.map(r => ({
           ...r,
           category: (LEGACY_TO_CATEGORY[r.category as LegacyCategory] || r.category) as ScheduleCategory,
           dealer_name: null,
@@ -159,6 +223,8 @@ export async function listSchedulesForBranch(params: {
           target_full_name: null,
           target_avatar_url: null,
         }));
+        setScheduleListCache(cacheKey, mappedMid);
+        return mappedMid;
       } catch (err2) {
         if (!isColumnNotFound(err2) && !isRelationNotFound(err2)) throw err2;
       }
@@ -177,7 +243,7 @@ export async function listSchedulesForBranch(params: {
         `,
         values,
       );
-      return legacy.map((r) => ({
+      const mappedLegacy = legacy.map((r) => ({
         ...r,
         category: LEGACY_TO_CATEGORY[r.category] || (r.category as unknown as ScheduleCategory),
         dealer_name: null,
@@ -188,6 +254,8 @@ export async function listSchedulesForBranch(params: {
         target_full_name: r.category === "vacation" ? r.title : null,
         target_avatar_url: null,
       }));
+      setScheduleListCache(cacheKey, mappedLegacy);
+      return mappedLegacy;
     }
     throw err;
   }
@@ -228,6 +296,7 @@ export async function createSchedule(input: ScheduleInput): Promise<ScheduleRow>
         input.createdByProfileId,
       ],
     );
+    invalidateScheduleListCache(input.branchName);
     return rows[0];
   } catch (err) {
     if (isColumnNotFound(err)) {
@@ -247,6 +316,7 @@ export async function createSchedule(input: ScheduleInput): Promise<ScheduleRow>
         ],
       );
       const r = rows[0];
+      invalidateScheduleListCache(input.branchName);
       return {
         ...r,
         category,
@@ -372,6 +442,18 @@ export async function updateSchedule(params: {
 }): Promise<ScheduleRow | null> {
   const { id, branchName } = params;
   const schema = (await getTenantSchemaForBranch(branchName)) ?? "public";
+  const requestedUpdate =
+    params.title !== undefined ||
+    params.description !== undefined ||
+    params.category !== undefined ||
+    params.dealerName !== undefined ||
+    params.location !== undefined ||
+    params.instructor !== undefined ||
+    params.targetAudience !== undefined ||
+    params.managerName !== undefined ||
+    params.startAt !== undefined ||
+    params.endAt !== undefined ||
+    params.isAllDay !== undefined;
 
   const fields: string[] = [];
   const values: unknown[] = [];
@@ -470,6 +552,9 @@ export async function updateSchedule(params: {
         after: updated,
       });
     }
+    if (updated && requestedUpdate) {
+      invalidateScheduleListCache(branchName);
+    }
     return updated;
   } catch (err) {
     if (isColumnNotFound(err)) {
@@ -485,6 +570,9 @@ export async function updateSchedule(params: {
           before,
           after: legacyUpdated,
         });
+      }
+      if (legacyUpdated && requestedUpdate) {
+        invalidateScheduleListCache(branchName);
       }
       return legacyUpdated;
     }
@@ -504,12 +592,14 @@ export async function deleteSchedule(params: {
       `delete from ${schema}.schedules where id = $1 and branch_name = $2`,
       [id, branchName],
     );
+    invalidateScheduleListCache(branchName);
     return;
   }
   await query(
     `update ${schema}.schedules set is_soft_deleted = true where id = $1 and branch_name = $2`,
     [id, branchName],
   );
+  invalidateScheduleListCache(branchName);
 }
 
 export async function getScheduleById(params: {

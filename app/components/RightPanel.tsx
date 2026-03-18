@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { EclipseButton } from "@/app/components/ui/EclipseButton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import { ScheduleAddScheduler } from "@/app/admin/schedules/_components/ScheduleAddScheduler";
+import { notifyCalendarMonthDataChanged } from "@/src/lib/calendar/month-client-cache";
 
 export type ScheduleItem = {
   id: string;
@@ -560,6 +561,7 @@ export function ScheduleDetailPopup({
         alert(data.message ?? "일정 삭제에 실패했습니다.");
         return;
       }
+      notifyCalendarMonthDataChanged();
       router.refresh();
       onClose();
     } catch {
@@ -649,6 +651,7 @@ export function ScheduleDetailPopup({
               initialSchedule={schedule}
               submitLabel="수정 완료"
               onSuccess={async () => {
+                notifyCalendarMonthDataChanged();
                 await router.refresh();
                 setEditing(false);
                 onClose();
