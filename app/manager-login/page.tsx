@@ -9,9 +9,14 @@ function ManagerLoginForm() {
   const params = useSearchParams();
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
-  const [step, setStep] = useState<"login" | "changePassword">("login");
+  const [step, setStep] = useState<"login" | "changePassword" | "forgotPassword">("login");
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
+  const [forgotManagerCode, setForgotManagerCode] = useState("");
+  const [forgotFullName, setForgotFullName] = useState("");
+  const [forgotBranchName, setForgotBranchName] = useState("");
+  const [forgotNewPassword, setForgotNewPassword] = useState("");
+  const [forgotNewPasswordConfirm, setForgotNewPasswordConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [loginIdForChange, setLoginIdForChange] = useState<string | null>(null);
@@ -93,6 +98,57 @@ function ManagerLoginForm() {
     }
   };
 
+  const handleForgotPassword = async (e: FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!forgotManagerCode.trim() || !forgotFullName.trim() || !forgotBranchName.trim()) {
+      setError("매니저 코드, 이름, 지점명을 모두 입력해주세요.");
+      return;
+    }
+
+    if (forgotNewPassword !== forgotNewPasswordConfirm) {
+      setError("새 비밀번호와 확인 비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
+    if (forgotNewPassword.length < 6) {
+      setError("새 비밀번호는 6자 이상이어야 합니다.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/manager-reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          managerCode: forgotManagerCode,
+          fullName: forgotFullName,
+          branchName: forgotBranchName,
+          newPassword: forgotNewPassword,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.message ?? "비밀번호 재설정 중 오류가 발생했습니다.");
+        return;
+      }
+
+      setStep("login");
+      setLoginId(forgotManagerCode.trim());
+      setPassword("");
+      setForgotNewPassword("");
+      setForgotNewPasswordConfirm("");
+      setError("비밀번호가 재설정되었습니다. 새 비밀번호로 로그인해주세요.");
+    } catch {
+      setError("일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const prefilledCode = params.get("code");
 
   return (
@@ -150,6 +206,18 @@ function ManagerLoginForm() {
                 className="mt-2 w-full"
               />
             </form>
+            <div className="mt-3 text-right">
+              <button
+                type="button"
+                onClick={() => {
+                  setError(null);
+                  setStep("forgotPassword");
+                }}
+                className="text-[11px] text-brand-gray hover:text-brand-black"
+              >
+                비밀번호를 잊으셨나요?
+              </button>
+            </div>
             <div className="mt-6 pt-4 border-t border-slate-100 text-center">
               <p className="text-[11px] text-brand-gray mb-2">처음이신가요?</p>
               <EclipseButton
@@ -161,7 +229,7 @@ function ManagerLoginForm() {
               />
             </div>
           </>
-        ) : (
+        ) : step === "changePassword" ? (
           <form onSubmit={handleChangePassword} className="space-y-4">
             <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-700">
               첫 로그인입니다. 안전한 사용을 위해 반드시 새 비밀번호를 설정해주세요.
@@ -194,6 +262,78 @@ function ManagerLoginForm() {
               variant="primary"
               className="mt-2 w-full"
             />
+          </form>
+        ) : (
+          <form onSubmit={handleForgotPassword} className="space-y-4">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-brand-gray">
+              가입 시 등록한 정보가 모두 일치하면 새 비밀번호를 설정할 수 있습니다.
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs text-brand-gray">매니저 코드</label>
+              <input
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
+                value={forgotManagerCode}
+                onChange={(e) => setForgotManagerCode(e.target.value)}
+                placeholder="가입 시 사용한 매니저 코드"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs text-brand-gray">이름</label>
+              <input
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
+                value={forgotFullName}
+                onChange={(e) => setForgotFullName(e.target.value)}
+                placeholder="가입 시 입력한 이름"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs text-brand-gray">지점명</label>
+              <input
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
+                value={forgotBranchName}
+                onChange={(e) => setForgotBranchName(e.target.value)}
+                placeholder="예: GA4-7지점"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs text-brand-gray">새 비밀번호</label>
+              <input
+                type="password"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
+                value={forgotNewPassword}
+                onChange={(e) => setForgotNewPassword(e.target.value)}
+                placeholder="6자 이상"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs text-brand-gray">새 비밀번호 확인</label>
+              <input
+                type="password"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
+                value={forgotNewPasswordConfirm}
+                onChange={(e) => setForgotNewPasswordConfirm(e.target.value)}
+                placeholder="다시 입력"
+              />
+            </div>
+            <EclipseButton
+              type="submit"
+              disabled={loading}
+              isLoading={loading}
+              text={loading ? "재설정 중..." : "새 비밀번호 등록"}
+              variant="primary"
+              className="mt-2 w-full"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                setStep("login");
+              }}
+              className="w-full text-[11px] text-brand-gray hover:text-brand-black"
+              disabled={loading}
+            >
+              로그인으로 돌아가기
+            </button>
           </form>
         )}
       </div>

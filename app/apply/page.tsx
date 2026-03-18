@@ -19,6 +19,7 @@ export default function ApplyPage() {
   const [validating, setValidating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [autoApproved, setAutoApproved] = useState(false);
 
   const steps = [
     { id: "code", title: "초대코드 입력" },
@@ -81,6 +82,7 @@ export default function ApplyPage() {
         setError(data.message ?? "신청서 제출 중 오류가 발생했습니다.");
         return;
       }
+      setAutoApproved(Boolean(data.autoApproved));
       setDone(true);
       setCurrentStep(2);
     } catch {
@@ -264,14 +266,25 @@ export default function ApplyPage() {
 
       {currentStep === 2 && done && (
         <div className="space-y-4 text-sm text-brand-gray pb-4">
-          <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-700">
-            신청이 완료되었습니다. 지점장님의 승인 후 메인 캘린더에 접근할 수
-            있습니다.
-          </div>
-          <p className="text-[11px]">
-            승인 결과는 지점에서 별도로 안내드리며, 내부 로그인 페이지에서
-            매니저 로그인에서 가입 시 입력한 매니저 코드(ID·PW 동일)로 접속하실 수 있습니다.
-          </p>
+          {autoApproved ? (
+            <>
+              <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-700">
+                PASS: 이름과 코드가 확인되어 즉시 승인되었습니다.
+              </div>
+              <p className="text-[11px]">
+                지금 바로 매니저 로그인 페이지에서 가입 시 입력한 매니저 코드(ID·PW 동일)로 로그인할 수 있습니다.
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-700">
+                신청이 완료되었습니다. 지점장님의 승인 후 메인 캘린더에 접근할 수 있습니다.
+              </div>
+              <p className="text-[11px]">
+                승인 결과는 지점에서 별도로 안내드리며, 내부 로그인 페이지에서 매니저 로그인으로 접속하실 수 있습니다.
+              </p>
+            </>
+          )}
           <EclipseButton
             type="button"
             text="매니저 로그인으로 이동"

@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "import:manager-codes": "node scripts/import_manager_codes.js"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.11",
@@ -32,6 +33,7 @@
     "typescript": "^5.9.3"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "@types/pg": "^8.18.0"
   }
 }
