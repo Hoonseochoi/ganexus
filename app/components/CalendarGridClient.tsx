@@ -7,6 +7,66 @@ import DraggableSchedulePill from "./DraggableSchedulePill";
 import { useRightPanel } from "./RightPanelCollapseWrapper";
 import { EclipseButton } from "@/app/components/ui/EclipseButton";
 import { ScheduleAddScheduler } from "@/app/admin/schedules/_components/ScheduleAddScheduler";
+import { notifyCalendarMonthDataChanged } from "@/src/lib/calendar/month-client-cache";
+
+const ADD_META_CACHE_TTL_MS = 5 * 60 * 1000;
+
+type AddMetaCache = {
+  expiresAt: number;
+  userFullName: string;
+  instructors: Instructor[];
+};
+
+let addMetaCache: AddMetaCache | null = null;
+let addMetaInFlight: Promise<AddMetaCache> | null = null;
+
+async function fetchAddMeta(): Promise<AddMetaCache> {
+  if (addMetaCache && addMetaCache.expiresAt > Date.now()) {
+    return addMetaCache;
+  }
+
+  if (addMetaInFlight) {
+    return addMetaInFlight;
+  }
+
+  addMetaInFlight = (async () => {
+    const [profileRes, managersRes] = await Promise.all([
+      fetch("/api/auth/profile", { cache: "no-store" }),
+      fetch("/api/admin/managers", { cache: "no-store" }),
+    ]);
+
+    const profileData = await profileRes.json().catch(() => ({}));
+    const userFullName = profileRes.ok
+      ? (profileData?.user?.profile?.full_name ?? "관리자")
+      : "관리자";
+
+    let instructors: Instructor[] = [];
+    const managersData = await managersRes.json().catch(() => ({}));
+    if (managersRes.ok && Array.isArray(managersData.managers)) {
+      instructors = managersData.managers
+        .filter((m: any) => m.is_instructor)
+        .map((m: any) => ({
+          id: m.id as string,
+          name: m.name as string,
+          instructor_color: (m.instructor_color as string) ?? null,
+        }));
+    }
+
+    const nextCache: AddMetaCache = {
+      expiresAt: Date.now() + ADD_META_CACHE_TTL_MS,
+      userFullName,
+      instructors,
+    };
+    addMetaCache = nextCache;
+    return nextCache;
+  })();
+
+  try {
+    return await addMetaInFlight;
+  } finally {
+    addMetaInFlight = null;
+  }
+}
 
 type ScheduleItem = {
   id: string;
@@ -45,6 +105,7 @@ export type CalendarGridProps = {
   selectedDateStr: string | null;
   todayStr: string;
   onDateSelect?: (dateISO: string | null) => void;
+  openRightPanelOnSelect?: boolean;
   detailDateISO?: string | null;
   renderDetailRow?: (dateISO: string) => React.ReactNode;
 };
@@ -65,6 +126,7 @@ function CalendarGridClientBase({
   selectedDateStr,
   todayStr,
   onDateSelect,
+  openRightPanelOnSelect = false,
   detailDateISO,
   renderDetailRow,
 }: CalendarGridProps) {
@@ -78,33 +140,49 @@ function CalendarGridClientBase({
   const [addInstructors, setAddInstructors] = useState<Instructor[]>([]);
 
   useEffect(() => {
+    const warm = () => {
+      void fetchAddMeta().catch(() => undefined);
+    };
+
+    const idle = (window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    }).requestIdleCallback;
+
+    if (typeof idle === "function") {
+      const idleId = idle(warm, { timeout: 1200 });
+      return () => {
+        (window as Window & { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback?.(idleId);
+      };
+    }
+
+    const timeoutId = window.setTimeout(warm, 600);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!addPopupOpen) return;
     let cancelled = false;
 
     const loadMeta = async () => {
       setAddMetaError(null);
+
+      if (addMetaCache && addMetaCache.expiresAt > Date.now()) {
+        setAddUserFullName(addMetaCache.userFullName);
+        setAddInstructors(addMetaCache.instructors);
+        setAddLoadingMeta(false);
+        return;
+      }
+
       setAddLoadingMeta(true);
       try {
-        const [profileRes, managersRes] = await Promise.all([
-          fetch("/api/auth/profile"),
-          fetch("/api/admin/managers"),
-        ]);
+        const meta = await fetchAddMeta();
 
-        const profileData = await profileRes.json().catch(() => ({}));
-        if (!cancelled && profileRes.ok) {
-          setAddUserFullName(profileData?.user?.profile?.full_name ?? "관리자");
-        }
-
-        const managersData = await managersRes.json().catch(() => ({}));
-        if (!cancelled && managersRes.ok && Array.isArray(managersData.managers)) {
-          const instructors: Instructor[] = managersData.managers
-            .filter((m: any) => m.is_instructor)
-            .map((m: any) => ({
-              id: m.id as string,
-              name: m.name as string,
-              instructor_color: (m.instructor_color as string) ?? null,
-            }));
-          setAddInstructors(instructors);
+        if (!cancelled) {
+          setAddUserFullName(meta.userFullName);
+          setAddInstructors(meta.instructors);
         }
       } catch {
         if (!cancelled) {
@@ -123,10 +201,13 @@ function CalendarGridClientBase({
     };
   }, [addPopupOpen]);
 
-  const handleCellClick = (dateISO: string | null) => {
+  const handleCellClick = useCallback((dateISO: string | null) => {
     // 모바일 등 onDateSelect 를 사용하는 경우: 상위에서 날짜 선택 상태만 제어
     if (onDateSelect) {
       onDateSelect(dateISO);
+      if (openRightPanelOnSelect && dateISO) {
+        rightPanel?.setOpen(true);
+      }
       return;
     }
     // 데스크톱: URL 쿼리로 이동 + 우측 패널 오픈
@@ -137,7 +218,7 @@ function CalendarGridClientBase({
     params.set("date", dateISO);
     router.push(`/?${params.toString()}`);
     rightPanel?.setOpen(true);
-  };
+  }, [month, onDateSelect, openRightPanelOnSelect, rightPanel, router, year]);
 
   const weekdays = useMemo(
     () => (columns === 5 ? ["월", "화", "수", "목", "금"] : ["일", "월", "화", "수", "목", "금", "토"]),
@@ -333,6 +414,7 @@ function CalendarGridClientBase({
                   instructors={addInstructors}
                   initialDateISO={addDateISO}
                   onSuccess={() => {
+                    notifyCalendarMonthDataChanged();
                     closeAddPopup();
                     router.refresh();
                   }}
