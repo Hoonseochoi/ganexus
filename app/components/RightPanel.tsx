@@ -87,6 +87,25 @@ function formatDateLabel(iso: string) {
   });
 }
 
+function parseHexColor(hex: string | null | undefined): { r: number; g: number; b: number } | null {
+  if (!hex) return null;
+  const normalized = hex.trim();
+  const short = normalized.match(/^#([0-9a-fA-F]{3})$/);
+  if (short) {
+    const [r, g, b] = short[1].split("").map((ch) => parseInt(ch + ch, 16));
+    return { r, g, b };
+  }
+  const full = normalized.match(/^#([0-9a-fA-F]{6})$/);
+  if (full) {
+    const value = full[1];
+    const r = parseInt(value.slice(0, 2), 16);
+    const g = parseInt(value.slice(2, 4), 16);
+    const b = parseInt(value.slice(4, 6), 16);
+    return { r, g, b };
+  }
+  return null;
+}
+
 function RightPanelBase({
   todaySchedules,
   selectedDateStr,
@@ -270,8 +289,18 @@ function RightPanelBase({
                   ? "border-amber-500 bg-amber-50"
                   : "border-slate-200 bg-slate-50";
 
+              let customStyle: React.CSSProperties | undefined;
               if (s.instructor_color) {
-                colorClass = "border-transparent bg-slate-900 text-white";
+                const rgb = parseHexColor(s.instructor_color);
+                if (rgb) {
+                  colorClass = "text-slate-900 border-transparent";
+                  customStyle = {
+                    borderColor: `rgb(${rgb.r} ${rgb.g} ${rgb.b})`,
+                    backgroundColor: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`,
+                  };
+                } else {
+                  colorClass = "border-transparent bg-slate-900 text-white";
+                }
               }
 
               const deleted = s.is_soft_deleted;
@@ -296,6 +325,7 @@ function RightPanelBase({
                         }
                       : undefined
                   }
+                  style={customStyle}
                   className={`w-full text-left p-2.5 rounded-lg border border-slate-100 border-l-4 ${colorClass} ${
                     isAdmin ? "cursor-grab active:cursor-grabbing" : ""
                   } ${deleted ? "opacity-60" : ""}`}

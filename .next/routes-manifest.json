@@ -196,6 +196,24 @@
       "namedRegex": "^/api/auth/logout(?:/)?$"
     },
     {
+      "page": "/api/auth/manager-reset-password",
+      "regex": "^/api/auth/manager\\-reset\\-password(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/auth/manager\\-reset\\-password(?:/)?$"
+    },
+    {
+      "page": "/api/auth/profile",
+      "regex": "^/api/auth/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/auth/profile(?:/)?$"
+    },
+    {
+      "page": "/api/debug-logs",
+      "regex": "^/api/debug\\-logs(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/debug\\-logs(?:/)?$"
+    },
+    {
       "page": "/api/invite/validate",
       "regex": "^/api/invite/validate(?:/)?$",
       "routeKeys": {},

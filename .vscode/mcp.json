@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "obsidian": {
+      "command": "npx",
+      "args": ["-y", "mcp-obsidian", "C:\\\\obsidian_hoons"]
+    }
+  }
+}
