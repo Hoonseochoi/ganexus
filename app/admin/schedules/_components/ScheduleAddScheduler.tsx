@@ -20,12 +20,35 @@ export interface ScheduleAddSchedulerProps {
   userFullName: string
   userAvatar?: string
   onSuccess: () => void
+  initialDateISO?: string | null
+  instructors?: { id: string; name: string; instructor_color: string | null }[]
+  mode?: "create" | "edit"
+  initialSchedule?: {
+    id: string
+    category: "dealer" | "internal" | "personal" | "leave" | "etc"
+    title: string
+    description: string | null
+    location?: string | null
+    instructor?: string | null
+    targetAudience?: string | null
+    managerName?: string | null
+    start_at: string
+    end_at: string
+    is_all_day: boolean
+    dealer_name?: string | null
+  }
+  submitLabel?: string
 }
 
 export function ScheduleAddScheduler({
   userFullName,
   userAvatar,
-  onSuccess
+  onSuccess,
+  initialDateISO,
+  instructors = [],
+  mode = "create",
+  initialSchedule,
+  submitLabel,
 }: ScheduleAddSchedulerProps) {
   const now = new Date()
   const [currentMonth, setCurrentMonth] = useState(now.getMonth())
@@ -39,9 +62,11 @@ export function ScheduleAddScheduler({
   const [category, setCategory] = useState<"dealer" | "internal" | "personal" | "leave" | "etc">("dealer")
   const [title, setTitle] = useState("")
   const [location, setLocation] = useState("")
-  const [instructor, setInstructor] = useState("")
+  const [host, setHost] = useState<string | null>(null)
   const [targetAudience, setTargetAudience] = useState("")
   const [description, setDescription] = useState("")
+
+  const effectiveMode = mode ?? "create"
 
   const CATEGORIES = [
     { value: "dealer", label: "대리점일정" },
@@ -95,6 +120,47 @@ export function ScheduleAddScheduler({
     return slots
   }, [])
 
+  // 수정 모드일 때 기존 일정 값으로 초기화
+  useEffect(() => {
+    if (effectiveMode !== "edit" || !initialSchedule) return
+
+    const d = new Date(initialSchedule.start_at)
+    setCurrentYear(d.getFullYear())
+    setCurrentMonth(d.getMonth())
+    setSelectedDate(d.getDate())
+
+    const timeStr = initialSchedule.is_all_day
+      ? "00:00"
+      : d.toLocaleTimeString("ko-KR", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+          timeZone: "Asia/Seoul",
+        })
+
+    setSelectedTime(timeStr)
+    setCategory(initialSchedule.category)
+    setTitle(
+      initialSchedule.category === "dealer"
+        ? initialSchedule.dealer_name || initialSchedule.title
+        : initialSchedule.title,
+    )
+    setLocation(initialSchedule.location || "")
+    setHost(initialSchedule.instructor || null)
+    setTargetAudience(initialSchedule.targetAudience || "")
+    setDescription(initialSchedule.description || "")
+  }, [effectiveMode, initialSchedule])
+
+  // 생성 모드에서는 외부에서 전달한 날짜를 기본 선택값으로 사용
+  useEffect(() => {
+    if (effectiveMode !== "create" || !initialDateISO) return
+    const [y, m, d] = initialDateISO.split("-").map(Number)
+    if (!y || !m || !d) return
+    setCurrentYear(y)
+    setCurrentMonth(m - 1)
+    setSelectedDate(d)
+  }, [effectiveMode, initialDateISO])
+
   const handleSubmit = async () => {
     if (!title.trim()) {
       setError("항목명을 입력해주세요.")
@@ -105,40 +171,70 @@ export function ScheduleAddScheduler({
     setError(null)
 
     try {
-      const isoDate = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDate).padStart(2, "0")}`
-      const finalTime = category === 'leave' ? '00:00' : selectedTime
+      const isoDate = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(
+        selectedDate,
+      ).padStart(2, "0")}`
+      const finalTime = category === "leave" ? "00:00" : selectedTime
       const startAt = new Date(`${isoDate}T${finalTime}:00`).toISOString()
+      const endAt = startAt
 
-      const res = await fetch("/api/schedules", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: title.trim(),
-          description: description || null,
-          category,
-          startAt,
-          isAllDay: category === 'leave',
-          location: location || null,
-          instructor: instructor || null,
-          targetAudience: targetAudience || null,
-          dealerName: category === 'dealer' ? title.trim() : null,
-          managerName: category === 'leave' ? title.trim() : null,
-        }),
-      })
+      if (effectiveMode === "create") {
+        const res = await fetch("/api/schedules", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: title.trim(),
+            description: description || null,
+            category,
+            startAt,
+            endAt,
+            isAllDay: category === "leave",
+            location: location || null,
+            instructor: host || null,
+            targetAudience: targetAudience || null,
+            dealerName: category === "dealer" ? title.trim() : null,
+            managerName: category === "leave" ? title.trim() : null,
+          }),
+        })
 
-      const data = await res.json()
-      if (!res.ok) {
-        setError(data.message ?? "일정 생성에 실패했습니다.")
-        return
+        const data = await res.json()
+        if (!res.ok) {
+          setError(data.message ?? "일정 생성에 실패했습니다.")
+          return
+        }
+
+        onSuccess()
+        // Reset (생성 모드에서만)
+        setTitle("")
+        setLocation("")
+        setHost(null)
+        setDescription("")
+        setTargetAudience("")
+      } else if (effectiveMode === "edit" && initialSchedule) {
+        const res = await fetch(`/api/schedules/${initialSchedule.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: title.trim(),
+            description: description || null,
+            category,
+            startAt,
+            endAt,
+            isAllDay: category === "leave",
+            location: location || null,
+            instructor: host || null,
+            targetAudience: targetAudience || null,
+            dealerName: category === "dealer" ? title.trim() : null,
+            managerName: category === "leave" ? title.trim() : null,
+          }),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          setError(data.message ?? "일정 수정에 실패했습니다.")
+          return
+        }
+        onSuccess()
       }
-
-      onSuccess()
-      // Reset
-      setTitle("")
-      setLocation("")
-      setInstructor("")
-      setDescription("")
-      setTargetAudience("")
     } catch (err) {
       setError("네트워크 오류가 발생했습니다.")
     } finally {
@@ -215,14 +311,40 @@ export function ScheduleAddScheduler({
              {category === 'dealer' && (
                <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-500 uppercase flex items-center gap-1.5">
-                     <User className="h-3 w-3" /> 교육자
+                     <User className="h-3 w-3" /> 진행자
                   </label>
-                  <input
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
-                    placeholder="교육자 이름을 입력하세요..."
-                    value={instructor}
-                    onChange={(e) => setInstructor(e.target.value)}
-                  />
+                  {instructors.length === 0 ? (
+                    <p className="text-[11px] text-slate-400">
+                      교육자로 지정된 멤버가 없습니다. 멤버 관리에서 교육자를 먼저 지정해주세요.
+                    </p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {instructors.map((ins) => {
+                        const selected = host === ins.name;
+                        return (
+                          <button
+                            key={ins.id}
+                            type="button"
+                            onClick={() => setHost((prev) => (prev === ins.name ? null : ins.name))}
+                            className={cn(
+                              "flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[11px] font-semibold transition-all",
+                              selected
+                                ? "bg-slate-900 text-white border-slate-900 shadow-md"
+                                : "bg-white text-slate-600 border-slate-200 hover:border-primary/40"
+                            )}
+                          >
+                            <span
+                              className="inline-flex w-3 h-3 rounded-full border border-slate-200"
+                              style={{
+                                backgroundColor: ins.instructor_color || "#2563eb",
+                              }}
+                            />
+                            <span>{ins.name}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                </div>
              )}
 
@@ -354,7 +476,11 @@ export function ScheduleAddScheduler({
              disabled={loading}
              className="w-full py-6 rounded-2xl text-sm font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all text-white"
            >
-             {loading ? "일정 등록 중..." : "일정 등록 완료"}
+             {loading
+               ? effectiveMode === "edit"
+                 ? "수정 중..."
+                 : "일정 등록 중..."
+               : submitLabel ?? (effectiveMode === "edit" ? "수정 완료" : "일정 등록 완료")}
            </Button>
            <p className="text-[10px] text-slate-400 mt-4 text-center">GA NEXUS Premium Scheduling System</p>
         </div>

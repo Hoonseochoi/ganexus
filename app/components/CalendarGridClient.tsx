@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useCallback, useMemo, FormEvent, memo } from "react";
+import { useState, useCallback, useMemo, useEffect, memo } from "react";
 import { useRouter } from "next/navigation";
 import CalendarCellDropZone from "./CalendarCellDropZone";
 import DraggableSchedulePill from "./DraggableSchedulePill";
 import { useRightPanel } from "./RightPanelCollapseWrapper";
 import { EclipseButton } from "@/app/components/ui/EclipseButton";
+import { ScheduleAddScheduler } from "@/app/admin/schedules/_components/ScheduleAddScheduler";
 
 type ScheduleItem = {
   id: string;
@@ -48,6 +49,12 @@ export type CalendarGridProps = {
   renderDetailRow?: (dateISO: string) => React.ReactNode;
 };
 
+type Instructor = {
+  id: string;
+  name: string;
+  instructor_color: string | null;
+};
+
 function CalendarGridClientBase({
   cells,
   eventsByDay,
@@ -63,11 +70,58 @@ function CalendarGridClientBase({
 }: CalendarGridProps) {
   const router = useRouter();
   const rightPanel = useRightPanel();
-  const [quickDateISO, setQuickDateISO] = useState<string | null>(null);
-  const [quickTitle, setQuickTitle] = useState("");
-  const [quickContent, setQuickContent] = useState("");
-  const [quickSaving, setQuickSaving] = useState(false);
-  const [quickError, setQuickError] = useState<string | null>(null);
+  const [addPopupOpen, setAddPopupOpen] = useState(false);
+  const [addDateISO, setAddDateISO] = useState<string | null>(null);
+  const [addLoadingMeta, setAddLoadingMeta] = useState(false);
+  const [addMetaError, setAddMetaError] = useState<string | null>(null);
+  const [addUserFullName, setAddUserFullName] = useState("관리자");
+  const [addInstructors, setAddInstructors] = useState<Instructor[]>([]);
+
+  useEffect(() => {
+    if (!addPopupOpen) return;
+    let cancelled = false;
+
+    const loadMeta = async () => {
+      setAddMetaError(null);
+      setAddLoadingMeta(true);
+      try {
+        const [profileRes, managersRes] = await Promise.all([
+          fetch("/api/auth/profile"),
+          fetch("/api/admin/managers"),
+        ]);
+
+        const profileData = await profileRes.json().catch(() => ({}));
+        if (!cancelled && profileRes.ok) {
+          setAddUserFullName(profileData?.user?.profile?.full_name ?? "관리자");
+        }
+
+        const managersData = await managersRes.json().catch(() => ({}));
+        if (!cancelled && managersRes.ok && Array.isArray(managersData.managers)) {
+          const instructors: Instructor[] = managersData.managers
+            .filter((m: any) => m.is_instructor)
+            .map((m: any) => ({
+              id: m.id as string,
+              name: m.name as string,
+              instructor_color: (m.instructor_color as string) ?? null,
+            }));
+          setAddInstructors(instructors);
+        }
+      } catch {
+        if (!cancelled) {
+          setAddMetaError("일정 작성 정보를 불러오지 못했습니다.");
+        }
+      } finally {
+        if (!cancelled) {
+          setAddLoadingMeta(false);
+        }
+      }
+    };
+
+    loadMeta();
+    return () => {
+      cancelled = true;
+    };
+  }, [addPopupOpen]);
 
   const handleCellClick = (dateISO: string | null) => {
     // 모바일 등 onDateSelect 를 사용하는 경우: 상위에서 날짜 선택 상태만 제어
@@ -191,10 +245,8 @@ function CalendarGridClientBase({
                       size="icon"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setQuickDateISO(cell.dateISO);
-                        setQuickTitle("");
-                        setQuickContent("");
-                        setQuickError(null);
+                        setAddDateISO(cell.dateISO);
+                        setAddPopupOpen(true);
                       }}
                       aria-label="퀵일정 추가"
                       className="!h-7 !w-7 !min-w-0 !p-0"
@@ -227,54 +279,11 @@ function CalendarGridClientBase({
     return result;
   }, [cells, columns, detailDateISO, eventsByDay, renderDetailRow, selectedDateStr, todayStr, handleCellClick]);
 
-  const handleQuickSubmit = useCallback(
-    async (e: FormEvent) => {
-      e.preventDefault();
-      if (!quickDateISO || !quickTitle.trim() || quickSaving) return;
-      setQuickError(null);
-      setQuickSaving(true);
-      try {
-        const [y, m, d] = quickDateISO.split("-").map(Number);
-        const localStart = new Date(y, m - 1, d, 0, 0, 0, 0);
-        const localEnd = new Date(y, m - 1, d, 23, 59, 59, 999);
-        const res = await fetch("/api/schedules", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: quickTitle.trim(),
-            description: quickContent.trim() || null,
-            startAt: localStart.toISOString(),
-            endAt: localEnd.toISOString(),
-            isAllDay: true,
-            category: "etc",
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          setQuickError(data.message ?? "일정 추가에 실패했습니다.");
-          return;
-        }
-        setQuickDateISO(null);
-        setQuickTitle("");
-        setQuickContent("");
-        router.refresh();
-      } catch {
-        setQuickError("네트워크 오류가 발생했습니다.");
-      } finally {
-        setQuickSaving(false);
-      }
-    },
-    [quickDateISO, quickTitle, quickContent, quickSaving, router],
-  );
-
-  const closeQuick = useCallback(() => {
-    if (!quickSaving) {
-      setQuickDateISO(null);
-      setQuickTitle("");
-      setQuickContent("");
-      setQuickError(null);
-    }
-  }, [quickSaving]);
+  const closeAddPopup = useCallback(() => {
+    setAddPopupOpen(false);
+    setAddDateISO(null);
+    setAddMetaError(null);
+  }, []);
 
   return (
     <>
@@ -292,60 +301,44 @@ function CalendarGridClientBase({
         {rows}
       </div>
 
-      {quickDateISO && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={closeQuick}>
+      {addPopupOpen && (
+        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 bg-black/40 overflow-y-auto" onClick={closeAddPopup}>
           <div
-            className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-sm p-5"
+            className="bg-white rounded-2xl shadow-xl max-w-6xl w-full my-3 sm:my-4 max-h-none sm:max-h-[95vh] overflow-visible sm:overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-base font-bold text-brand-black mb-4">퀵일정</h3>
-            {quickError && (
-              <p className="mb-3 text-xs text-rose-600">{quickError}</p>
-            )}
-            <form onSubmit={handleQuickSubmit} className="space-y-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">일정</label>
-                <input
-                  type="text"
-                  value={quickTitle}
-                  onChange={(e) => setQuickTitle(e.target.value)}
-                  placeholder="제목"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  required
-                  autoFocus
+            <div className="p-4 border-b flex items-center justify-between">
+              <h3 className="text-base font-bold text-brand-black">일정 추가하기</h3>
+              <EclipseButton
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={closeAddPopup}
+                aria-label="일정 추가 팝업 닫기"
+                className="!h-8 !w-8 !min-w-0 !p-0"
+              >
+                ×
+              </EclipseButton>
+            </div>
+            <div className="p-4">
+              {addMetaError && (
+                <p className="mb-3 text-xs text-rose-600">{addMetaError}</p>
+              )}
+              {addLoadingMeta ? (
+                <p className="text-xs text-brand-gray">일정 작성 정보를 불러오는 중...</p>
+              ) : (
+                <ScheduleAddScheduler
+                  mode="create"
+                  userFullName={addUserFullName}
+                  instructors={addInstructors}
+                  initialDateISO={addDateISO}
+                  onSuccess={() => {
+                    closeAddPopup();
+                    router.refresh();
+                  }}
                 />
+              )}
               </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">내용</label>
-                <textarea
-                  value={quickContent}
-                  onChange={(e) => setQuickContent(e.target.value)}
-                  placeholder="내용 (선택)"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg resize-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  rows={3}
-                />
-              </div>
-              <div className="flex gap-2 pt-2">
-                <EclipseButton
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  text="취소"
-                  onClick={closeQuick}
-                  disabled={quickSaving}
-                  className="flex-1"
-                />
-                <EclipseButton
-                  type="submit"
-                  disabled={quickSaving || !quickTitle.trim()}
-                  isLoading={quickSaving}
-                  text={quickSaving ? "저장 중..." : "추가"}
-                  variant="primary"
-                  size="sm"
-                  className="flex-1"
-                />
-              </div>
-            </form>
           </div>
         </div>
       )}
