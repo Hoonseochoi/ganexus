@@ -11,3 +11,50 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
 (Use `node --trace-warnings ...` to show where the warning was created)
 [00:00:03.273] Server  LOG     [schedules] listSchedulesForBranch: branch=GA4-7지점, schema=t_121202730
 [00:00:03.904] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:47.197] Server  LOG     [schedules] listSchedulesForBranch: branch=GA4-7지점, schema=t_121202730
+[00:00:48.531] Server  LOG     [schedules] listSchedulesForBranch: branch=GA4-7지점, schema=t_121202730
+[00:00:49.260] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:49.493] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head headCacheNode={{rsc:<Fragment>, ...}}>
+                    <__next_viewport_boundary__>
+                    <MetadataWrapper>
+                      <div
++                       hidden={true}
+-                       hidden={null}
+-                       data-wxt-integrated=""
+                      >
+                        <__next_metadata_boundary__>
++                         <Suspense name="Next.Metadata">
+-                         <div id="__endic_crx__">
+                  ...
+
+[00:01:35.643] Server  LOG     ✓ Compiled in 73ms
+[00:01:41.686] Server  LOG     ✓ Compiled in 75ms
+[00:02:20.955] Server  LOG     [schedules] listSchedulesForBranch: branch=GA4-7지점, schema=t_121202730
+[00:02:22.792] Server  LOG     ✓ Compiled in 258ms
+[00:02:42.201] Server  LOG     ✓ Compiled in 216ms
+[00:02:58.560] Server  LOG     ✓ Compiled in 339ms
+[00:02:58.827] Browser ERROR   Received `%s` for a non-boolean attribute `%s`.
+
+If you want to write it to the DOM, pass a string instead: %s="%s" or %s={value.toString()}. true n n true n
+[00:03:04.983] Server  LOG     ✓ Compiled in 173ms

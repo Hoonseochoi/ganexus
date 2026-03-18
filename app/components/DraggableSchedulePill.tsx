@@ -26,6 +26,25 @@ const CATEGORY_CLASSES: Record<string, string> = {
   etc: "border-slate-200 bg-slate-50/80 text-slate-600",
 };
 
+function parseHexColor(hex: string | null | undefined): { r: number; g: number; b: number } | null {
+  if (!hex) return null;
+  const normalized = hex.trim();
+  const short = normalized.match(/^#([0-9a-fA-F]{3})$/);
+  if (short) {
+    const [r, g, b] = short[1].split("").map((ch) => parseInt(ch + ch, 16));
+    return { r, g, b };
+  }
+  const full = normalized.match(/^#([0-9a-fA-F]{6})$/);
+  if (full) {
+    const value = full[1];
+    const r = parseInt(value.slice(0, 2), 16);
+    const g = parseInt(value.slice(2, 4), 16);
+    const b = parseInt(value.slice(4, 6), 16);
+    return { r, g, b };
+  }
+  return null;
+}
+
 export default function DraggableSchedulePill({
   schedule,
   isAdmin,
@@ -42,11 +61,15 @@ export default function DraggableSchedulePill({
   let colorClass =
     (schedule.category && CATEGORY_CLASSES[schedule.category]) ||
     CATEGORY_CLASSES.etc;
+  let customStyle: React.CSSProperties | undefined;
 
-  if (schedule.instructor_color) {
-    // 교육자 색상이 있는 경우: 글래스모피즘 느낌의 커스텀 색상
-    const base = schedule.instructor_color;
-    colorClass = `border-[${base}] bg-[${base}]/10 text-slate-900`;
+  const rgb = parseHexColor(schedule.instructor_color);
+  if (rgb) {
+    colorClass = "text-slate-900";
+    customStyle = {
+      borderColor: `rgb(${rgb.r} ${rgb.g} ${rgb.b})`,
+      backgroundColor: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`,
+    };
   }
   const baseClass = `${className} ${colorClass}`;
 
@@ -99,7 +122,7 @@ export default function DraggableSchedulePill({
 
   if (!isAdmin) {
     return (
-      <div className={`${baseClass}${clickableClass}`} onClick={handleClick} role="button" tabIndex={0}>
+      <div className={`${baseClass}${clickableClass}`} style={customStyle} onClick={handleClick} role="button" tabIndex={0}>
         {content}
       </div>
     );
@@ -123,6 +146,7 @@ export default function DraggableSchedulePill({
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.dropEffect = "move";
       }}
+      style={customStyle}
       className={`${baseClass}${clickableClass} cursor-grab active:cursor-grabbing`}
     >
       {content}

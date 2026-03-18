@@ -278,36 +278,35 @@ function RightPanelBase({
 
               const subText = subParts.join(" · ");
 
-              // Base color class based on category
-              const baseColorClass =
-                s.category === "dealer"
-                  ? "border-blue-500 bg-blue-50"
-                  : s.category === "internal"
-                  ? "border-purple-500 bg-purple-50"
-                  : s.category === "personal"
-                  ? "border-emerald-500 bg-emerald-50"
-                  : s.category === "leave"
-                  ? "border-amber-500 bg-amber-50"
-                  : "border-slate-200 bg-slate-50";
-
-              // Determine inline style for instructor color override
+              // Determine color class and inline style
               let customStyle: React.CSSProperties | undefined;
+              let colorClass = "";
               let textColorClass = "";
               
               if (s.instructor_color) {
                 const rgb = parseHexColor(s.instructor_color);
                 if (rgb) {
-                  // Inline style will override Tailwind bg and border
+                  // Use inline style for instructor color, no bg class needed
                   customStyle = {
                     borderColor: `rgb(${rgb.r} ${rgb.g} ${rgb.b})`,
                     backgroundColor: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`,
                   };
+                  colorClass = "border-l-4";
                   textColorClass = "text-slate-900";
                 }
+              } else {
+                // Use category-based colors
+                colorClass =
+                  s.category === "dealer"
+                    ? "border-blue-500 bg-blue-50 border-l-4"
+                    : s.category === "internal"
+                    ? "border-purple-500 bg-purple-50 border-l-4"
+                    : s.category === "personal"
+                    ? "border-emerald-500 bg-emerald-50 border-l-4"
+                    : s.category === "leave"
+                    ? "border-amber-500 bg-amber-50 border-l-4"
+                    : "border-slate-200 bg-slate-50 border-l-4";
               }
-
-              // Always use base color class
-              const colorClass = baseColorClass;
 
               const deleted = s.is_soft_deleted;
               return (
@@ -332,7 +331,7 @@ function RightPanelBase({
                       : undefined
                   }
                   style={customStyle}
-                  className={`w-full text-left p-2.5 rounded-lg border border-l-4 ${colorClass} ${textColorClass} ${
+                  className={`w-full text-left p-2.5 rounded-lg border ${colorClass} ${textColorClass} ${
                     isAdmin ? "cursor-grab active:cursor-grabbing" : ""
                   } ${deleted ? "opacity-60" : ""}`}
                   onClick={() => setSelectedSchedule(s)}
