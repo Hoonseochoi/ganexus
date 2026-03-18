@@ -278,7 +278,8 @@ function RightPanelBase({
 
               const subText = subParts.join(" · ");
 
-              let colorClass =
+              // Base color class based on category
+              const baseColorClass =
                 s.category === "dealer"
                   ? "border-blue-500 bg-blue-50"
                   : s.category === "internal"
@@ -289,19 +290,24 @@ function RightPanelBase({
                   ? "border-amber-500 bg-amber-50"
                   : "border-slate-200 bg-slate-50";
 
+              // Determine inline style for instructor color override
               let customStyle: React.CSSProperties | undefined;
+              let textColorClass = "";
+              
               if (s.instructor_color) {
                 const rgb = parseHexColor(s.instructor_color);
                 if (rgb) {
-                  colorClass = "text-slate-900 border-transparent";
+                  // Inline style will override Tailwind bg and border
                   customStyle = {
                     borderColor: `rgb(${rgb.r} ${rgb.g} ${rgb.b})`,
                     backgroundColor: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`,
                   };
-                } else {
-                  colorClass = "border-transparent bg-slate-900 text-white";
+                  textColorClass = "text-slate-900";
                 }
               }
+
+              // Always use base color class
+              const colorClass = baseColorClass;
 
               const deleted = s.is_soft_deleted;
               return (
@@ -326,7 +332,7 @@ function RightPanelBase({
                       : undefined
                   }
                   style={customStyle}
-                  className={`w-full text-left p-2.5 rounded-lg border border-slate-100 border-l-4 ${colorClass} ${
+                  className={`w-full text-left p-2.5 rounded-lg border border-l-4 ${colorClass} ${textColorClass} ${
                     isAdmin ? "cursor-grab active:cursor-grabbing" : ""
                   } ${deleted ? "opacity-60" : ""}`}
                   onClick={() => setSelectedSchedule(s)}

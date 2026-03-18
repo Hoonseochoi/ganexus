@@ -263,7 +263,9 @@ async function createTenantForAdmin(params) {
         manager_code text,
         company text,
         email text,
-        created_at timestamptz default timezone('utc'::text, now())
+        created_at timestamptz default timezone('utc'::text, now()),
+        is_instructor boolean default false,
+        instructor_color text
       )
     `);
         await client.query(`
@@ -365,6 +367,8 @@ __turbopack_context__.s([
     ()=>createSchedule,
     "deleteSchedule",
     ()=>deleteSchedule,
+    "getScheduleById",
+    ()=>getScheduleById,
     "getScheduleEditLogs",
     ()=>getScheduleEditLogs,
     "listSchedulesForBranch",
@@ -396,7 +400,9 @@ const CATEGORY_TO_LEGACY = {
 };
 async function listSchedulesForBranch(params) {
     const { branchName, from, to } = params;
-    const schema = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$tenant$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getTenantSchemaForBranch"])(branchName) ?? "public";
+    const tenantSchema = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$tenant$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getTenantSchemaForBranch"])(branchName);
+    const schema = tenantSchema ?? "public";
+    console.log(`[schedules] listSchedulesForBranch: branch=${branchName}, schema=${schema}`);
     const conditions = [
         "branch_name = $1"
     ];
@@ -418,10 +424,12 @@ async function listSchedulesForBranch(params) {
                s.dealer_name, s.location, s.instructor, s.target_audience, s.manager_name,
                s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at, s.is_soft_deleted,
                p1.full_name as creator_full_name,
+               p3.instructor_color as instructor_color,
                p2.full_name as target_full_name
         from ${schema}.schedules s
         left join public.profiles p1 on s.created_by::text = p1.id::text
         left join public.profiles p2 on s.manager_name = p2.full_name and s.branch_name = p2.branch_name
+        left join public.profiles p3 on s.instructor = p3.full_name and s.branch_name = p3.branch_name and p3.is_instructor = true
         where s.${where}
         order by s.is_soft_deleted asc, s.start_at asc
       `, values);
@@ -435,6 +443,35 @@ async function listSchedulesForBranch(params) {
             return [];
         }
         if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["isColumnNotFound"])(err)) {
+            console.warn("[schedules] listSchedulesForBranch: 컬럼 누락 → instructor만 읽는 최소 쿼리로 재시도");
+            try {
+                const mid = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["query"])(`
+            select s.id, s.branch_name, s.title, s.description, s.category,
+                   s.instructor,
+                   s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at,
+                   p1.full_name as creator_full_name
+            from ${schema}.schedules s
+            left join public.profiles p1 on s.created_by::text = p1.id::text
+            where s.${where}
+            order by s.start_at asc
+          `, values);
+                return mid.map((r)=>({
+                        ...r,
+                        category: LEGACY_TO_CATEGORY[r.category] || r.category,
+                        dealer_name: null,
+                        location: null,
+                        instructor: r.instructor,
+                        target_audience: null,
+                        manager_name: null,
+                        instructor_color: null,
+                        is_soft_deleted: false,
+                        target_full_name: null,
+                        target_avatar_url: null
+                    }));
+            } catch (err2) {
+                if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["isColumnNotFound"])(err2) && !(0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["isRelationNotFound"])(err2)) throw err2;
+            }
+            console.warn("[schedules] listSchedulesForBranch: instructor 컬럼도 없음 → 풀 레거시 폴백");
             const legacy = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["query"])(`
           select s.id, s.branch_name, s.title, s.description, s.category,
                  s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at,
@@ -743,6 +780,91 @@ async function deleteSchedule(params) {
         id,
         branchName
     ]);
+}
+async function getScheduleById(params) {
+    const { id, branchName } = params;
+    const schema = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$tenant$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getTenantSchemaForBranch"])(branchName) ?? "public";
+    try {
+        const rows = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["query"])(`select s.id, s.branch_name, s.title, s.description, s.category,
+              s.dealer_name, s.location, s.instructor, s.target_audience, s.manager_name,
+              s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at, s.is_soft_deleted,
+              p1.full_name as creator_full_name,
+              p3.instructor_color as instructor_color,
+              p2.full_name as target_full_name
+       from ${schema}.schedules s
+       left join public.profiles p1 on s.created_by::text = p1.id::text
+       left join public.profiles p2 on s.manager_name = p2.full_name and s.branch_name = p2.branch_name
+       left join public.profiles p3 on s.instructor = p3.full_name and s.branch_name = p3.branch_name and p3.is_instructor = true
+       where s.id = $1 and s.branch_name = $2
+       limit 1`, [
+            id,
+            branchName
+        ]);
+        return rows[0] ?? null;
+    } catch (err) {
+        if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["isRelationNotFound"])(err)) {
+            console.warn("[schedules] schedules 테이블이 없어 null을 반환합니다.");
+            return null;
+        }
+        if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["isColumnNotFound"])(err)) {
+            console.warn("[schedules] getScheduleById: 컬럼 누락 → instructor만 읽는 최소 쿼리로 재시도");
+            try {
+                const midRows = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["query"])(`select s.id, s.branch_name, s.title, s.description, s.category,
+                  s.instructor,
+                  s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at,
+                  p1.full_name as creator_full_name
+           from ${schema}.schedules s
+           left join public.profiles p1 on s.created_by::text = p1.id::text
+           where s.id = $1 and s.branch_name = $2
+           limit 1`, [
+                    id,
+                    branchName
+                ]);
+                const r = midRows[0];
+                if (!r) return null;
+                return {
+                    ...r,
+                    category: LEGACY_TO_CATEGORY[r.category] || r.category,
+                    dealer_name: null,
+                    location: null,
+                    instructor: r.instructor,
+                    target_audience: null,
+                    manager_name: null,
+                    instructor_color: null,
+                    is_soft_deleted: false,
+                    target_full_name: null,
+                    target_avatar_url: null
+                };
+            } catch (err2) {
+                if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["isColumnNotFound"])(err2) && !(0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["isRelationNotFound"])(err2)) throw err2;
+            }
+            console.warn("[schedules] getScheduleById: instructor 컬럼도 없음 → 풀 레거시 폴백");
+            const rows = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["query"])(`select s.id, s.branch_name, s.title, s.description, s.category,
+                s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at,
+                p.full_name as creator_full_name
+         from ${schema}.schedules s
+         left join public.profiles p on s.created_by::text = p.id::text
+         where s.id = $1 and s.branch_name = $2
+         limit 1`, [
+                id,
+                branchName
+            ]);
+            const r = rows[0];
+            if (!r) return null;
+            return {
+                ...r,
+                category: LEGACY_TO_CATEGORY[r.category] || r.category,
+                dealer_name: null,
+                location: null,
+                instructor: null,
+                target_audience: null,
+                manager_name: r.category === "vacation" ? r.title : null,
+                target_full_name: r.category === "vacation" ? r.title : null,
+                target_avatar_url: null
+            };
+        }
+        throw err;
+    }
 }
 __turbopack_async_result__();
 } catch(e) { __turbopack_async_result__(e); } }, false);}),
@@ -1163,19 +1285,33 @@ var __turbopack_async_dependencies__ = __turbopack_handle_async_dependencies__([
 ;
 ;
 ;
+function getKoreaNow() {
+    const now = new Date();
+    const koreaString = now.toLocaleString("en-US", {
+        timeZone: "Asia/Seoul"
+    });
+    return new Date(koreaString);
+}
+function getKoreaDateFromISO(iso) {
+    const d = new Date(iso);
+    const koreaString = d.toLocaleString("en-US", {
+        timeZone: "Asia/Seoul"
+    });
+    return new Date(koreaString);
+}
 async function Page({ searchParams }) {
     const user = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$auth$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getCurrentUser"])();
     if (!user) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$LandingPage$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-            lineNumber: 37,
+            lineNumber: 49,
             columnNumber: 12
         }, this);
     }
     if (user.role === "manager" && user.profile && !user.profile.is_approved) {
         (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$client$2f$components$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["redirect"])("/pending-approval");
     }
-    const now = new Date();
+    const now = getKoreaNow();
     const params = await searchParams?.catch(()=>({})) ?? {};
     const year = params.year ? parseInt(params.year, 10) : now.getFullYear();
     const month = params.month ? parseInt(params.month, 10) - 1 : now.getMonth();
@@ -1195,18 +1331,29 @@ async function Page({ searchParams }) {
     // 일정 조회 (현재 달 범위만)
     let schedules = [];
     if (user?.profile?.branch_name) {
-        const startOfMonthISO = new Date(year, month, 1).toISOString();
-        const endOfMonthISO = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
+        const fromDate = new Date(year, month, 1);
+        fromDate.setDate(fromDate.getDate() - 7);
+        const toDate = new Date(year, month + 1, 0, 23, 59, 59);
+        toDate.setDate(toDate.getDate() + 7);
+        const startOfMonthISO = fromDate.toISOString();
+        const endOfMonthISO = toDate.toISOString();
         schedules = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$schedules$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["listSchedulesForBranch"])({
             branchName: user.profile.branch_name,
             from: startOfMonthISO,
             to: endOfMonthISO
         });
     }
+    const uniqueSchedules = [];
+    const seenScheduleIds = new Set();
+    for (const schedule of schedules){
+        if (seenScheduleIds.has(schedule.id)) continue;
+        seenScheduleIds.add(schedule.id);
+        uniqueSchedules.push(schedule);
+    }
     const eventsByDay = new Map();
     const eventsByDateStr = {};
-    for (const s of schedules){
-        const d = new Date(s.start_at);
+    for (const s of uniqueSchedules){
+        const d = getKoreaDateFromISO(s.start_at);
         if (d.getFullYear() === year && d.getMonth() === month) {
             const day = d.getDate();
             if (!eventsByDay.has(day)) eventsByDay.set(day, []);
@@ -1274,17 +1421,17 @@ async function Page({ searchParams }) {
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "w-10 h-10 rounded-lg overflow-hidden bg-white flex items-center justify-center",
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
-                            src: "/galender_icon.png",
+                            src: "/galenderciapp.png",
                             alt: "GALENDER 로고",
                             className: "h-10 w-auto"
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                            lineNumber: 158,
+                            lineNumber: 175,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                        lineNumber: 157,
+                        lineNumber: 174,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1294,7 +1441,7 @@ async function Page({ searchParams }) {
                                 children: "GALENDER"
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                                lineNumber: 165,
+                                lineNumber: 182,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1302,19 +1449,19 @@ async function Page({ searchParams }) {
                                 children: user?.profile?.full_name ? `${user.profile.full_name}님, 환영합니다!` : "우리만의 GA 캘린더"
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                                lineNumber: 168,
+                                lineNumber: 185,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                        lineNumber: 164,
+                        lineNumber: 181,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                lineNumber: 156,
+                lineNumber: 173,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
@@ -1327,22 +1474,22 @@ async function Page({ searchParams }) {
                             children: "Main Calendar"
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                            lineNumber: 177,
+                            lineNumber: 194,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                        lineNumber: 176,
+                        lineNumber: 193,
                         columnNumber: 9
                     }, this),
                     user?.role === "admin" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$AdminSettingsMenu$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                        lineNumber: 180,
+                        lineNumber: 197,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$LeftPanelBranchMembers$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                        lineNumber: 182,
+                        lineNumber: 199,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1357,23 +1504,23 @@ async function Page({ searchParams }) {
                                 children: "로그아웃"
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                                lineNumber: 189,
+                                lineNumber: 206,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                            lineNumber: 184,
+                            lineNumber: 201,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                        lineNumber: 183,
+                        lineNumber: 200,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                lineNumber: 175,
+                lineNumber: 192,
                 columnNumber: 7
             }, this)
         ]
@@ -1398,7 +1545,7 @@ async function Page({ searchParams }) {
                                                 children: [
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$DesktopShell$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["DesktopShellHamburger"], {}, void 0, false, {
                                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                                                        lineNumber: 211,
+                                                        lineNumber: 228,
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$CalendarMonthNav$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {
@@ -1406,13 +1553,13 @@ async function Page({ searchParams }) {
                                                         month: month
                                                     }, void 0, false, {
                                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                                                        lineNumber: 212,
+                                                        lineNumber: 229,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                                                lineNumber: 210,
+                                                lineNumber: 227,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1425,23 +1572,23 @@ async function Page({ searchParams }) {
                                                         type: "text"
                                                     }, void 0, false, {
                                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                                                        lineNumber: 216,
+                                                        lineNumber: 233,
                                                         columnNumber: 19
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                                                    lineNumber: 215,
+                                                    lineNumber: 232,
                                                     columnNumber: 17
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                                                lineNumber: 214,
+                                                lineNumber: 231,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                                        lineNumber: 209,
+                                        lineNumber: 226,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1469,7 +1616,9 @@ async function Page({ searchParams }) {
                                                                 is_all_day: s.is_all_day,
                                                                 category: s.category,
                                                                 creator_full_name: s.creator_full_name,
-                                                                creator_avatar_url: s.creator_avatar_url
+                                                                creator_avatar_url: s.creator_avatar_url,
+                                                                instructor: s.instructor ?? null,
+                                                                instructor_color: s.instructor_color ?? null
                                                             }))
                                                     ])),
                                                 year: year,
@@ -1480,23 +1629,23 @@ async function Page({ searchParams }) {
                                                 todayStr: todayStr
                                             }, void 0, false, {
                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                                                lineNumber: 227,
+                                                lineNumber: 244,
                                                 columnNumber: 13
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                                            lineNumber: 226,
+                                            lineNumber: 243,
                                             columnNumber: 11
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                                        lineNumber: 225,
+                                        lineNumber: 242,
                                         columnNumber: 9
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                                lineNumber: 208,
+                                lineNumber: 225,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$RightPanelCollapseWrapper$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {
@@ -1513,35 +1662,39 @@ async function Page({ searchParams }) {
                                             location: s.location ?? null,
                                             instructor: s.instructor ?? null,
                                             target_audience: s.target_audience ?? null,
-                                            manager_name: s.manager_name ?? null
+                                            manager_name: s.manager_name ?? null,
+                                            creator_full_name: s.creator_full_name,
+                                            creator_avatar_url: s.creator_avatar_url,
+                                            instructor_color: s.instructor_color ?? null
                                         })),
                                     selectedDateStr: displayDateStr,
                                     isAdmin: user?.role === "admin",
-                                    canAddSchedule: user?.role === "admin" || user?.role === "manager" || user?.role === "agent" || user?.profile?.role === "manager" || user?.profile?.role === "agent"
+                                    canAddSchedule: user?.role === "admin" || user?.role === "manager" || user?.role === "agent" || user?.profile?.role === "manager" || user?.profile?.role === "agent",
+                                    currentUserFullName: user?.profile?.full_name ?? null
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                                    lineNumber: 266,
+                                    lineNumber: 285,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                                lineNumber: 265,
+                                lineNumber: 284,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                        lineNumber: 206,
+                        lineNumber: 223,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                    lineNumber: 205,
+                    lineNumber: 222,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                lineNumber: 204,
+                lineNumber: 221,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$MobileCalendarShell$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {
@@ -1570,7 +1723,8 @@ async function Page({ searchParams }) {
                                 target_audience: s.target_audience ?? null,
                                 manager_name: s.manager_name ?? null,
                                 creator_full_name: s.creator_full_name,
-                                creator_avatar_url: s.creator_avatar_url
+                                creator_avatar_url: s.creator_avatar_url,
+                                instructor_color: s.instructor_color ?? null
                             }))
                     ])),
                 year: year,
@@ -1594,19 +1748,21 @@ async function Page({ searchParams }) {
                                 target_audience: s.target_audience ?? null,
                                 manager_name: s.manager_name ?? null,
                                 creator_full_name: s.creator_full_name,
-                                creator_avatar_url: s.creator_avatar_url
+                                creator_avatar_url: s.creator_avatar_url,
+                                instructor_color: s.instructor_color ?? null
                             }))
                     ])),
-                userFullName: user?.profile?.full_name ?? null
+                userFullName: user?.profile?.full_name ?? null,
+                branchName: user?.profile?.branch_name ?? null
             }, void 0, false, {
                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-                lineNumber: 297,
+                lineNumber: 320,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/page.tsx",
-        lineNumber: 202,
+        lineNumber: 219,
         columnNumber: 5
     }, this);
 }

@@ -295,7 +295,9 @@ async function createTenantForAdmin(params) {
         manager_code text,
         company text,
         email text,
-        created_at timestamptz default timezone('utc'::text, now())
+        created_at timestamptz default timezone('utc'::text, now()),
+        is_instructor boolean default false,
+        instructor_color text
       )
     `);
         await client.query(`
@@ -432,29 +434,66 @@ async function listManagersForBranch(branchName) {
 }
 async function listAllBranchMembers(branchName) {
     // 멤버 관리는 전역 public.profiles 기준으로 조회한다.
-    const rows = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["query"])(`
-      select id, full_name, branch_name, phone_number, role, created_at
-      from public.profiles
-      where
-        is_approved = true
-        and role in ('admin', 'manager', 'agent')
-        and (
-          branch_name = $1
-          or invite_code in (
-            select code from public.invite_codes where branch_name = $1
+    try {
+        const rows = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["query"])(`
+        select id, full_name, branch_name, phone_number, role,
+               is_instructor, instructor_color,
+               created_at
+        from public.profiles
+        where
+          is_approved = true
+          and role in ('admin', 'manager', 'agent')
+          and (
+            branch_name = $1
+            or invite_code in (
+              select code from public.invite_codes where branch_name = $1
+            )
           )
-        )
-      order by
-        case role
-          when 'admin' then 1
-          when 'manager' then 2
-          else 3
-        end,
-        created_at asc
-    `, [
-        branchName
-    ]);
-    return rows;
+        order by
+          case role
+            when 'admin' then 1
+            when 'manager' then 2
+            else 3
+          end,
+          created_at asc
+      `, [
+            branchName
+        ]);
+        return rows;
+    } catch (err) {
+        // 아직 is_instructor / instructor_color 컬럼이 없는 레거시 스키마 대응
+        if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["isColumnNotFound"])(err)) {
+            const rows = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$src$2f$lib$2f$engines$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["query"])(`
+          select id, full_name, branch_name, phone_number, role,
+                 created_at
+          from public.profiles
+          where
+            is_approved = true
+            and role in ('admin', 'manager', 'agent')
+            and (
+              branch_name = $1
+              or invite_code in (
+                select code from public.invite_codes where branch_name = $1
+              )
+            )
+          order by
+            case role
+              when 'admin' then 1
+              when 'manager' then 2
+              else 3
+            end,
+            created_at asc
+        `, [
+                branchName
+            ]);
+            return rows.map((r)=>({
+                    ...r,
+                    is_instructor: false,
+                    instructor_color: null
+                }));
+        }
+        throw err;
+    }
 }
 __turbopack_async_result__();
 } catch(e) { __turbopack_async_result__(e); } }, false);}),

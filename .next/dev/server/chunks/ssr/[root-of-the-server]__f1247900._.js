@@ -1278,16 +1278,24 @@ function RightPanelBase({ todaySchedules, selectedDateStr, isAdmin, canAddSchedu
                                 subParts.push(`${formatTime(s.start_at)} - ${formatTime(s.end_at)}`);
                             }
                             const subText = subParts.join(" · ");
-                            let colorClass = s.category === "dealer" ? "border-blue-500 bg-blue-50" : s.category === "internal" ? "border-purple-500 bg-purple-50" : s.category === "personal" ? "border-emerald-500 bg-emerald-50" : s.category === "leave" ? "border-amber-500 bg-amber-50" : "border-slate-200 bg-slate-50";
-                            let cardStyle;
-                            const rgb = parseHexColor(s.instructor_color);
-                            if (rgb) {
-                                colorClass = "border-transparent";
-                                cardStyle = {
-                                    backgroundColor: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`,
-                                    borderLeftColor: `rgb(${rgb.r} ${rgb.g} ${rgb.b})`
-                                };
+                            // Base color class based on category
+                            const baseColorClass = s.category === "dealer" ? "border-blue-500 bg-blue-50" : s.category === "internal" ? "border-purple-500 bg-purple-50" : s.category === "personal" ? "border-emerald-500 bg-emerald-50" : s.category === "leave" ? "border-amber-500 bg-amber-50" : "border-slate-200 bg-slate-50";
+                            // Determine inline style for instructor color override
+                            let customStyle;
+                            let textColorClass = "";
+                            if (s.instructor_color) {
+                                const rgb = parseHexColor(s.instructor_color);
+                                if (rgb) {
+                                    // Inline style will override Tailwind bg and border
+                                    customStyle = {
+                                        borderColor: `rgb(${rgb.r} ${rgb.g} ${rgb.b})`,
+                                        backgroundColor: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`
+                                    };
+                                    textColorClass = "text-slate-900";
+                                }
                             }
+                            // Always use base color class
+                            const colorClass = baseColorClass;
                             const deleted = s.is_soft_deleted;
                             return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                 type: "button",
@@ -1304,8 +1312,8 @@ function RightPanelBase({ todaySchedules, selectedDateStr, isAdmin, canAddSchedu
                                     e.dataTransfer.effectAllowed = "move";
                                     e.dataTransfer.dropEffect = "move";
                                 } : undefined,
-                                className: `w-full text-left p-2.5 rounded-lg border border-slate-100 border-l-4 ${colorClass} ${isAdmin ? "cursor-grab active:cursor-grabbing" : ""} ${deleted ? "opacity-60" : ""}`,
-                                style: cardStyle,
+                                style: customStyle,
+                                className: `w-full text-left p-2.5 rounded-lg border border-l-4 ${colorClass} ${textColorClass} ${isAdmin ? "cursor-grab active:cursor-grabbing" : ""} ${deleted ? "opacity-60" : ""}`,
                                 onClick: ()=>setSelectedSchedule(s),
                                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "flex items-center gap-2",
@@ -1317,7 +1325,7 @@ function RightPanelBase({ todaySchedules, selectedDateStr, isAdmin, canAddSchedu
                                                     src: (s.category === "leave" ? s.target_avatar_url : s.creator_avatar_url) || ""
                                                 }, void 0, false, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                    lineNumber: 331,
+                                                    lineNumber: 342,
                                                     columnNumber: 23
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["AvatarFallback"], {
@@ -1325,13 +1333,13 @@ function RightPanelBase({ todaySchedules, selectedDateStr, isAdmin, canAddSchedu
                                                     children: (s.category === "leave" ? s.target_full_name || s.manager_name || s.title : s.creator_full_name || s.title)?.[0] || "?"
                                                 }, void 0, false, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                    lineNumber: 332,
+                                                    lineNumber: 343,
                                                     columnNumber: 23
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                            lineNumber: 330,
+                                            lineNumber: 341,
                                             columnNumber: 21
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1348,26 +1356,26 @@ function RightPanelBase({ todaySchedules, selectedDateStr, isAdmin, canAddSchedu
                                                                         children: "[월차]"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                                        lineNumber: 345,
+                                                                        lineNumber: 356,
                                                                         columnNumber: 31
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {}, void 0, false, {
                                                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                                        lineNumber: 346,
+                                                                        lineNumber: 357,
                                                                         columnNumber: 31
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                         children: s.target_full_name || s.manager_name || s.title
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                                        lineNumber: 347,
+                                                                        lineNumber: 358,
                                                                         columnNumber: 31
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true) : s.category === "dealer" ? `${s.title}${s.instructor ? ` / ${s.instructor}` : ""} / ${formatTime(s.start_at)}` : `${s.title} / ${formatTime(s.start_at)}`
                                                         }, void 0, false, {
                                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                            lineNumber: 338,
+                                                            lineNumber: 349,
                                                             columnNumber: 25
                                                         }, this),
                                                         s.category !== "leave" && !s.is_all_day && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1375,13 +1383,13 @@ function RightPanelBase({ todaySchedules, selectedDateStr, isAdmin, canAddSchedu
                                                             children: formatTime(s.start_at)
                                                         }, void 0, false, {
                                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                            lineNumber: 356,
+                                                            lineNumber: 367,
                                                             columnNumber: 27
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                    lineNumber: 337,
+                                                    lineNumber: 348,
                                                     columnNumber: 23
                                                 }, this),
                                                 s.description && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1389,24 +1397,24 @@ function RightPanelBase({ todaySchedules, selectedDateStr, isAdmin, canAddSchedu
                                                     children: s.description
                                                 }, void 0, false, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                    lineNumber: 362,
+                                                    lineNumber: 373,
                                                     columnNumber: 25
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                            lineNumber: 336,
+                                            lineNumber: 347,
                                             columnNumber: 21
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                    lineNumber: 329,
+                                    lineNumber: 340,
                                     columnNumber: 19
                                 }, this)
                             }, s.id, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                lineNumber: 303,
+                                lineNumber: 314,
                                 columnNumber: 17
                             }, this);
                         })
@@ -1420,7 +1428,7 @@ function RightPanelBase({ todaySchedules, selectedDateStr, isAdmin, canAddSchedu
                         children: "메모"
                     }, void 0, false, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                        lineNumber: 379,
+                        lineNumber: 390,
                         columnNumber: 9
                     }, this),
                     error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1428,7 +1436,7 @@ function RightPanelBase({ todaySchedules, selectedDateStr, isAdmin, canAddSchedu
                         children: error
                     }, void 0, false, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                        lineNumber: 381,
+                        lineNumber: 392,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -1444,7 +1452,7 @@ function RightPanelBase({ todaySchedules, selectedDateStr, isAdmin, canAddSchedu
                                 disabled: sendingMemo
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                lineNumber: 386,
+                                lineNumber: 397,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$EclipseButton$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["EclipseButton"], {
@@ -1456,13 +1464,13 @@ function RightPanelBase({ todaySchedules, selectedDateStr, isAdmin, canAddSchedu
                                 className: "mt-1 w-full"
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                lineNumber: 394,
+                                lineNumber: 405,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                        lineNumber: 385,
+                        lineNumber: 396,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1472,7 +1480,7 @@ function RightPanelBase({ todaySchedules, selectedDateStr, isAdmin, canAddSchedu
                             children: "불러오는 중..."
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                            lineNumber: 405,
+                            lineNumber: 416,
                             columnNumber: 13
                         }, this) : memos.map((m)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "p-2.5 rounded-lg border border-slate-100 bg-white text-sm",
@@ -1482,7 +1490,7 @@ function RightPanelBase({ todaySchedules, selectedDateStr, isAdmin, canAddSchedu
                                         children: m.content
                                     }, void 0, false, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                        lineNumber: 412,
+                                        lineNumber: 423,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1494,18 +1502,18 @@ function RightPanelBase({ todaySchedules, selectedDateStr, isAdmin, canAddSchedu
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                        lineNumber: 413,
+                                        lineNumber: 424,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, m.id, true, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                lineNumber: 408,
+                                lineNumber: 419,
                                 columnNumber: 15
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                        lineNumber: 403,
+                        lineNumber: 414,
                         columnNumber: 9
                     }, this)
                 ]
@@ -1524,7 +1532,7 @@ function RightPanelBase({ todaySchedules, selectedDateStr, isAdmin, canAddSchedu
                 }
             }, void 0, false, {
                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                lineNumber: 423,
+                lineNumber: 434,
                 columnNumber: 9
             }, this),
             selectedSchedule && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(ScheduleDetailPopup, {
@@ -1534,7 +1542,7 @@ function RightPanelBase({ todaySchedules, selectedDateStr, isAdmin, canAddSchedu
                 onClose: ()=>setSelectedSchedule(null)
             }, void 0, false, {
                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                lineNumber: 434,
+                lineNumber: 445,
                 columnNumber: 9
             }, this)
         ]
@@ -1663,7 +1671,7 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                             children: editing ? "일정 수정" : schedule.title
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                            lineNumber: 578,
+                            lineNumber: 589,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1687,17 +1695,17 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                                             fill: "currentColor"
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                            lineNumber: 598,
+                                            lineNumber: 609,
                                             columnNumber: 19
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                        lineNumber: 593,
+                                        lineNumber: 604,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                    lineNumber: 583,
+                                    lineNumber: 594,
                                     columnNumber: 15
                                 }, this),
                                 !editing && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$EclipseButton$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["EclipseButton"], {
@@ -1709,7 +1717,7 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                                     className: "!text-xs"
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                    lineNumber: 606,
+                                    lineNumber: 617,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$EclipseButton$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["EclipseButton"], {
@@ -1722,19 +1730,19 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                                     children: "×"
                                 }, void 0, false, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                    lineNumber: 615,
+                                    lineNumber: 626,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                            lineNumber: 581,
+                            lineNumber: 592,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                    lineNumber: 577,
+                    lineNumber: 588,
                     columnNumber: 9
                 }, this),
                 editing ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1745,7 +1753,7 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                             children: "교육자 정보를 불러오는 중..."
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                            lineNumber: 631,
+                            lineNumber: 642,
                             columnNumber: 15
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$admin$2f$schedules$2f$_components$2f$ScheduleAddScheduler$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ScheduleAddScheduler"], {
@@ -1761,13 +1769,13 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                             }
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                            lineNumber: 635,
+                            lineNumber: 646,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                    lineNumber: 629,
+                    lineNumber: 640,
                     columnNumber: 11
                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "p-5",
@@ -1786,7 +1794,7 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                             ]
                         }, void 0, true, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                            lineNumber: 650,
+                            lineNumber: 661,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1801,14 +1809,14 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                                                     children: "교육자"
                                                 }, void 0, false, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                    lineNumber: 666,
+                                                    lineNumber: 677,
                                                     columnNumber: 23
                                                 }, this),
                                                 schedule.instructor
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                            lineNumber: 665,
+                                            lineNumber: 676,
                                             columnNumber: 21
                                         }, this),
                                         schedule.location && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1818,14 +1826,14 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                                                     children: "장소"
                                                 }, void 0, false, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                    lineNumber: 674,
+                                                    lineNumber: 685,
                                                     columnNumber: 23
                                                 }, this),
                                                 schedule.location
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                            lineNumber: 673,
+                                            lineNumber: 684,
                                             columnNumber: 21
                                         }, this)
                                     ]
@@ -1839,14 +1847,14 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                                                     children: "대상자"
                                                 }, void 0, false, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                    lineNumber: 686,
+                                                    lineNumber: 697,
                                                     columnNumber: 23
                                                 }, this),
                                                 schedule.target_audience
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                            lineNumber: 685,
+                                            lineNumber: 696,
                                             columnNumber: 21
                                         }, this),
                                         schedule.location && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1856,14 +1864,14 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                                                     children: "장소"
                                                 }, void 0, false, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                    lineNumber: 694,
+                                                    lineNumber: 705,
                                                     columnNumber: 23
                                                 }, this),
                                                 schedule.location
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                            lineNumber: 693,
+                                            lineNumber: 704,
                                             columnNumber: 21
                                         }, this)
                                     ]
@@ -1875,14 +1883,14 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                                             children: "장소"
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                            lineNumber: 704,
+                                            lineNumber: 715,
                                             columnNumber: 19
                                         }, this),
                                         schedule.location
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                    lineNumber: 703,
+                                    lineNumber: 714,
                                     columnNumber: 17
                                 }, this),
                                 isLeave && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1893,13 +1901,13 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                    lineNumber: 709,
+                                    lineNumber: 720,
                                     columnNumber: 17
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                            lineNumber: 661,
+                            lineNumber: 672,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1909,18 +1917,18 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                                 children: "설명이 없습니다."
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                lineNumber: 718,
+                                lineNumber: 729,
                                 columnNumber: 17
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                            lineNumber: 714,
+                            lineNumber: 725,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                    lineNumber: 649,
+                    lineNumber: 660,
                     columnNumber: 11
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1931,7 +1939,7 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                             children: "수정 이력"
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                            lineNumber: 725,
+                            lineNumber: 736,
                             columnNumber: 13
                         }, this),
                         loadingLogs ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1939,14 +1947,14 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                             children: "불러오는 중..."
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                            lineNumber: 729,
+                            lineNumber: 740,
                             columnNumber: 15
                         }, this) : logs.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                             className: "text-xs text-brand-gray",
                             children: "수정 이력이 없습니다."
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                            lineNumber: 731,
+                            lineNumber: 742,
                             columnNumber: 15
                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
                             className: "space-y-1.5 max-h-40 overflow-y-auto pr-1",
@@ -1964,7 +1972,7 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                    lineNumber: 740,
+                                                    lineNumber: 751,
                                                     columnNumber: 23
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1978,13 +1986,13 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                                                     })
                                                 }, void 0, false, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                    lineNumber: 743,
+                                                    lineNumber: 754,
                                                     columnNumber: 23
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                            lineNumber: 739,
+                                            lineNumber: 750,
                                             columnNumber: 21
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1996,7 +2004,7 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                                                             children: field
                                                         }, void 0, false, {
                                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                            lineNumber: 757,
+                                                            lineNumber: 768,
                                                             columnNumber: 29
                                                         }, this),
                                                         ":",
@@ -2008,40 +2016,40 @@ function ScheduleDetailPopup({ schedule, onClose, isAdmin, currentUserFullName }
                                                     ]
                                                 }, field, true, {
                                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                    lineNumber: 756,
+                                                    lineNumber: 767,
                                                     columnNumber: 27
                                                 }, this))
                                         }, void 0, false, {
                                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                            lineNumber: 753,
+                                            lineNumber: 764,
                                             columnNumber: 21
                                         }, this)
                                     ]
                                 }, log.id, true, {
                                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                    lineNumber: 735,
+                                    lineNumber: 746,
                                     columnNumber: 19
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                            lineNumber: 733,
+                            lineNumber: 744,
                             columnNumber: 15
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                    lineNumber: 724,
+                    lineNumber: 735,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-            lineNumber: 573,
+            lineNumber: 584,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-        lineNumber: 569,
+        lineNumber: 580,
         columnNumber: 5
     }, this);
 }
@@ -2189,7 +2197,7 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                 children: showForm ? mode === "create" ? "공지 작성" : "공지 수정" : "공지사항"
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                lineNumber: 915,
+                                lineNumber: 926,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$EclipseButton$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["EclipseButton"], {
@@ -2202,13 +2210,13 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                 children: "×"
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                lineNumber: 918,
+                                lineNumber: 929,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                        lineNumber: 914,
+                        lineNumber: 925,
                         columnNumber: 11
                     }, this),
                     error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2216,7 +2224,7 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                         children: error
                     }, void 0, false, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                        lineNumber: 931,
+                        lineNumber: 942,
                         columnNumber: 13
                     }, this),
                     showForm ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -2226,7 +2234,7 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                 children: "제목"
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                lineNumber: 938,
+                                lineNumber: 949,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -2237,7 +2245,7 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                 placeholder: "제목"
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                lineNumber: 941,
+                                lineNumber: 952,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -2245,7 +2253,7 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                 children: "본문"
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                lineNumber: 948,
+                                lineNumber: 959,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("textarea", {
@@ -2256,7 +2264,7 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                 placeholder: "내용"
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                lineNumber: 951,
+                                lineNumber: 962,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -2264,7 +2272,7 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                 children: "이미지 첨부"
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                lineNumber: 958,
+                                lineNumber: 969,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -2275,7 +2283,7 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                 className: "mb-2 block w-full text-sm text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-primary/10 file:text-primary file:text-sm"
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                lineNumber: 961,
+                                lineNumber: 972,
                                 columnNumber: 15
                             }, this),
                             uploading && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2283,7 +2291,7 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                 children: "업로드 중..."
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                lineNumber: 969,
+                                lineNumber: 980,
                                 columnNumber: 17
                             }, this),
                             imageUrl && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2295,7 +2303,7 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                         className: "max-h-40 rounded-lg border border-slate-200"
                                     }, void 0, false, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                        lineNumber: 973,
+                                        lineNumber: 984,
                                         columnNumber: 19
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$EclipseButton$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["EclipseButton"], {
@@ -2307,13 +2315,13 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                         className: "mt-1"
                                     }, void 0, false, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                        lineNumber: 978,
+                                        lineNumber: 989,
                                         columnNumber: 19
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                lineNumber: 972,
+                                lineNumber: 983,
                                 columnNumber: 17
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2329,7 +2337,7 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                         className: "flex-1"
                                     }, void 0, false, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                        lineNumber: 989,
+                                        lineNumber: 1000,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$EclipseButton$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["EclipseButton"], {
@@ -2339,13 +2347,13 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                         onClick: ()=>notice ? setMode("view") : onClose()
                                     }, void 0, false, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                        lineNumber: 998,
+                                        lineNumber: 1009,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                lineNumber: 988,
+                                lineNumber: 999,
                                 columnNumber: 15
                             }, this)
                         ]
@@ -2358,7 +2366,7 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                         children: notice.title
                                     }, void 0, false, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                        lineNumber: 1010,
+                                        lineNumber: 1021,
                                         columnNumber: 19
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2366,7 +2374,7 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                         children: notice.body || "내용 없음"
                                     }, void 0, false, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                        lineNumber: 1013,
+                                        lineNumber: 1024,
                                         columnNumber: 19
                                     }, this),
                                     notice.image_url && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
@@ -2375,7 +2383,7 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                         className: "mb-4 max-h-48 rounded-lg border border-slate-200 w-full object-cover"
                                     }, void 0, false, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                        lineNumber: 1017,
+                                        lineNumber: 1028,
                                         columnNumber: 21
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2389,7 +2397,7 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                                         children: "확인한 사람"
                                                     }, void 0, false, {
                                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                        lineNumber: 1027,
+                                                        lineNumber: 1038,
                                                         columnNumber: 23
                                                     }, this),
                                                     reads.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$EclipseButton$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["EclipseButton"], {
@@ -2401,13 +2409,13 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                                         className: "!normal-case !tracking-normal text-xs"
                                                     }, void 0, false, {
                                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                        lineNumber: 1031,
+                                                        lineNumber: 1042,
                                                         columnNumber: 25
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                lineNumber: 1026,
+                                                lineNumber: 1037,
                                                 columnNumber: 21
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2421,7 +2429,7 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                                                 children: (r.full_name ?? "?")[0]
                                                             }, void 0, false, {
                                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                                lineNumber: 1048,
+                                                                lineNumber: 1059,
                                                                 columnNumber: 27
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2434,18 +2442,18 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                                lineNumber: 1051,
+                                                                lineNumber: 1062,
                                                                 columnNumber: 27
                                                             }, this)
                                                         ]
                                                     }, r.profile_id, true, {
                                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                        lineNumber: 1043,
+                                                        lineNumber: 1054,
                                                         columnNumber: 25
                                                     }, this))
                                             }, void 0, false, {
                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                lineNumber: 1041,
+                                                lineNumber: 1052,
                                                 columnNumber: 21
                                             }, this),
                                             readDropdown && reads.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2460,18 +2468,18 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                                         ]
                                                     }, r.profile_id, true, {
                                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                        lineNumber: 1064,
+                                                        lineNumber: 1075,
                                                         columnNumber: 27
                                                     }, this))
                                             }, void 0, false, {
                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                lineNumber: 1059,
+                                                lineNumber: 1070,
                                                 columnNumber: 23
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                        lineNumber: 1025,
+                                        lineNumber: 1036,
                                         columnNumber: 19
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2484,7 +2492,7 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                                 onClick: handleConfirmRead
                                             }, void 0, false, {
                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                lineNumber: 1074,
+                                                lineNumber: 1085,
                                                 columnNumber: 21
                                             }, this),
                                             isAdmin && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$EclipseButton$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["EclipseButton"], {
@@ -2494,13 +2502,13 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                                 onClick: ()=>setMode("edit")
                                             }, void 0, false, {
                                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                                lineNumber: 1081,
+                                                lineNumber: 1092,
                                                 columnNumber: 23
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                        lineNumber: 1073,
+                                        lineNumber: 1084,
                                         columnNumber: 19
                                     }, this)
                                 ]
@@ -2510,7 +2518,7 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                                 children: "등록된 공지가 없습니다."
                             }, void 0, false, {
                                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                                lineNumber: 1092,
+                                lineNumber: 1103,
                                 columnNumber: 17
                             }, this)
                         ]
@@ -2518,17 +2526,17 @@ function NoticePopup({ notice, isAdmin, onClose, onSaved }) {
                 ]
             }, void 0, true, {
                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-                lineNumber: 913,
+                lineNumber: 924,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-            lineNumber: 909,
+            lineNumber: 920,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/RightPanel.tsx",
-        lineNumber: 908,
+        lineNumber: 919,
         columnNumber: 5
     }, this);
 }
@@ -3324,42 +3332,12 @@ const CATEGORY_CLASSES = {
     leave: "border-rose-200 bg-rose-50/80 text-rose-700",
     etc: "border-slate-200 bg-slate-50/80 text-slate-600"
 };
-function parseHexColor(hex) {
-    if (!hex) return null;
-    const normalized = hex.trim();
-    const short = normalized.match(/^#([0-9a-fA-F]{3})$/);
-    if (short) {
-        const [r, g, b] = short[1].split("").map((ch)=>parseInt(ch + ch, 16));
-        return {
-            r,
-            g,
-            b
-        };
-    }
-    const full = normalized.match(/^#([0-9a-fA-F]{6})$/);
-    if (full) {
-        const value = full[1];
-        const r = parseInt(value.slice(0, 2), 16);
-        const g = parseInt(value.slice(2, 4), 16);
-        const b = parseInt(value.slice(4, 6), 16);
-        return {
-            r,
-            g,
-            b
-        };
-    }
-    return null;
-}
 function DraggableSchedulePill({ schedule, isAdmin, className = "text-[9px] leading-none py-1 px-1 border rounded-lg flex items-start gap-1 transition-all", onPillClick, hideAvatar = false }) {
     let colorClass = schedule.category && CATEGORY_CLASSES[schedule.category] || CATEGORY_CLASSES.etc;
-    let customStyle;
-    const rgb = parseHexColor(schedule.instructor_color);
-    if (rgb) {
-        colorClass = "text-slate-900";
-        customStyle = {
-            borderColor: `rgb(${rgb.r} ${rgb.g} ${rgb.b})`,
-            backgroundColor: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`
-        };
+    if (schedule.instructor_color) {
+        // 교육자 색상이 있는 경우: 글래스모피즘 느낌의 커스텀 색상
+        const base = schedule.instructor_color;
+        colorClass = `border-[${base}] bg-[${base}]/10 text-slate-900`;
     }
     const baseClass = `${className} ${colorClass}`;
     const handleClick = (e)=>{
@@ -3384,7 +3362,7 @@ function DraggableSchedulePill({ schedule, isAdmin, className = "text-[9px] lead
                         src: displayAvatar || ""
                     }, void 0, false, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-                        lineNumber: 97,
+                        lineNumber: 74,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$app$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["AvatarFallback"], {
@@ -3392,13 +3370,13 @@ function DraggableSchedulePill({ schedule, isAdmin, className = "text-[9px] lead
                         children: displayName?.[0] || "?"
                     }, void 0, false, {
                         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-                        lineNumber: 98,
+                        lineNumber: 75,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-                lineNumber: 96,
+                lineNumber: 73,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3409,14 +3387,14 @@ function DraggableSchedulePill({ schedule, isAdmin, className = "text-[9px] lead
                         "[월차]",
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {}, void 0, false, {
                             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-                            lineNumber: 106,
+                            lineNumber: 83,
                             columnNumber: 17
                         }, this),
                         displayName
                     ]
                 }, void 0, true, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-                    lineNumber: 105,
+                    lineNumber: 82,
                     columnNumber: 11
                 }, this) : schedule.category === "dealer" ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                     className: "font-semibold",
@@ -3427,7 +3405,7 @@ function DraggableSchedulePill({ schedule, isAdmin, className = "text-[9px] lead
                     ]
                 }, void 0, true, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-                    lineNumber: 109,
+                    lineNumber: 86,
                     columnNumber: 11
                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                     className: "font-medium",
@@ -3440,12 +3418,12 @@ function DraggableSchedulePill({ schedule, isAdmin, className = "text-[9px] lead
                     ]
                 }, void 0, true, {
                     fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-                    lineNumber: 115,
+                    lineNumber: 92,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-                lineNumber: 103,
+                lineNumber: 80,
                 columnNumber: 7
             }, this)
         ]
@@ -3453,14 +3431,13 @@ function DraggableSchedulePill({ schedule, isAdmin, className = "text-[9px] lead
     if (!isAdmin) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
             className: `${baseClass}${clickableClass}`,
-            style: customStyle,
             onClick: handleClick,
             role: "button",
             tabIndex: 0,
             children: content
         }, void 0, false, {
             fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-            lineNumber: 125,
+            lineNumber: 102,
             columnNumber: 7
         }, this);
     }
@@ -3481,12 +3458,11 @@ function DraggableSchedulePill({ schedule, isAdmin, className = "text-[9px] lead
             e.dataTransfer.effectAllowed = "move";
             e.dataTransfer.dropEffect = "move";
         },
-        style: customStyle,
         className: `${baseClass}${clickableClass} cursor-grab active:cursor-grabbing`,
         children: content
     }, void 0, false, {
         fileName: "[project]/OneDrive/Desktop/GA_NEXUS/app/components/DraggableSchedulePill.tsx",
-        lineNumber: 132,
+        lineNumber: 109,
         columnNumber: 5
     }, this);
 }

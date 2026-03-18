@@ -295,7 +295,9 @@ async function createTenantForAdmin(params) {
         manager_code text,
         company text,
         email text,
-        created_at timestamptz default timezone('utc'::text, now())
+        created_at timestamptz default timezone('utc'::text, now()),
+        is_instructor boolean default false,
+        instructor_color text
       )
     `);
         await client.query(`
@@ -602,6 +604,10 @@ async function GET() {
     return __TURBOPACK__imported__module__$5b$project$5d2f$OneDrive$2f$Desktop$2f$GA_NEXUS$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
         notice,
         readByMe
+    }, {
+        headers: {
+            "Cache-Control": "private, max-age=30"
+        }
     });
 }
 async function POST(req) {
