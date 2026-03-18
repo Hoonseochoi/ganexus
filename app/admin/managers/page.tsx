@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { AdminPageHeader, ADMIN_ERROR_CLASS } from "../_components/AdminPageHeader";
 import { EclipseButton } from "@/app/components/ui/EclipseButton";
 import Link from "next/link";
@@ -12,6 +12,32 @@ export default function AdminManagersPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
+
+    const getMillisecondsUntilNextKstNineAm = () => {
+      const now = new Date();
+      const nowKst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+
+      const targetKst = new Date(nowKst);
+      targetKst.setHours(9, 0, 0, 0);
+      if (nowKst >= targetKst) {
+        targetKst.setDate(targetKst.getDate() + 1);
+      }
+
+      return targetKst.getTime() - nowKst.getTime();
+    };
+
+    const waitMs = Math.min(THREE_HOURS_MS, getMillisecondsUntilNextKstNineAm());
+    const refreshTimer = window.setTimeout(() => {
+      window.location.reload();
+    }, waitMs);
+
+    return () => {
+      window.clearTimeout(refreshTimer);
+    };
+  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
