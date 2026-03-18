@@ -12,8 +12,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="ko">
       <head>
         <link rel="manifest" href="/manifest.json?v=2" />
-        <link rel="icon" href="/galender_icon.png?v=2" />
-        <link rel="apple-touch-icon" href="/galender_icon.png?v=2" />
+        <link rel="icon" href="/galenderciapp.png?v=2" />
+        <link rel="apple-touch-icon" href="/galenderciapp.png?v=2" />
         <meta name="theme-color" content="#0ea5e9" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />

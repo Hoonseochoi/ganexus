@@ -173,7 +173,7 @@ export default async function Page({ searchParams }: PageProps) {
       <div className="p-6 border-b border-slate-100 flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg overflow-hidden bg-white flex items-center justify-center">
           <img
-            src="/galender_icon.png"
+            src="/galenderciapp.png"
             alt="GALENDER 로고"
             className="h-10 w-auto"
           />

@@ -333,7 +333,7 @@ function MobileCalendarShellBase({
             {/* 헤더: 로고 + 사용자 이름 */}
             <div className="p-5 border-b border-slate-100 flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg overflow-hidden bg-white flex items-center justify-center">
-                <img src="/galender_icon.png" alt="GALENDER 로고" className="h-9 w-auto" />
+                <img src="/galenderciapp.png" alt="GALENDER 로고" className="h-9 w-auto" />
               </div>
               <div>
                 <p className="text-base font-bold leading-tight text-brand-black">GALENDER</p>

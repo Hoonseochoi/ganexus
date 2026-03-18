@@ -93,7 +93,7 @@ export default function PWAInstallHandler() {
       <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 p-4 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-            <img src="/galender_icon.png" alt="Logo" className="w-7 h-7" />
+            <img src="/galenderciapp.png" alt="Logo" className="w-7 h-7" />
           </div>
           <div>
             <p className="text-[13px] font-bold text-brand-black leading-tight">GALENDER 앱 설치</p>
