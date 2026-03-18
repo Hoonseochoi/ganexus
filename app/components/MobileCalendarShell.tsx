@@ -28,7 +28,27 @@ type Props = {
   mobileMonthLabel: string;
   eventsByDateStr: Record<string, ScheduleItem[]>;
   userFullName?: string | null;
+  branchName?: string | null;
 };
+
+function parseHexColor(hex: string | null | undefined): { r: number; g: number; b: number } | null {
+  if (!hex) return null;
+  const normalized = hex.trim();
+  const short = normalized.match(/^#([0-9a-fA-F]{3})$/);
+  if (short) {
+    const [r, g, b] = short[1].split("").map((ch) => parseInt(ch + ch, 16));
+    return { r, g, b };
+  }
+  const full = normalized.match(/^#([0-9a-fA-F]{6})$/);
+  if (full) {
+    const value = full[1];
+    const r = parseInt(value.slice(0, 2), 16);
+    const g = parseInt(value.slice(2, 4), 16);
+    const b = parseInt(value.slice(4, 6), 16);
+    return { r, g, b };
+  }
+  return null;
+}
 
 function MobileCalendarShellBase({
   cells,
@@ -40,6 +60,7 @@ function MobileCalendarShellBase({
   mobileMonthLabel,
   eventsByDateStr,
   userFullName,
+  branchName,
 }: Props) {
   const router = useRouter();
   const [mobileLeftOpen, setMobileLeftOpen] = useState(false);
@@ -134,9 +155,10 @@ function MobileCalendarShellBase({
               </button>
             )}
           </div>
-          <div className="flex flex-col items-end">
-            <p className="text-[11px] text-brand-gray font-medium">Management Portal</p>
-            <p className="text-sm font-semibold text-brand-black">GALENDER</p>
+          <div className="flex items-center">
+            <p className="text-sm font-semibold text-brand-black">
+              {branchName ? `${branchName} CALENDER` : "CALENDER"}
+            </p>
           </div>
         </div>
       </header>
@@ -235,17 +257,21 @@ function MobileCalendarShellBase({
                           hour12: false,
                           timeZone: "Asia/Seoul",
                         });
+                        const rgb = parseHexColor(s.instructor_color);
+                        const cardStyle: React.CSSProperties | undefined = rgb
+                          ? {
+                              backgroundColor: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`,
+                              borderColor: `rgb(${rgb.r} ${rgb.g} ${rgb.b})`,
+                            }
+                          : undefined;
                         return (
                           <button
                             key={s.id}
                             type="button"
                             className={`w-full flex items-center gap-2 rounded-lg border px-2 py-1.5 text-left ${
                               s.is_soft_deleted ? "opacity-60" : ""
-                            } ${
-                              s.instructor_color
-                                ? "border-transparent bg-slate-900 text-white"
-                                : "border-slate-100 bg-slate-50"
-                            }`}
+                            } ${rgb ? "text-brand-black" : "border-slate-100 bg-slate-50"}`}
+                            style={cardStyle}
                             onClick={() => setSelectedSchedule(s)}
                           >
                             <div className="w-6 h-6 rounded-full border border-white shadow-sm overflow-hidden bg-slate-200 shrink-0 flex items-center justify-center text-[10px] font-bold text-slate-600">

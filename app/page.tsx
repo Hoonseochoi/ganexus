@@ -93,9 +93,17 @@ export default async function Page({ searchParams }: PageProps) {
     });
   }
 
+  const uniqueSchedules: ScheduleRow[] = [];
+  const seenScheduleIds = new Set<string>();
+  for (const schedule of schedules) {
+    if (seenScheduleIds.has(schedule.id)) continue;
+    seenScheduleIds.add(schedule.id);
+    uniqueSchedules.push(schedule);
+  }
+
   const eventsByDay = new Map<number, ScheduleRow[]>();
   const eventsByDateStr: Record<string, ScheduleRow[]> = {};
-  for (const s of schedules) {
+  for (const s of uniqueSchedules) {
     const d = getKoreaDateFromISO(s.start_at);
     if (d.getFullYear() === year && d.getMonth() === month) {
       const day = d.getDate();
@@ -369,6 +377,7 @@ export default async function Page({ searchParams }: PageProps) {
           ]),
         )}
         userFullName={user?.profile?.full_name ?? null}
+        branchName={user?.profile?.branch_name ?? null}
       />
     </main>
   );
