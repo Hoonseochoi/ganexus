@@ -69,6 +69,7 @@ export default function AdminSchedulesPage() {
         {/* 새 일정 등록 - 3단 스케줄러 */}
         <ScheduleAddScheduler 
           userFullName={userProfile?.full_name ?? "관리자"} 
+          redirectToCalendarOnSuccess={true}
           onSuccess={() => {
             setSuccess("일정이 등록되었습니다.");
             // 캘린더 페이지(서버 컴포넌트) 새로고침

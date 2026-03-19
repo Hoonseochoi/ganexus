@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { ChevronLeft, ChevronRight, Clock, MapPin, User, FileText, CheckCircle2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar"
 import { Button } from "@/app/components/ui/button"
@@ -38,6 +39,7 @@ export interface ScheduleAddSchedulerProps {
     dealer_name?: string | null
   }
   submitLabel?: string
+  redirectToCalendarOnSuccess?: boolean
 }
 
 export function ScheduleAddScheduler({
@@ -49,7 +51,9 @@ export function ScheduleAddScheduler({
   mode = "create",
   initialSchedule,
   submitLabel,
+  redirectToCalendarOnSuccess = false,
 }: ScheduleAddSchedulerProps) {
+  const router = useRouter()
   const now = new Date()
   const [currentMonth, setCurrentMonth] = useState(now.getMonth())
   const [currentYear, setCurrentYear] = useState(now.getFullYear())
@@ -203,7 +207,13 @@ export function ScheduleAddScheduler({
           return
         }
 
-        onSuccess()
+        // 리다이렉트 설정이 있으면 캘린더로 이동, 없으면 onSuccess 콜백 실행
+        if (redirectToCalendarOnSuccess) {
+          router.push("/")
+        } else {
+          onSuccess()
+        }
+        
         // Reset (생성 모드에서만)
         setTitle("")
         setLocation("")
