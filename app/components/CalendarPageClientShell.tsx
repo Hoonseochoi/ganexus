@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DesktopShell, { DesktopShellHamburger } from "./DesktopShell";
+import Link from "next/link";
 import CalendarMonthNav from "./CalendarMonthNav";
 import CalendarGridClient from "./CalendarGridClient";
 import MobileCalendarShell from "./MobileCalendarShell";
@@ -172,13 +173,12 @@ export default function CalendarPageClientShell({
                   />
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <input
-                      className="pl-3 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-primary focus:border-primary w-44 max-w-[180px] text-brand-gray placeholder:text-brand-gray/60"
-                      placeholder="Search events..."
-                      type="text"
-                    />
-                  </div>
+                  <Link
+                    href="/weekly-schedule"
+                    className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-brand-gray font-semibold hover:bg-slate-50 transition-colors"
+                  >
+                    주간일정
+                  </Link>
                 </div>
               </header>
 

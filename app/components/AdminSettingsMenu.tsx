@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronRight, Settings, Info, CheckCircle, UserPlus, Users, Calendar } from "lucide-react";
+import { ChevronRight, Settings, Info, CheckCircle, Users, CalendarDays } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 
 interface SettingItemProps {
@@ -39,27 +39,21 @@ export default function AdminSettingsMenu({ onNavigate }: { onNavigate?: () => v
     },
     {
       href: "/admin/approvals",
-      label: "에이전트 승인",
+      label: "매니저 승인",
       icon: <CheckCircle className="w-4 h-4" />,
       iconBg: "bg-green-500",
     },
     {
-      href: "/admin/managers",
-      label: "매니저 등록",
-      icon: <UserPlus className="w-4 h-4" />,
-      iconBg: "bg-orange-500",
-    },
-    {
       href: "/admin/members",
-      label: "멤버 관리",
+      label: "교육매니저등록",
       icon: <Users className="w-4 h-4" />,
       iconBg: "bg-indigo-500",
     },
     {
-      href: "/admin/schedules",
-      label: "일정 추가",
-      icon: <Calendar className="w-4 h-4" />,
-      iconBg: "bg-rose-500",
+      href: "/weekly-schedule",
+      label: "주간일정",
+      icon: <CalendarDays className="w-4 h-4" />,
+      iconBg: "bg-cyan-500",
     },
   ];
 

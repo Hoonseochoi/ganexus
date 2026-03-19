@@ -222,10 +222,10 @@ function MobileCalendarShellBase({
             <div className="flex items-center gap-2">
               <button
                 className="px-3 py-1.5 rounded-full border border-slate-200 bg-white text-[11px] text-brand-gray font-semibold"
-                onClick={handleCloseDetail}
+                onClick={() => router.push("/weekly-schedule")}
                 type="button"
               >
-                Today
+                주간일정
               </button>
               <button
                 type="button"
@@ -372,7 +372,7 @@ function MobileCalendarShellBase({
                 className="w-full flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg text-left"
                 onClick={() => { setMobileLeftOpen(false); router.push("/"); }}
               >
-                <span className="text-sm font-medium">📅 Main Calendar</span>
+                <span className="text-sm font-medium">📅 MainCalender</span>
               </button>
 
               {isAdmin && (

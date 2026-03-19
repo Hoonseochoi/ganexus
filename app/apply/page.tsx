@@ -1,11 +1,11 @@
 "use client";
 
-import { FormEvent, useState, useEffect } from "react";
+import { FormEvent, Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { EclipseButton } from "@/app/components/ui/EclipseButton";
 import OnboardingShell from "@/app/components/OnboardingShell";
 
-export default function ApplyPage() {
+function ApplyPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const codeFromUrl = searchParams.get("code");
@@ -376,6 +376,20 @@ export default function ApplyPage() {
         />
       </div>
     </main>
+  );
+}
+
+export default function ApplyPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen flex items-center justify-center bg-background-light px-4 py-8">
+          <p className="text-sm text-brand-gray">신청 페이지를 불러오는 중입니다...</p>
+        </main>
+      }
+    >
+      <ApplyPageContent />
+    </Suspense>
   );
 }
 
