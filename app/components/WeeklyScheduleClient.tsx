@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Component, type TimelineDayGroup, type TimelineEventItem } from "@/components/ui/timeline-component";
+import { ScheduleDetailPopup, type ScheduleItem } from "@/app/components/RightPanel";
 
 type ApiSchedule = {
   id: string;
@@ -10,15 +11,23 @@ type ApiSchedule = {
   description: string | null;
   category: "dealer" | "internal" | "personal" | "leave" | "etc";
   start_at: string;
+  end_at: string;
+  is_all_day: boolean;
   location: string | null;
   instructor: string | null;
   target_audience: string | null;
   manager_name: string | null;
+  dealer_name?: string | null;
   is_soft_deleted?: boolean;
+  creator_full_name?: string | null;
+  target_full_name?: string | null;
+  instructor_color?: string | null;
 };
 
 type Props = {
   branchName?: string | null;
+  isAdmin?: boolean;
+  currentUserFullName?: string | null;
 };
 
 const LOAD_DAYS = 3;
@@ -76,7 +85,7 @@ function collectDateKeys(start: Date, end: Date) {
   return keys;
 }
 
-export default function WeeklyScheduleClient({ branchName }: Props) {
+export default function WeeklyScheduleClient({ branchName, isAdmin, currentUserFullName }: Props) {
   const today = useMemo(() => new Date(), []);
   const [rangeStart, setRangeStart] = useState(() => addDays(today, -LOAD_DAYS));
   const [rangeEnd, setRangeEnd] = useState(() => addDays(today, LOAD_DAYS));
@@ -93,6 +102,8 @@ export default function WeeklyScheduleClient({ branchName }: Props) {
   const currentRequestRef = useRef<AbortController | null>(null);
   const requestSeqRef = useRef(0);
   const observerCooldownRef = useRef(0);
+  const rawScheduleMapRef = useRef<Map<string, ApiSchedule>>(new Map());
+  const [selectedSchedule, setSelectedSchedule] = useState<ScheduleItem | null>(null);
 
   const mergeSchedules = useCallback((schedules: ApiSchedule[]) => {
     setEventsByDate((prev) => {
@@ -100,6 +111,7 @@ export default function WeeklyScheduleClient({ branchName }: Props) {
       const incomingByDate: Record<string, TimelineEventItem[]> = {};
 
       for (const schedule of schedules) {
+        rawScheduleMapRef.current.set(schedule.id, schedule);
         const dateKey = toKstDateKey(schedule.start_at);
         const incomingList = incomingByDate[dateKey] ?? [];
         incomingList.push({
@@ -275,13 +287,38 @@ export default function WeeklyScheduleClient({ branchName }: Props) {
     return () => observer.disconnect();
   }, [loadNext, loadPrev]);
 
+  const onEventClick = useCallback((eventId: string) => {
+    const raw = rawScheduleMapRef.current.get(eventId);
+    if (!raw) return;
+    setSelectedSchedule({
+      id: raw.id,
+      title: raw.title,
+      description: raw.description,
+      start_at: raw.start_at,
+      end_at: raw.end_at,
+      is_all_day: raw.is_all_day,
+      category: raw.category,
+      location: raw.location ?? null,
+      instructor: raw.instructor ?? null,
+      target_audience: raw.target_audience ?? null,
+      manager_name: raw.manager_name ?? null,
+      dealer_name: raw.dealer_name ?? null,
+      is_soft_deleted: raw.is_soft_deleted,
+      creator_full_name: raw.creator_full_name ?? null,
+      instructor_color: raw.instructor_color ?? null,
+      target_full_name: raw.target_full_name ?? null,
+    });
+  }, []);
+
   const dayGroups = useMemo<TimelineDayGroup[]>(() => {
     const keys = collectDateKeys(rangeStart, rangeEnd);
-    return keys.map((dateISO) => ({
-      dateISO,
-      dateLabel: toKstDayLabel(dateISO),
-      events: eventsByDate[dateISO] ?? [],
-    }));
+    return keys
+      .map((dateISO) => ({
+        dateISO,
+        dateLabel: toKstDayLabel(dateISO),
+        events: eventsByDate[dateISO] ?? [],
+      }))
+      .filter((day) => day.events.length > 0);
   }, [eventsByDate, rangeEnd, rangeStart]);
 
   if (!branchName) {
@@ -294,7 +331,7 @@ export default function WeeklyScheduleClient({ branchName }: Props) {
 
   return (
     <div className="h-full flex flex-col">
-      <header className="border-b border-slate-200 bg-white/85 backdrop-blur-sm px-4 md:px-6 py-3 sticky top-0 z-10">
+      <header className="border-b border-slate-200 bg-background-light/95 backdrop-blur-sm px-4 md:px-6 py-3 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
           <div>
             <p className="text-xs text-brand-gray">{branchName} 지점</p>
@@ -322,7 +359,7 @@ export default function WeeklyScheduleClient({ branchName }: Props) {
               주간일정을 불러오는 중입니다...
             </div>
           ) : (
-            <Component days={dayGroups} />
+            <Component days={dayGroups} onEventClick={onEventClick} />
           )}
 
           <div ref={bottomSentinelRef} className="h-8 grid place-items-center text-[11px] text-brand-gray">
@@ -330,6 +367,17 @@ export default function WeeklyScheduleClient({ branchName }: Props) {
           </div>
         </div>
       </div>
+
+      {selectedSchedule && (
+        <ScheduleDetailPopup
+          schedule={selectedSchedule}
+          isAdmin={isAdmin}
+          currentUserFullName={currentUserFullName}
+          onClose={() => setSelectedSchedule(null)}
+          showMemos
+          memoDate={new Date(selectedSchedule.start_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" })}
+        />
+      )}
     </div>
   );
 }

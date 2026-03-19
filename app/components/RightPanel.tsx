@@ -458,11 +458,15 @@ export function ScheduleDetailPopup({
   onClose,
   isAdmin,
   currentUserFullName,
+  showMemos,
+  memoDate,
 }: {
   schedule: ScheduleItem;
   onClose: () => void;
   isAdmin?: boolean;
   currentUserFullName?: string | null;
+  showMemos?: boolean;
+  memoDate?: string;
 }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
@@ -476,6 +480,14 @@ export function ScheduleDetailPopup({
     { id: string; name: string; instructor_color: string | null }[]
   >([]);
   const [loadingInstructors, setLoadingInstructors] = useState(false);
+  const [memos, setMemos] = useState<MemoItem[]>([]);
+  const [memoContent, setMemoContent] = useState("");
+  const [loadingMemos, setLoadingMemos] = useState(false);
+  const [sendingMemo, setSendingMemo] = useState(false);
+  const [memoError, setMemoError] = useState<string | null>(null);
+  const [editingMemoId, setEditingMemoId] = useState<string | null>(null);
+  const [editingMemoContent, setEditingMemoContent] = useState("");
+  const [deletingMemoId, setDeletingMemoId] = useState<string | null>(null);
 
   const loadLogs = async () => {
     setLoadingLogs(true);
@@ -539,6 +551,88 @@ export function ScheduleDetailPopup({
       cancelled = true;
     };
   }, [editing]);
+
+  const fetchMemos = useCallback(async () => {
+    if (!showMemos || !memoDate) return;
+    setLoadingMemos(true);
+    try {
+      const res = await fetch(`/api/memos?date=${memoDate}`);
+      const data = await res.json();
+      if (res.ok) setMemos(data.memos ?? []);
+    } catch {
+      setMemos([]);
+    } finally {
+      setLoadingMemos(false);
+    }
+  }, [showMemos, memoDate]);
+
+  useEffect(() => {
+    fetchMemos();
+  }, [fetchMemos]);
+
+  const handleMemoSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!memoContent.trim() || sendingMemo) return;
+    setMemoError(null);
+    setSendingMemo(true);
+    try {
+      const res = await fetch("/api/memos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: memoContent.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMemoError(data.message ?? "메모 저장에 실패했습니다.");
+        return;
+      }
+      setMemoContent("");
+      fetchMemos();
+    } catch {
+      setMemoError("네트워크 오류로 메모 저장에 실패했습니다.");
+    } finally {
+      setSendingMemo(false);
+    }
+  };
+
+  const handleMemoDelete = async (memoId: string) => {
+    if (!window.confirm("메모를 삭제하시겠습니까?")) return;
+    setDeletingMemoId(memoId);
+    try {
+      const res = await fetch(`/api/memos/${memoId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message ?? "삭제에 실패했습니다.");
+        return;
+      }
+      fetchMemos();
+    } catch {
+      alert("네트워크 오류가 발생했습니다.");
+    } finally {
+      setDeletingMemoId(null);
+    }
+  };
+
+  const handleMemoEditSave = async (memoId: string) => {
+    if (!editingMemoContent.trim()) return;
+    try {
+      const res = await fetch(`/api/memos/${memoId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: editingMemoContent.trim() }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message ?? "수정에 실패했습니다.");
+        return;
+      }
+      setEditingMemoId(null);
+      setEditingMemoContent("");
+      fetchMemos();
+    } catch {
+      alert("네트워크 오류가 발생했습니다.");
+    }
+  };
 
   const canDelete =
     !!schedule.creator_full_name &&
@@ -779,6 +873,114 @@ export function ScheduleDetailPopup({
               </ul>
             )}
         </div>
+        {showMemos && (
+          <div className="px-5 pb-5 pt-3 border-t border-slate-100">
+            <p className="text-xs font-semibold text-brand-gray mb-2">메모</p>
+            {memoError && (
+              <div className="mb-2 rounded-lg border border-rose-500/40 bg-rose-500/5 px-2 py-1.5 text-xs text-rose-700">
+                {memoError}
+              </div>
+            )}
+            <form onSubmit={handleMemoSubmit} className="mb-3">
+              <textarea
+                value={memoContent}
+                onChange={(e) => setMemoContent(e.target.value)}
+                placeholder="메모를 입력하세요..."
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg resize-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                rows={2}
+                disabled={sendingMemo}
+              />
+              <EclipseButton
+                type="submit"
+                disabled={sendingMemo || !memoContent.trim()}
+                isLoading={sendingMemo}
+                text={sendingMemo ? "저장 중..." : "작성"}
+                variant="primary"
+                className="mt-1 w-full"
+              />
+            </form>
+            <div className="space-y-2">
+              {loadingMemos ? (
+                <p className="text-xs text-brand-gray">불러오는 중...</p>
+              ) : (
+                memos.map((m) => {
+                  const isOwn =
+                    !!currentUserFullName && m.author_name === currentUserFullName;
+                  const isEditingThis = editingMemoId === m.id;
+                  return (
+                    <div
+                      key={m.id}
+                      className="p-2.5 rounded-lg border border-slate-100 bg-slate-50 text-sm"
+                    >
+                      {isEditingThis ? (
+                        <div>
+                          <textarea
+                            value={editingMemoContent}
+                            onChange={(e) => setEditingMemoContent(e.target.value)}
+                            className="w-full px-2 py-1.5 text-sm border border-slate-200 rounded-lg resize-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                            rows={2}
+                            autoFocus
+                          />
+                          <div className="flex gap-1.5 mt-1.5">
+                            <EclipseButton
+                              type="button"
+                              variant="primary"
+                              size="sm"
+                              text="저장"
+                              onClick={() => handleMemoEditSave(m.id)}
+                              disabled={!editingMemoContent.trim()}
+                            />
+                            <EclipseButton
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              text="취소"
+                              onClick={() => {
+                                setEditingMemoId(null);
+                                setEditingMemoContent("");
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-slate-800 whitespace-pre-wrap">{m.content}</p>
+                          <div className="flex items-center justify-between mt-1">
+                            <p className="text-[10px] text-brand-gray">
+                              {m.author_name ?? "알 수 없음"} · {formatDateTime(m.created_at)}
+                            </p>
+                            {(isOwn || isAdmin) && (
+                              <div className="flex gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingMemoId(m.id);
+                                    setEditingMemoContent(m.content);
+                                  }}
+                                  className="text-[10px] text-brand-gray hover:text-slate-600 underline"
+                                >
+                                  수정
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleMemoDelete(m.id)}
+                                  disabled={deletingMemoId === m.id}
+                                  className="text-[10px] text-rose-500 hover:text-rose-700 underline disabled:opacity-50"
+                                >
+                                  삭제
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -16,7 +16,11 @@ export default async function WeeklySchedulePage() {
 
   return (
     <main className="h-screen bg-background-light">
-      <WeeklyScheduleClient branchName={user.profile?.branch_name ?? null} />
+      <WeeklyScheduleClient
+        branchName={user.profile?.branch_name ?? null}
+        isAdmin={user.role === "admin"}
+        currentUserFullName={user.profile?.full_name ?? null}
+      />
     </main>
   );
 }

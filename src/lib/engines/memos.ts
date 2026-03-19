@@ -69,3 +69,53 @@ export async function createMemo(params: {
   );
   return rows[0];
 }
+
+export async function updateMemo(params: {
+  id: string;
+  branchName: string;
+  content: string;
+  createdBy?: string; // if provided, only update if created_by matches (non-admin)
+}): Promise<MemoWithAuthor | null> {
+  try {
+    const conditions = ["id = $2", "branch_name = $3"];
+    const values: unknown[] = [params.content, params.id, params.branchName];
+    if (params.createdBy) {
+      conditions.push(`created_by = $${values.length + 1}`);
+      values.push(params.createdBy);
+    }
+    const rows = await query<MemoRow & { author_name: string | null }>(
+      `update public.branch_memos set content = $1 where ${conditions.join(" and ")}
+       returning id, branch_name, content, created_by, created_at, author_name`,
+      values,
+    );
+    const r = rows[0];
+    if (!r) return null;
+    return { id: r.id, branch_name: r.branch_name, content: r.content, created_by: r.created_by, created_at: r.created_at, author_name: r.author_name ?? null };
+  } catch (err) {
+    if (isRelationNotFound(err)) return null;
+    throw err;
+  }
+}
+
+export async function deleteMemo(params: {
+  id: string;
+  branchName: string;
+  createdBy?: string; // if provided, only delete if created_by matches (non-admin)
+}): Promise<boolean> {
+  try {
+    const conditions = ["id = $1", "branch_name = $2"];
+    const values: unknown[] = [params.id, params.branchName];
+    if (params.createdBy) {
+      conditions.push(`created_by = $${values.length + 1}`);
+      values.push(params.createdBy);
+    }
+    const rows = await query<{ id: string }>(
+      `delete from public.branch_memos where ${conditions.join(" and ")} returning id`,
+      values,
+    );
+    return rows.length > 0;
+  } catch (err) {
+    if (isRelationNotFound(err)) return false;
+    throw err;
+  }
+}
