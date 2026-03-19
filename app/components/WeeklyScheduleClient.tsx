@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Component, type TimelineDayGroup, type TimelineEventItem } from "@/components/ui/timeline-component";
 import { ScheduleDetailPopup, type ScheduleItem } from "@/app/components/RightPanel";
+import { notifyCalendarMonthDataChanged } from "@/src/lib/calendar/month-client-cache";
 
 type ApiSchedule = {
   id: string;
@@ -103,7 +104,13 @@ export default function WeeklyScheduleClient({ branchName, isAdmin, currentUserF
   const requestSeqRef = useRef(0);
   const observerCooldownRef = useRef(0);
   const rawScheduleMapRef = useRef<Map<string, ApiSchedule>>(new Map());
-  const [selectedSchedule, setSelectedSchedule] = useState<ScheduleItem | null>(null);
+  const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
+  const [editingSchedule, setEditingSchedule] = useState<ScheduleItem | null>(null);
+  const [memoContent, setMemoContent] = useState("");
+  const [memoSubmitting, setMemoSubmitting] = useState(false);
+  const [memoError, setMemoError] = useState<string | null>(null);
+  const [expandedMemos, setExpandedMemos] = useState<{ id: string; content: string; author_name: string | null; created_at: string }[]>([]);
+  const [loadingMemos, setLoadingMemos] = useState(false);
 
   const mergeSchedules = useCallback((schedules: ApiSchedule[]) => {
     setEventsByDate((prev) => {
@@ -125,6 +132,7 @@ export default function WeeklyScheduleClient({ branchName, isAdmin, currentUserF
           managerName: schedule.manager_name,
           targetAudience: schedule.target_audience,
           isSoftDeleted: schedule.is_soft_deleted,
+          instructorColor: schedule.instructor_color ?? null,
         });
         incomingByDate[dateKey] = incomingList;
       }
@@ -287,10 +295,10 @@ export default function WeeklyScheduleClient({ branchName, isAdmin, currentUserF
     return () => observer.disconnect();
   }, [loadNext, loadPrev]);
 
-  const onEventClick = useCallback((eventId: string) => {
+  const buildScheduleItem = useCallback((eventId: string): ScheduleItem | null => {
     const raw = rawScheduleMapRef.current.get(eventId);
-    if (!raw) return;
-    setSelectedSchedule({
+    if (!raw) return null;
+    return {
       id: raw.id,
       title: raw.title,
       description: raw.description,
@@ -307,8 +315,138 @@ export default function WeeklyScheduleClient({ branchName, isAdmin, currentUserF
       creator_full_name: raw.creator_full_name ?? null,
       instructor_color: raw.instructor_color ?? null,
       target_full_name: raw.target_full_name ?? null,
-    });
+    };
   }, []);
+
+  const handleEventToggle = useCallback((eventId: string) => {
+    setExpandedEventId((prev) => (prev === eventId ? null : eventId));
+    setMemoContent("");
+    setMemoError(null);
+  }, []);
+
+  const handleEventEdit = useCallback((eventId: string) => {
+    const item = buildScheduleItem(eventId);
+    if (item) setEditingSchedule(item);
+  }, [buildScheduleItem]);
+
+  const handleEventDelete = useCallback(async (eventId: string) => {
+    if (!window.confirm("해당 일정을 삭제하시겠습니까?")) return;
+    try {
+      const res = await fetch(`/api/schedules/${eventId}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data.message ?? "일정 삭제에 실패했습니다.");
+        return;
+      }
+      notifyCalendarMonthDataChanged();
+      setExpandedEventId(null);
+      rawScheduleMapRef.current.delete(eventId);
+      setEventsByDate((prev) => {
+        const next: Record<string, TimelineEventItem[]> = {};
+        for (const [key, evs] of Object.entries(prev)) {
+          next[key] = evs.filter((e) => e.id !== eventId);
+        }
+        return next;
+      });
+    } catch {
+      alert("네트워크 오류로 일정 삭제에 실패했습니다.");
+    }
+  }, []);
+
+  const fetchExpandedMemos = useCallback(async (eventId: string) => {
+    const raw = rawScheduleMapRef.current.get(eventId);
+    if (!raw) return;
+    const memoDate = new Date(raw.start_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+    setLoadingMemos(true);
+    try {
+      const res = await fetch(`/api/memos?date=${memoDate}`);
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) setExpandedMemos(data.memos ?? []);
+    } catch {
+      setExpandedMemos([]);
+    } finally {
+      setLoadingMemos(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!expandedEventId) {
+      setExpandedMemos([]);
+      return;
+    }
+    void fetchExpandedMemos(expandedEventId);
+  }, [expandedEventId, fetchExpandedMemos]);
+
+  const handleMemoSubmit = useCallback(async () => {
+    if (!memoContent.trim() || memoSubmitting || !expandedEventId) return;
+    setMemoError(null);
+    setMemoSubmitting(true);
+    try {
+      const res = await fetch("/api/memos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: memoContent.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setMemoError(data.message ?? "메모 저장에 실패했습니다.");
+        return;
+      }
+      setMemoContent("");
+      await fetchExpandedMemos(expandedEventId);
+    } catch {
+      setMemoError("네트워크 오류로 메모 저장에 실패했습니다.");
+    } finally {
+      setMemoSubmitting(false);
+    }
+  }, [memoContent, memoSubmitting, expandedEventId, fetchExpandedMemos]);
+
+  const renderEventFooter = useCallback((_eventId: string) => (
+    <div className="rounded-b-lg border border-t-0 border-slate-200 bg-slate-50 px-3 pt-3 pb-4 space-y-3">
+      {loadingMemos ? (
+        <p className="text-xs text-brand-gray">메모 불러오는 중...</p>
+      ) : expandedMemos.length > 0 ? (
+        <div className="space-y-2">
+          {expandedMemos.map((m) => (
+            <div key={m.id} className="rounded-lg bg-white border border-slate-100 px-2.5 py-2">
+              <p className="text-sm text-slate-800 whitespace-pre-wrap">{m.content}</p>
+              <p className="text-[10px] text-brand-gray mt-0.5">
+                {m.author_name ?? "알 수 없음"} ·{" "}
+                {new Date(m.created_at).toLocaleString("ko-KR", {
+                  month: "numeric",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                })}
+              </p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-xs text-brand-gray">메모가 없습니다.</p>
+      )}
+      {memoError && <p className="text-xs text-rose-600">{memoError}</p>}
+      <div className="flex gap-2 items-end">
+        <textarea
+          value={memoContent}
+          onChange={(e) => setMemoContent(e.target.value)}
+          placeholder="메모를 입력하세요..."
+          className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg resize-none focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none bg-white"
+          rows={2}
+          disabled={memoSubmitting}
+        />
+        <button
+          type="button"
+          onClick={handleMemoSubmit}
+          disabled={memoSubmitting || !memoContent.trim()}
+          className="px-3 py-2 h-[68px] rounded-lg bg-primary text-white text-sm font-semibold disabled:opacity-40 hover:bg-primary/90 transition-colors"
+        >
+          {memoSubmitting ? "..." : "추가"}
+        </button>
+      </div>
+    </div>
+  ), [expandedMemos, loadingMemos, memoContent, memoError, memoSubmitting, handleMemoSubmit]);
 
   const dayGroups = useMemo<TimelineDayGroup[]>(() => {
     const keys = collectDateKeys(rangeStart, rangeEnd);
@@ -359,7 +497,14 @@ export default function WeeklyScheduleClient({ branchName, isAdmin, currentUserF
               주간일정을 불러오는 중입니다...
             </div>
           ) : (
-            <Component days={dayGroups} onEventClick={onEventClick} />
+            <Component
+              days={dayGroups}
+              expandedEventId={expandedEventId}
+              onEventToggle={handleEventToggle}
+              onEventEdit={handleEventEdit}
+              onEventDelete={handleEventDelete}
+              renderEventFooter={renderEventFooter}
+            />
           )}
 
           <div ref={bottomSentinelRef} className="h-8 grid place-items-center text-[11px] text-brand-gray">
@@ -368,14 +513,12 @@ export default function WeeklyScheduleClient({ branchName, isAdmin, currentUserF
         </div>
       </div>
 
-      {selectedSchedule && (
+      {editingSchedule && (
         <ScheduleDetailPopup
-          schedule={selectedSchedule}
+          schedule={editingSchedule}
           isAdmin={isAdmin}
           currentUserFullName={currentUserFullName}
-          onClose={() => setSelectedSchedule(null)}
-          showMemos
-          memoDate={new Date(selectedSchedule.start_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" })}
+          onClose={() => setEditingSchedule(null)}
         />
       )}
     </div>
