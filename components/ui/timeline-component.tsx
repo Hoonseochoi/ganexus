@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { cn } from "@/src/lib/utils";
 
 export type TimelineEventItem = {
@@ -29,7 +30,7 @@ type ComponentProps = {
  * - Glassy cards for content
  * - Dark/Light theme support
  */
-export const Component = ({ days = [] }: ComponentProps) => {
+export const Component = memo(function Component({ days = [] }: ComponentProps) {
   const fallback: TimelineDayGroup[] = [
     {
       dateISO: "2026-03-16",
@@ -115,4 +116,6 @@ export const Component = ({ days = [] }: ComponentProps) => {
       </div>
     </div>
   );
-};
+});
+
+Component.displayName = "TimelineComponent";

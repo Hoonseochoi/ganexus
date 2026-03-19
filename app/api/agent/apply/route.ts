@@ -33,16 +33,6 @@ function normalizeName(value: string): string {
   return value.replace(/\s+/g, "").trim().toLowerCase();
 }
 
-/**
- * login_id 생성 함수 (매니저 직접 초대 모드에서 사용)
- * 초대코드 기반으로 고유한 login_id 생성
- */
-function generateLoginIdFromCode(code: string): string {
-  const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2, 8);
-  return `${code.substring(0, 8)}-${timestamp}${random}`.toLowerCase();
-}
-
 export async function POST(req: NextRequest) {
   const { code, fullName, birthDate, phoneNumber, managerCode } = (await req.json()) as {
     code?: string;
@@ -61,7 +51,12 @@ export async function POST(req: NextRequest) {
   }
 
   const managerCodeTrimmed = (managerCode ?? "").trim();
-  const hasManagerCode = managerCodeTrimmed.length > 0;
+  if (!managerCodeTrimmed) {
+    return NextResponse.json(
+      { message: "매니저 코드를 입력해주세요." },
+      { status: 400 },
+    );
+  }
 
   const phoneDigits = phoneNumber.replace(/\D/g, "");
   if (phoneDigits.length < 8) {
@@ -120,167 +115,112 @@ export async function POST(req: NextRequest) {
   try {
     await client.query("begin");
 
-    /* Case 1: 매니저 코드 없음 (초대 URL 직접 접근 - 자동 승인) */
-    if (!hasManagerCode) {
-      effectiveLoginId = generateLoginIdFromCode(code);
-      
-      const existingAuth = await client.query(
-        "select 1 from public.auth_users where login_id = $1",
-        [effectiveLoginId],
-      );
-      if (existingAuth.rowCount && existingAuth.rowCount > 0) {
-        await client.query("rollback");
-        return NextResponse.json(
-          { message: "이미 사용 중인 로그인 ID입니다. 다시 시도해주세요." },
-          { status: 409 },
-        );
-      }
+    effectiveLoginId = managerCodeTrimmed;
 
-      // 초대코드만으로 자동 승인
-      autoApproved = true;
-
-      await client.query(
-        `
-          insert into public.auth_users (login_id, password, role, must_change_password, branch_name, invite_code)
-          values ($1, $2, 'manager', true, $3, $4)
-          on conflict (login_id)
-          do update set role = 'manager',
-                       must_change_password = true,
-                       password = $2,
-                       branch_name = $3,
-                       invite_code = $4
-        `,
-        [effectiveLoginId, effectiveLoginId, invite.branch_name, code],
+    const existingAuth = await client.query(
+      "select 1 from public.auth_users where login_id = $1",
+      [managerCodeTrimmed],
+    );
+    if (existingAuth.rowCount && existingAuth.rowCount > 0) {
+      await client.query("rollback");
+      return NextResponse.json(
+        { message: "이미 사용 중인 매니저 코드입니다. 다른 코드를 입력해주세요." },
+        { status: 409 },
       );
-
-      const upsertedProfile = await client.query<ProfileUpsertRow>(
-        `
-          insert into public.profiles (login_id, full_name, branch_name, birth_date, phone_number, role, is_approved, manager_code, invite_code)
-          values ($1, $2, $3, $4, $5, 'manager', true, null, $6)
-          on conflict (login_id)
-          do update set full_name = excluded.full_name,
-                      branch_name = excluded.branch_name,
-                      birth_date = excluded.birth_date,
-                      phone_number = excluded.phone_number,
-                      role = 'manager',
-                      is_approved = true,
-                      manager_code = null,
-                      invite_code = excluded.invite_code
-          returning id, login_id, full_name, branch_name, phone_number, role, is_approved, manager_code
-        `,
-        [effectiveLoginId, fullName, invite.branch_name, birthDate, phoneDigits, code],
-      );
-      createdProfile = upsertedProfile.rows[0] ?? null;
     }
-    /* Case 2: 매니저 코드 있음 (기존 로직) */
-    else {
-      effectiveLoginId = managerCodeTrimmed;
 
-      const existingAuth = await client.query(
-        "select 1 from public.auth_users where login_id = $1",
+    let registryMatch: RegistryRow | null = null;
+    let codeAndBranchMatched = false;
+    let nameMatched = false;
+    try {
+      const registryRows = await client.query<RegistryRow>(
+        `
+          select manager_code, manager_name, branch_name, is_active, claimed_profile_id
+          from public.manager_code_registry
+          where manager_code = $1
+          limit 1
+        `,
         [managerCodeTrimmed],
       );
-      if (existingAuth.rowCount && existingAuth.rowCount > 0) {
-        await client.query("rollback");
-        return NextResponse.json(
-          { message: "이미 사용 중인 매니저 코드입니다. 다른 코드를 입력해주세요." },
-          { status: 409 },
-        );
-      }
-
-      let registryMatch: RegistryRow | null = null;
-      let codeAndBranchMatched = false;
-      let nameMatched = false;
-      try {
-        const registryRows = await client.query<RegistryRow>(
-          `
-            select manager_code, manager_name, branch_name, is_active, claimed_profile_id
-            from public.manager_code_registry
-            where manager_code = $1
-            limit 1
-          `,
-          [managerCodeTrimmed],
-        );
-        const candidate = registryRows.rows[0] ?? null;
-        if (
-          candidate &&
-          candidate.is_active &&
-          candidate.claimed_profile_id === null &&
-          candidate.branch_name === invite.branch_name
-        ) {
-          codeAndBranchMatched = true;
-          nameMatched = normalizeName(fullName) === normalizeName(candidate.manager_name);
-          if (nameMatched) {
-            registryMatch = candidate;
-          }
+      const candidate = registryRows.rows[0] ?? null;
+      if (
+        candidate &&
+        candidate.is_active &&
+        candidate.claimed_profile_id === null &&
+        candidate.branch_name === invite.branch_name
+      ) {
+        codeAndBranchMatched = true;
+        nameMatched = normalizeName(fullName) === normalizeName(candidate.manager_name);
+        if (nameMatched) {
+          registryMatch = candidate;
         }
-      } catch (err) {
-        if (!isRelationNotFound(err)) throw err;
-        // 레지스트리 테이블이 아직 없으면 기존 승인 대기 플로우 유지
-        registryMatch = null;
       }
+    } catch (err) {
+      if (!isRelationNotFound(err)) throw err;
+      // 레지스트리 테이블이 아직 없으면 기존 승인 대기 플로우 유지
+      registryMatch = null;
+    }
 
-      if (codeAndBranchMatched && !nameMatched) {
-        await client.query("rollback");
-        return NextResponse.json(
-          { message: "이름과 코드가 일치하지않습니다." },
-          { status: 400 },
-        );
-      }
+    if (codeAndBranchMatched && !nameMatched) {
+      await client.query("rollback");
+      return NextResponse.json(
+        { message: "이름과 코드가 일치하지않습니다." },
+        { status: 400 },
+      );
+    }
 
-      autoApproved = registryMatch !== null;
+    autoApproved = registryMatch !== null;
 
-      await client.query(
+    await client.query(
+      `
+        insert into public.auth_users (login_id, password, role, must_change_password, branch_name, invite_code)
+        values ($1, $2, 'manager', true, $3, $4)
+        on conflict (login_id)
+        do update set role = 'manager',
+                     must_change_password = true,
+                     password = $2,
+                     branch_name = $3,
+                     invite_code = $4
+      `,
+      [managerCodeTrimmed, managerCodeTrimmed, invite.branch_name, code],
+    );
+
+    const upsertedProfile = await client.query<ProfileUpsertRow>(
+      `
+        insert into public.profiles (login_id, full_name, branch_name, birth_date, phone_number, role, is_approved, manager_code, invite_code)
+        values ($1, $2, $3, $4, $5, 'manager', $6, $1, $7)
+        on conflict (login_id)
+        do update set full_name = excluded.full_name,
+                    branch_name = excluded.branch_name,
+                    birth_date = excluded.birth_date,
+                    phone_number = excluded.phone_number,
+                    role = 'manager',
+                    is_approved = excluded.is_approved,
+                    manager_code = excluded.manager_code,
+                    invite_code = excluded.invite_code
+        returning id, login_id, full_name, branch_name, phone_number, role, is_approved, manager_code
+      `,
+      [managerCodeTrimmed, fullName, invite.branch_name, birthDate, phoneDigits, autoApproved, code],
+    );
+    createdProfile = upsertedProfile.rows[0] ?? null;
+
+    if (autoApproved && createdProfile) {
+      const claimResult = await client.query(
         `
-          insert into public.auth_users (login_id, password, role, must_change_password, branch_name, invite_code)
-          values ($1, $2, 'manager', true, $3, $4)
-          on conflict (login_id)
-          do update set role = 'manager',
-                       must_change_password = true,
-                       password = $2,
-                       branch_name = $3,
-                       invite_code = $4
+          update public.manager_code_registry
+          set claimed_profile_id = $2,
+              claimed_at = timezone('utc'::text, now()),
+              updated_at = timezone('utc'::text, now())
+          where manager_code = $1
+            and branch_name = $3
+            and is_active = true
+            and claimed_profile_id is null
         `,
-        [managerCodeTrimmed, managerCodeTrimmed, invite.branch_name, code],
+        [managerCodeTrimmed, createdProfile.id, invite.branch_name],
       );
 
-      const upsertedProfile = await client.query<ProfileUpsertRow>(
-        `
-          insert into public.profiles (login_id, full_name, branch_name, birth_date, phone_number, role, is_approved, manager_code, invite_code)
-          values ($1, $2, $3, $4, $5, 'manager', $6, $1, $7)
-          on conflict (login_id)
-          do update set full_name = excluded.full_name,
-                      branch_name = excluded.branch_name,
-                      birth_date = excluded.birth_date,
-                      phone_number = excluded.phone_number,
-                      role = 'manager',
-                      is_approved = excluded.is_approved,
-                      manager_code = excluded.manager_code,
-                      invite_code = excluded.invite_code
-          returning id, login_id, full_name, branch_name, phone_number, role, is_approved, manager_code
-        `,
-        [managerCodeTrimmed, fullName, invite.branch_name, birthDate, phoneDigits, autoApproved, code],
-      );
-      createdProfile = upsertedProfile.rows[0] ?? null;
-
-      if (autoApproved && createdProfile) {
-        const claimResult = await client.query(
-          `
-            update public.manager_code_registry
-            set claimed_profile_id = $2,
-                claimed_at = timezone('utc'::text, now()),
-                updated_at = timezone('utc'::text, now())
-            where manager_code = $1
-              and branch_name = $3
-              and is_active = true
-              and claimed_profile_id is null
-          `,
-          [managerCodeTrimmed, createdProfile.id, invite.branch_name],
-        );
-
-        if ((claimResult.rowCount ?? 0) === 0) {
-          throw new Error("MANAGER_CODE_ALREADY_CLAIMED");
-        }
+      if ((claimResult.rowCount ?? 0) === 0) {
+        throw new Error("MANAGER_CODE_ALREADY_CLAIMED");
       }
     }
 
@@ -329,9 +269,7 @@ export async function POST(req: NextRequest) {
     loginId: effectiveLoginId,
     autoApproved,
     message: autoApproved
-      ? hasManagerCode
-        ? "사전등록된 매니저 코드가 확인되어 즉시 승인되었습니다. 매니저 코드(ID·PW 동일)로 바로 로그인할 수 있습니다."
-        : "초대 링크로 확인되어 즉시 승인되었습니다. 비밀번호를 설정한 후 로그인할 수 있습니다."
+      ? "사전등록된 매니저 코드가 확인되어 즉시 승인되었습니다. 매니저 코드(ID·PW 동일)로 바로 로그인할 수 있습니다."
       : "지점장 승인 후 매니저 로그인에서 해당 코드(ID·PW 동일)로 접속할 수 있습니다.",
   });
 }

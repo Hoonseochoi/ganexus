@@ -70,23 +70,13 @@ function ApplyPageContent() {
     if (e) e.preventDefault();
     setError(null);
 
-    // Case 1: URL code 있음 (매니저 직접 초대)
-    if (isUrlDirectAccess) {
-      if (!agree) {
-        setError("개인정보 활용 동의는 필수입니다.");
-        return;
-      }
+    if (!managerCode.trim()) {
+      setError("매니저 코드를 입력해주세요.");
+      return;
     }
-    // Case 2: 수동 코드 입력 (에이전트 가입)
-    else {
-      if (!managerCode.trim()) {
-        setError("매니저 코드를 입력해주세요.");
-        return;
-      }
-      if (!agree) {
-        setError("개인정보 활용 동의는 필수입니다.");
-        return;
-      }
+    if (!agree) {
+      setError("개인정보 활용 동의는 필수입니다.");
+      return;
     }
 
     setSubmitting(true);
@@ -96,12 +86,8 @@ function ApplyPageContent() {
         fullName,
         birthDate,
         phoneNumber,
+        managerCode,
       };
-
-      // Case 1: URL 직접 접근은 managerCode 미포함
-      if (!isUrlDirectAccess) {
-        body.managerCode = managerCode;
-      }
 
       const res = await fetch("/api/agent/apply", {
         method: "POST",
@@ -134,7 +120,7 @@ function ApplyPageContent() {
         !phoneNumber.trim() ||
         !agree ||
         submitting ||
-        (isUrlDirectAccess ? false : !managerCode.trim())
+        !managerCode.trim()
       : false;
 
   const content = (
@@ -195,25 +181,23 @@ function ApplyPageContent() {
             <p>아래 정보를 작성하면 {isUrlDirectAccess ? "즉시 승인됩니다." : "지점장 승인 후 사용이 가능합니다."}</p>
           </div>
           
-          {!isUrlDirectAccess && (
-            <div className="space-y-1.5">
-              <label className="text-xs text-brand-gray flex items-center gap-1">
-                <span>매니저 코드</span>
-                <span className="text-[10px] text-red-500 font-medium">
-                  **필수
-                </span>
-              </label>
-              <input
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
-                value={managerCode}
-                onChange={(e) => setManagerCode(e.target.value)}
-                placeholder="로그인 ID·PW로 사용됩니다 (예: MGR-0001)"
-              />
-              <p className="text-[11px] text-brand-gray">
-                승인 후 매니저 로그인에서 이 코드로 ID·비밀번호 동일 입력 후 접속합니다.
-              </p>
-            </div>
-          )}
+          <div className="space-y-1.5">
+            <label className="text-xs text-brand-gray flex items-center gap-1">
+              <span>매니저 코드</span>
+              <span className="text-[10px] text-red-500 font-medium">
+                **필수
+              </span>
+            </label>
+            <input
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
+              value={managerCode}
+              onChange={(e) => setManagerCode(e.target.value)}
+              placeholder="로그인 ID·PW로 사용됩니다 (예: MGR-0001)"
+            />
+            <p className="text-[11px] text-brand-gray">
+              승인 후 매니저 로그인에서 이 코드로 ID·비밀번호 동일 입력 후 접속합니다.
+            </p>
+          </div>
 
           <div className="space-y-1.5">
             <label className="text-xs text-brand-gray flex items-center gap-1">
@@ -306,12 +290,12 @@ function ApplyPageContent() {
             <>
               <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-700">
                 {isUrlDirectAccess
-                  ? "✓ 매니저 등록이 완료되었습니다. 비밀번호를 설정 후 사용할 수 있습니다."
+                  ? "✓ 매니저 등록이 완료되었습니다. 매니저 코드(ID·PW 동일)로 로그인 후 비밀번호를 변경해주세요."
                   : "PASS: 이름과 코드가 확인되어 즉시 승인되었습니다."}
               </div>
               <p className="text-[11px]">
                 {isUrlDirectAccess
-                  ? "비밀번호를 설정하면 바로 매니저 로그인에서 사용 가능합니다."
+                  ? "초기 로그인은 입력한 매니저 코드(ID·PW 동일)로 진행됩니다."
                   : "지금 바로 매니저 로그인 페이지에서 가입 시 입력한 매니저 코드(ID·PW 동일)로 로그인할 수 있습니다."}
               </p>
             </>

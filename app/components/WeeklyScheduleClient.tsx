@@ -22,6 +22,7 @@ type Props = {
 };
 
 const LOAD_DAYS = 3;
+const OBSERVER_COOLDOWN_MS = 250;
 
 function addDays(base: Date, amount: number) {
   const next = new Date(base);
@@ -87,18 +88,21 @@ export default function WeeklyScheduleClient({ branchName }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const topSentinelRef = useRef<HTMLDivElement | null>(null);
   const bottomSentinelRef = useRef<HTMLDivElement | null>(null);
+  const rangeRef = useRef({ start: addDays(today, -LOAD_DAYS), end: addDays(today, LOAD_DAYS) });
+  const requestedRangesRef = useRef<Set<string>>(new Set());
+  const currentRequestRef = useRef<AbortController | null>(null);
+  const requestSeqRef = useRef(0);
+  const observerCooldownRef = useRef(0);
 
   const mergeSchedules = useCallback((schedules: ApiSchedule[]) => {
     setEventsByDate((prev) => {
       const next: Record<string, TimelineEventItem[]> = { ...prev };
+      const incomingByDate: Record<string, TimelineEventItem[]> = {};
+
       for (const schedule of schedules) {
         const dateKey = toKstDateKey(schedule.start_at);
-        const list = next[dateKey] ? [...next[dateKey]] : [];
-        const exists = list.some((event) => event.id === schedule.id);
-        if (exists) {
-          continue;
-        }
-        list.push({
+        const incomingList = incomingByDate[dateKey] ?? [];
+        incomingList.push({
           id: schedule.id,
           title: schedule.title,
           description: schedule.description,
@@ -110,31 +114,76 @@ export default function WeeklyScheduleClient({ branchName }: Props) {
           targetAudience: schedule.target_audience,
           isSoftDeleted: schedule.is_soft_deleted,
         });
-        list.sort((a, b) => a.timeLabel.localeCompare(b.timeLabel));
-        next[dateKey] = list;
+        incomingByDate[dateKey] = incomingList;
       }
+
+      for (const dateKey of Object.keys(incomingByDate)) {
+        const existing = next[dateKey] ?? [];
+        const existingIds = new Set(existing.map((event) => event.id));
+        const merged = existing.slice();
+
+        for (const event of incomingByDate[dateKey]) {
+          if (existingIds.has(event.id)) continue;
+          merged.push(event);
+        }
+
+        merged.sort((a, b) => a.timeLabel.localeCompare(b.timeLabel));
+        next[dateKey] = merged;
+      }
+
       return next;
     });
   }, []);
 
-  const fetchRange = useCallback(async (from: Date, to: Date) => {
+  const fetchRange = useCallback(async (from: Date, to: Date, force = false) => {
+    const rangeKey = `${toISODate(from)}|${toISODate(to)}`;
+    if (!force && requestedRangesRef.current.has(rangeKey)) {
+      return;
+    }
+    requestedRangesRef.current.add(rangeKey);
+
+    if (currentRequestRef.current) {
+      currentRequestRef.current.abort();
+    }
+    const controller = new AbortController();
+    currentRequestRef.current = controller;
+    const requestSeq = ++requestSeqRef.current;
+
     const params = new URLSearchParams({
       from: toISODate(from),
       to: toISODate(to),
     });
-    const res = await fetch(`/api/schedules?${params.toString()}`, { cache: "no-store" });
-    const payload = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(payload?.message ?? "주간일정 조회에 실패했습니다.");
+
+    try {
+      const res = await fetch(`/api/schedules?${params.toString()}`, {
+        cache: "no-store",
+        signal: controller.signal,
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(payload?.message ?? "주간일정 조회에 실패했습니다.");
+      }
+      if (requestSeq !== requestSeqRef.current) {
+        return;
+      }
+      mergeSchedules((payload.schedules ?? []) as ApiSchedule[]);
+    } catch (error) {
+      if ((error as Error).name === "AbortError") {
+        return;
+      }
+      throw error;
+    } finally {
+      if (currentRequestRef.current === controller) {
+        currentRequestRef.current = null;
+      }
     }
-    mergeSchedules((payload.schedules ?? []) as ApiSchedule[]);
   }, [mergeSchedules]);
 
   useEffect(() => {
     let mounted = true;
     const run = async () => {
       try {
-        await fetchRange(rangeStart, rangeEnd);
+        await fetchRange(rangeRef.current.start, rangeRef.current.end, true);
       } finally {
         if (mounted) {
           setInitialLoading(false);
@@ -144,13 +193,16 @@ export default function WeeklyScheduleClient({ branchName }: Props) {
     void run();
     return () => {
       mounted = false;
+      if (currentRequestRef.current) {
+        currentRequestRef.current.abort();
+      }
     };
-  }, [fetchRange, rangeEnd, rangeStart]);
+  }, [fetchRange]);
 
   const loadPrev = useCallback(async () => {
     if (loadingPrev || initialLoading) return;
     setLoadingPrev(true);
-    const oldStart = rangeStart;
+    const oldStart = rangeRef.current.start;
     const nextStart = addDays(oldStart, -LOAD_DAYS);
     const prevEnd = addDays(oldStart, -1);
 
@@ -159,6 +211,7 @@ export default function WeeklyScheduleClient({ branchName }: Props) {
 
     try {
       await fetchRange(nextStart, prevEnd);
+      rangeRef.current = { ...rangeRef.current, start: nextStart };
       setRangeStart(nextStart);
       requestAnimationFrame(() => {
         const newHeight = container?.scrollHeight ?? 0;
@@ -169,21 +222,22 @@ export default function WeeklyScheduleClient({ branchName }: Props) {
     } finally {
       setLoadingPrev(false);
     }
-  }, [fetchRange, initialLoading, loadingPrev, rangeStart]);
+  }, [fetchRange, initialLoading, loadingPrev]);
 
   const loadNext = useCallback(async () => {
     if (loadingNext || initialLoading) return;
     setLoadingNext(true);
-    const oldEnd = rangeEnd;
+    const oldEnd = rangeRef.current.end;
     const nextStart = addDays(oldEnd, 1);
     const nextEnd = addDays(oldEnd, LOAD_DAYS);
     try {
       await fetchRange(nextStart, nextEnd);
+      rangeRef.current = { ...rangeRef.current, end: nextEnd };
       setRangeEnd(nextEnd);
     } finally {
       setLoadingNext(false);
     }
-  }, [fetchRange, initialLoading, loadingNext, rangeEnd]);
+  }, [fetchRange, initialLoading, loadingNext]);
 
   useEffect(() => {
     const root = containerRef.current;
@@ -193,18 +247,25 @@ export default function WeeklyScheduleClient({ branchName }: Props) {
 
     const observer = new IntersectionObserver(
       (entries) => {
+        const now = Date.now();
+        if (now - observerCooldownRef.current < OBSERVER_COOLDOWN_MS) {
+          return;
+        }
         for (const entry of entries) {
           if (!entry.isIntersecting) continue;
           if (entry.target === top) {
+            observerCooldownRef.current = now;
             void loadPrev();
           }
           if (entry.target === bottom) {
+            observerCooldownRef.current = now;
             void loadNext();
           }
         }
       },
       {
         root,
+        rootMargin: "140px 0px",
         threshold: 0.8,
       }
     );
