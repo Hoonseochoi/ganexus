@@ -1,14 +1,17 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { FormEvent, useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { EclipseButton } from "@/app/components/ui/EclipseButton";
 import OnboardingShell from "@/app/components/OnboardingShell";
 
 export default function ApplyPage() {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [inviteCode, setInviteCode] = useState("");
+  const searchParams = useSearchParams();
+  const codeFromUrl = searchParams.get("code");
+
+  const [currentStep, setCurrentStep] = useState(codeFromUrl ? 1 : 0);
+  const [inviteCode, setInviteCode] = useState(codeFromUrl || "");
   const [branchName, setBranchName] = useState<string | null>(null);
   const [fullName, setFullName] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -20,12 +23,24 @@ export default function ApplyPage() {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [autoApproved, setAutoApproved] = useState(false);
+  const [isUrlDirectAccess, setIsUrlDirectAccess] = useState(!!codeFromUrl);
+  const [loginId, setLoginId] = useState<string | null>(null);
 
   const steps = [
     { id: "code", title: "초대코드 입력" },
     { id: "info", title: "기본 정보" },
     { id: "done", title: "신청 완료" },
   ];
+
+  // URL 파라미터가 있으면 자동으로 Step 0 스킵
+  useEffect(() => {
+    if (codeFromUrl) {
+      setIsUrlDirectAccess(true);
+      setCurrentStep(1);
+      // 자동으로 코드 검증 시작
+      handleValidateCode();
+    }
+  }, [codeFromUrl]);
 
   const handleValidateCode = async (e?: FormEvent) => {
     if (e) e.preventDefault();
@@ -35,7 +50,7 @@ export default function ApplyPage() {
       const res = await fetch("/api/invite/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: inviteCode }),
+        body: JSON.stringify({ code: inviteCode || codeFromUrl }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -55,27 +70,43 @@ export default function ApplyPage() {
     if (e) e.preventDefault();
     setError(null);
 
-    if (!managerCode.trim()) {
-      setError("매니저 코드를 입력해주세요.");
-      return;
+    // Case 1: URL code 있음 (매니저 직접 초대)
+    if (isUrlDirectAccess) {
+      if (!agree) {
+        setError("개인정보 활용 동의는 필수입니다.");
+        return;
+      }
     }
-    if (!agree) {
-      setError("개인정보 활용 동의는 필수입니다.");
-      return;
+    // Case 2: 수동 코드 입력 (에이전트 가입)
+    else {
+      if (!managerCode.trim()) {
+        setError("매니저 코드를 입력해주세요.");
+        return;
+      }
+      if (!agree) {
+        setError("개인정보 활용 동의는 필수입니다.");
+        return;
+      }
     }
 
     setSubmitting(true);
     try {
+      const body: Record<string, unknown> = {
+        code: inviteCode || codeFromUrl,
+        fullName,
+        birthDate,
+        phoneNumber,
+      };
+
+      // Case 1: URL 직접 접근은 managerCode 미포함
+      if (!isUrlDirectAccess) {
+        body.managerCode = managerCode;
+      }
+
       const res = await fetch("/api/agent/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: inviteCode,
-          fullName,
-          birthDate,
-          phoneNumber,
-          managerCode,
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -83,6 +114,7 @@ export default function ApplyPage() {
         return;
       }
       setAutoApproved(Boolean(data.autoApproved));
+      setLoginId(data.loginId);
       setDone(true);
       setCurrentStep(2);
     } catch {
@@ -96,13 +128,13 @@ export default function ApplyPage() {
     currentStep === 0
       ? !inviteCode.trim() || validating
       : currentStep === 1
-      ? !managerCode.trim() ||
-        !fullName.trim() ||
+      ? !fullName.trim() ||
         !branchName ||
         !birthDate.trim() ||
         !phoneNumber.trim() ||
         !agree ||
-        submitting
+        submitting ||
+        (isUrlDirectAccess ? false : !managerCode.trim())
       : false;
 
   const content = (
@@ -124,7 +156,7 @@ export default function ApplyPage() {
         </div>
       )}
 
-      {currentStep === 0 && (
+      {currentStep === 0 && !isUrlDirectAccess && (
         <form onSubmit={handleValidateCode} className="space-y-4">
           <div className="space-y-1.5">
             <label className="text-xs text-brand-gray flex items-center gap-1">
@@ -160,25 +192,29 @@ export default function ApplyPage() {
               </span>{" "}
               지점 초대 코드가 확인되었습니다.
             </p>
-            <p>아래 정보를 작성하면 지점장 승인 후 사용이 가능합니다.</p>
+            <p>아래 정보를 작성하면 {isUrlDirectAccess ? "즉시 승인됩니다." : "지점장 승인 후 사용이 가능합니다."}</p>
           </div>
-          <div className="space-y-1.5">
-            <label className="text-xs text-brand-gray flex items-center gap-1">
-              <span>매니저 코드</span>
-              <span className="text-[10px] text-red-500 font-medium">
-                **필수
-              </span>
-            </label>
-            <input
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
-              value={managerCode}
-              onChange={(e) => setManagerCode(e.target.value)}
-              placeholder="로그인 ID·PW로 사용됩니다 (예: MGR-0001)"
-            />
-            <p className="text-[11px] text-brand-gray">
-              승인 후 매니저 로그인에서 이 코드로 ID·비밀번호 동일 입력 후 접속합니다.
-            </p>
-          </div>
+          
+          {!isUrlDirectAccess && (
+            <div className="space-y-1.5">
+              <label className="text-xs text-brand-gray flex items-center gap-1">
+                <span>매니저 코드</span>
+                <span className="text-[10px] text-red-500 font-medium">
+                  **필수
+                </span>
+              </label>
+              <input
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-primary/60"
+                value={managerCode}
+                onChange={(e) => setManagerCode(e.target.value)}
+                placeholder="로그인 ID·PW로 사용됩니다 (예: MGR-0001)"
+              />
+              <p className="text-[11px] text-brand-gray">
+                승인 후 매니저 로그인에서 이 코드로 ID·비밀번호 동일 입력 후 접속합니다.
+              </p>
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <label className="text-xs text-brand-gray flex items-center gap-1">
               <span>성함</span>
@@ -269,10 +305,14 @@ export default function ApplyPage() {
           {autoApproved ? (
             <>
               <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-700">
-                PASS: 이름과 코드가 확인되어 즉시 승인되었습니다.
+                {isUrlDirectAccess
+                  ? "✓ 매니저 등록이 완료되었습니다. 비밀번호를 설정 후 사용할 수 있습니다."
+                  : "PASS: 이름과 코드가 확인되어 즉시 승인되었습니다."}
               </div>
               <p className="text-[11px]">
-                지금 바로 매니저 로그인 페이지에서 가입 시 입력한 매니저 코드(ID·PW 동일)로 로그인할 수 있습니다.
+                {isUrlDirectAccess
+                  ? "비밀번호를 설정하면 바로 매니저 로그인에서 사용 가능합니다."
+                  : "지금 바로 매니저 로그인 페이지에서 가입 시 입력한 매니저 코드(ID·PW 동일)로 로그인할 수 있습니다."}
               </p>
             </>
           ) : (
@@ -287,10 +327,16 @@ export default function ApplyPage() {
           )}
           <EclipseButton
             type="button"
-            text="매니저 로그인으로 이동"
+            text={isUrlDirectAccess && autoApproved ? "비밀번호 설정하러 가기" : "매니저 로그인으로 이동"}
             variant="primary"
             className="w-full"
-            onClick={() => router.push("/manager-login")}
+            onClick={() => {
+              if (isUrlDirectAccess && autoApproved && loginId) {
+                router.push(`/auth/change-password?loginId=${encodeURIComponent(loginId)}&autoApproved=1`);
+              } else {
+                router.push("/manager-login");
+              }
+            }}
           />
         </div>
       )}
