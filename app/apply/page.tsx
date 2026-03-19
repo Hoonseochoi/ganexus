@@ -131,8 +131,9 @@ function ApplyPageContent() {
           지점 캘린더 합류 신청
         </h1>
         <p className="mt-1 text-[11px] text-brand-gray">
-          지점장님께 받은 초대 코드를 입력하고, 간단한 정보를 작성하면 승인 후
-          메인 캘린더에 접근할 수 있습니다.
+          {isUrlDirectAccess && currentStep === 2 && done
+            ? "초대코드 확인이 완료되어 즉시 로그인할 수 있습니다."
+            : "지점장님께 받은 초대 코드를 입력하고, 간단한 정보를 작성하면 승인 후 메인 캘린더에 접근할 수 있습니다."}
         </p>
       </header>
 
@@ -286,7 +287,18 @@ function ApplyPageContent() {
 
       {currentStep === 2 && done && (
         <div className="space-y-4 text-sm text-brand-gray pb-4">
-          {autoApproved ? (
+          {isUrlDirectAccess ? (
+            <>
+              <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-700">
+                즉시 로그인 가능합니다
+              </div>
+              <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] text-brand-black leading-6">
+                <p>ID : 매니저코드</p>
+                <p>PW: 매니저코드</p>
+                <p>로그인 이후에는 비밀번호 변경은 필수입니다</p>
+              </div>
+            </>
+          ) : autoApproved ? (
             <>
               <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-700">
                 {isUrlDirectAccess
@@ -311,15 +323,11 @@ function ApplyPageContent() {
           )}
           <EclipseButton
             type="button"
-            text={isUrlDirectAccess && autoApproved ? "비밀번호 설정하러 가기" : "매니저 로그인으로 이동"}
+            text="매니저 로그인으로 이동"
             variant="primary"
             className="w-full"
             onClick={() => {
-              if (isUrlDirectAccess && autoApproved && loginId) {
-                router.push(`/auth/change-password?loginId=${encodeURIComponent(loginId)}&autoApproved=1`);
-              } else {
-                router.push("/manager-login");
-              }
+              router.push("/manager-login");
             }}
           />
         </div>
