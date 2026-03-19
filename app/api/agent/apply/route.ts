@@ -129,6 +129,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const existingProfileByCode = await client.query<{ login_id: string }>(
+      "select login_id from public.profiles where manager_code = $1 or login_id = $1 limit 1",
+      [managerCodeTrimmed],
+    );
+    if ((existingProfileByCode.rowCount ?? 0) > 0) {
+      await client.query("rollback");
+      return NextResponse.json(
+        { message: "이미 사용 중인 매니저 코드입니다. 다른 코드를 입력해주세요." },
+        { status: 409 },
+      );
+    }
+
     let registryMatch: RegistryRow | null = null;
     let codeAndBranchMatched = false;
     let nameMatched = false;
@@ -238,7 +250,22 @@ export async function POST(req: NextRequest) {
         { status: 409 },
       );
     }
-    throw err;
+    if (
+      err !== null &&
+      typeof err === "object" &&
+      "code" in err &&
+      (err as { code?: string }).code === "23505"
+    ) {
+      return NextResponse.json(
+        { message: "이미 사용 중인 매니저 코드입니다. 다른 코드를 입력해주세요." },
+        { status: 409 },
+      );
+    }
+    console.error("[agent/apply] signup failed", err);
+    return NextResponse.json(
+      { message: "가입 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요." },
+      { status: 500 },
+    );
   } finally {
     client.release();
   }
