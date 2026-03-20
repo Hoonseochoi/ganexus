@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find C:UserschlgnOneDriveDesktopGA_NEXUSappcomponents -type f -name *[Hh]eader* -o -name *[Nn]av* -o -name *[Ss]hell*)",
+      "Bash(npx tsc:*)",
+      "Bash(ls:*)",
+      "Bash(node:*)",
+      "Bash(grep -E \"dotenv|pg$\")",
+      "Bash(npm install:*)"
+    ]
+  }
+}

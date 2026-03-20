@@ -9,3 +9,11 @@ node_modules
 .env*.local
 public/uploads/
 .next/
+
+# 에이전트 workspace 임시 결과 파일 (git 추적 불필요)
+.agents/workspace/feature_result.json
+.agents/workspace/db_result.json
+.agents/workspace/qa_result.json
+.agents/workspace/deploy_result.json
+.agents/workspace/task.json
+tmp/
