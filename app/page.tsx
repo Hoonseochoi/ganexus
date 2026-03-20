@@ -8,6 +8,7 @@ import {
 import LeftPanelBranchMembers from "./components/LeftPanelBranchMembers";
 import LandingPage from "./components/LandingPage";
 import AdminSettingsMenu from "./components/AdminSettingsMenu";
+import ManagerSettingsSection from "./components/ManagerSettingsSection";
 import CalendarPageClientShell from "./components/CalendarPageClientShell";
 import { buildCalendarMonthData, getCalendarFetchRange } from "@/src/lib/calendar/month-view";
 
@@ -75,6 +76,9 @@ export default async function Page({ searchParams }: PageProps) {
         </button>
         {user?.role === "admin" && (
           <AdminSettingsMenu />
+        )}
+        {(user?.role === "manager" || user?.role === "agent") && (
+          <ManagerSettingsSection />
         )}
         <LeftPanelBranchMembers />
         <div className="pt-4 border-t border-slate-100">

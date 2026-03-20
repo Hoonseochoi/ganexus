@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
   }
 
   // 같은 지점의 모든 구독자 조회 (admin 포함)
-  const subscriptions = await query<{ endpoint: string; p256dh: string; auth: string }>(
-    `SELECT ps.endpoint, ps.p256dh, ps.auth
+  const subscriptions = await query<{ endpoint: string; p256dh: string; auth: string; full_name: string | null }>(
+    `SELECT ps.endpoint, ps.p256dh, ps.auth, p.full_name
      FROM public.push_subscriptions ps
      JOIN public.profiles p ON p.id = ps.user_id
      WHERE p.branch_name = $1
@@ -42,19 +42,24 @@ export async function POST(request: NextRequest) {
 
   let sent = 0;
   let failed = 0;
+  const sentLogs: string[] = [];
+  const failedLogs: string[] = [];
 
   for (const sub of subscriptions) {
+    const name = sub.full_name ?? "알 수 없음";
     try {
       await webpush.sendNotification(
         { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
         payload
       );
       sent++;
+      sentLogs.push(name);
     } catch {
       await query("DELETE FROM public.push_subscriptions WHERE endpoint = $1", [sub.endpoint]);
       failed++;
+      failedLogs.push(name);
     }
   }
 
-  return NextResponse.json({ success: true, sent, failed });
+  return NextResponse.json({ success: true, sent, failed, sentLogs, failedLogs });
 }
