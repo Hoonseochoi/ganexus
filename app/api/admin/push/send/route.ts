@@ -54,10 +54,18 @@ export async function POST(request: NextRequest) {
       );
       sent++;
       sentLogs.push(name);
-    } catch {
-      await query("DELETE FROM public.push_subscriptions WHERE endpoint = $1", [sub.endpoint]);
+    } catch (err) {
+      const statusCode = (err as { statusCode?: number }).statusCode;
+      console.error(`[push/send] 발송 실패 [${name}] status=${statusCode}`, err);
+      // 410 Gone = 구독 완전 만료 → DB에서 삭제
+      // 그 외 (401 VAPID 오류, 네트워크 등) → 삭제 안 함
+      if (statusCode === 410 || statusCode === 404) {
+        await query("DELETE FROM public.push_subscriptions WHERE endpoint = $1", [sub.endpoint]);
+        failedLogs.push(`${name} (만료)`);
+      } else {
+        failedLogs.push(`${name} (오류 ${statusCode ?? "unknown"})`);
+      }
       failed++;
-      failedLogs.push(name);
     }
   }
 
