@@ -26,7 +26,7 @@ const CATEGORY_CLASSES: Record<string, string> = {
   personal: "border-emerald-200 bg-emerald-50/80 text-emerald-700",
   leave: "border-rose-200 bg-rose-50/80 text-rose-700",
   etc: "border-slate-200 bg-slate-50/80 text-slate-600",
-  private: "border-fuchsia-300 bg-fuchsia-50/90 text-fuchsia-700",
+  private: "border-slate-900 bg-slate-900 text-white",
 };
 
 function parseHexColor(hex: string | null | undefined): { r: number; g: number; b: number } | null {
@@ -115,18 +115,20 @@ export default function DraggableSchedulePill({
           </span>
         ) : schedule.category === "dealer" ? (
           <span className="font-semibold">
-            {schedule.is_private && <Lock className="inline h-2.5 w-2.5 mr-0.5 mb-px" />}
             {schedule.title}
             {schedule.instructor ? ` / ${schedule.instructor}` : ""}
             {` / ${timeStr}`}
           </span>
         ) : (
           <span className="font-medium">
-            {schedule.is_private && <Lock className="inline h-2.5 w-2.5 mr-0.5 mb-px" />}
             {schedule.title} / {schedule.creator_full_name || "작성자"} / {timeStr}
           </span>
         )}
       </span>
+      {/* 나만보기: 끝에 노란 자물쇠 */}
+      {schedule.is_private && (
+        <Lock className="h-2.5 w-2.5 shrink-0 text-yellow-400 self-center" />
+      )}
     </>
   );
 
