@@ -41,14 +41,14 @@ async function fetchAddMeta(): Promise<AddMetaCache> {
       : "관리자";
 
     let instructors: Instructor[] = [];
-    const managersData = await managersRes.json().catch(() => ({}));
+    const managersData = await managersRes.json().catch(() => ({})) as { managers?: { id: string; name: string; is_instructor: boolean; instructor_color?: string | null }[] };
     if (managersRes.ok && Array.isArray(managersData.managers)) {
       instructors = managersData.managers
-        .filter((m: any) => m.is_instructor)
-        .map((m: any) => ({
-          id: m.id as string,
-          name: m.name as string,
-          instructor_color: (m.instructor_color as string) ?? null,
+        .filter((m) => m.is_instructor)
+        .map((m) => ({
+          id: m.id,
+          name: m.name,
+          instructor_color: m.instructor_color ?? null,
         }));
     }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { EclipseButton } from "@/app/components/ui/EclipseButton";
 import type { MemoItem } from "./types";
 import { formatDateTime } from "./types";
@@ -44,6 +44,21 @@ export function MemoSection({
   onEditContentChange,
   deletingId,
 }: Props) {
+  // 로컬 draft로 키입력마다 부모 리렌더 방지 (300ms 디바운스로 부모에 전파)
+  const [draft, setDraft] = useState(memoContent);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 부모가 제출 후 내용 초기화(memoContent → "")하면 draft도 초기화
+  useEffect(() => {
+    if (!memoContent) setDraft("");
+  }, [memoContent]);
+
+  const handleDraftChange = (v: string) => {
+    setDraft(v);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => onContentChange(v), 300);
+  };
+
   return (
     <>
       <h3 className="text-base font-bold mb-3 text-brand-black">메모</h3>
@@ -54,8 +69,8 @@ export function MemoSection({
       )}
       <form onSubmit={onSubmit} className="mb-3">
         <textarea
-          value={memoContent}
-          onChange={(e) => onContentChange(e.target.value)}
+          value={draft}
+          onChange={(e) => handleDraftChange(e.target.value)}
           placeholder="메모를 입력하세요..."
           className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg resize-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
           rows={2}

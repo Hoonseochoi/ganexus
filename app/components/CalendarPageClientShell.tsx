@@ -8,8 +8,10 @@ import CalendarGridClient from "./CalendarGridClient";
 import MobileCalendarShell from "./MobileCalendarShell";
 import RightPanel from "./RightPanel";
 import RightPanelCollapseWrapper, { DesktopRightPanelProvider } from "./RightPanelCollapseWrapper";
-import WeeklyScheduleClient from "./WeeklyScheduleClient";
-import { BackButton } from "@/app/components/ui/back-button";
+import dynamic from "next/dynamic";
+const WeeklyScheduleClient = dynamic(() => import("./WeeklyScheduleClient"), {
+  loading: () => <div className="flex-1 animate-pulse bg-slate-100 rounded-lg" />,
+});
 import type { CalendarMonthData } from "@/src/lib/calendar/month-view";
 import {
   buildMonthCacheKey,
@@ -116,6 +118,8 @@ export default function CalendarPageClientShell({
   const handleDateSelect = useCallback((dateISO: string | null) => {
     setSelectedDateStr(dateISO);
     syncUrl(viewYear, viewMonth, dateISO, true);
+    // 날짜 클릭 시 주간일정 → 캘린더 상세로 전환
+    if (dateISO) setShowWeekly(false);
   }, [syncUrl, viewMonth, viewYear]);
 
   useEffect(() => {
@@ -163,65 +167,63 @@ export default function CalendarPageClientShell({
     <>
       <div className="hidden lg:flex h-full overflow-hidden">
         <DesktopShell leftPanel={leftPanel}>
-          {showWeekly ? (
-            /* ─── 주간일정 모드: 우측패널 대신 전체 화면으로 ─── */
-            <section className="flex-1 overflow-hidden flex flex-col min-w-0">
-              <header className="h-16 border-b border-slate-200 flex items-center gap-4 px-6 sticky top-0 bg-background-light z-10 backdrop-blur-sm">
-                <DesktopShellHamburger />
-                <BackButton onClick={() => setShowWeekly(false)} />
-                <span className="text-sm font-semibold text-brand-black">주간일정</span>
+          {/* ─── 항상 캘린더 표시 + 우측 패널에 주간일정 or 상세 토글 ─── */}
+          <DesktopRightPanelProvider>
+            <section className="flex-1 overflow-y-auto flex flex-col min-w-0 transition-[flex-basis] duration-300 ease-out">
+              <header className="h-16 border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 bg-background-light z-10 bg-opacity-95 backdrop-blur-sm">
+                <div className="flex items-center gap-4">
+                  <DesktopShellHamburger />
+                  <CalendarMonthNav
+                    year={viewYear}
+                    month={viewMonth}
+                    onNavigate={navigateMonth}
+                    navigating={monthLoading}
+                  />
+                </div>
+                <div className="flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowWeekly((v) => !v)}
+                    className={`px-3 py-2 border rounded-lg text-sm font-semibold transition-colors ${
+                      showWeekly
+                        ? "bg-slate-800 border-slate-800 text-white"
+                        : "bg-white border-slate-200 text-brand-gray hover:bg-slate-50"
+                    }`}
+                  >
+                    주간일정
+                  </button>
+                </div>
               </header>
-              <div className="flex-1 overflow-hidden">
+
+              <div className="flex-1 p-6">
+                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm h-full flex flex-col">
+                  <CalendarGridClient
+                    cells={monthData.cells}
+                    eventsByDay={monthData.eventsByDay}
+                    year={viewYear}
+                    month={viewMonth}
+                    isAdmin={isAdmin}
+                    columns={5}
+                    selectedDateStr={displayDateStr}
+                    todayStr={monthData.todayStr}
+                    onDateSelect={handleDateSelect}
+                    openRightPanelOnSelect
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* 우측 패널: 주간일정 or 일정 상세 */}
+            {showWeekly ? (
+              <div className="flex-shrink-0 w-[440px] border-l border-slate-200 bg-white overflow-hidden flex flex-col">
                 <WeeklyScheduleClient
                   branchName={branchName}
                   isAdmin={isAdmin}
                   currentUserFullName={currentUserFullName}
+                  onClose={() => setShowWeekly(false)}
                 />
               </div>
-            </section>
-          ) : (
-            /* ─── 기본 캘린더 모드 ─── */
-            <DesktopRightPanelProvider>
-              <section className="flex-1 overflow-y-auto flex flex-col min-w-0 transition-[flex-basis] duration-300 ease-out">
-                <header className="h-16 border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 bg-background-light z-10 bg-opacity-95 backdrop-blur-sm">
-                  <div className="flex items-center gap-4">
-                    <DesktopShellHamburger />
-                    <CalendarMonthNav
-                      year={viewYear}
-                      month={viewMonth}
-                      onNavigate={navigateMonth}
-                      navigating={monthLoading}
-                    />
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <button
-                      type="button"
-                      onClick={() => setShowWeekly(true)}
-                      className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-brand-gray font-semibold hover:bg-slate-50 transition-colors"
-                    >
-                      주간일정
-                    </button>
-                  </div>
-                </header>
-
-                <div className="flex-1 p-6">
-                  <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm h-full flex flex-col">
-                    <CalendarGridClient
-                      cells={monthData.cells}
-                      eventsByDay={monthData.eventsByDay}
-                      year={viewYear}
-                      month={viewMonth}
-                      isAdmin={isAdmin}
-                      columns={5}
-                      selectedDateStr={displayDateStr}
-                      todayStr={monthData.todayStr}
-                      onDateSelect={handleDateSelect}
-                      openRightPanelOnSelect
-                    />
-                  </div>
-                </div>
-              </section>
-
+            ) : (
               <RightPanelCollapseWrapper>
                 <RightPanel
                   todaySchedules={schedulesForSelected}
@@ -231,8 +233,8 @@ export default function CalendarPageClientShell({
                   currentUserFullName={currentUserFullName ?? null}
                 />
               </RightPanelCollapseWrapper>
-            </DesktopRightPanelProvider>
-          )}
+            )}
+          </DesktopRightPanelProvider>
         </DesktopShell>
       </div>
 

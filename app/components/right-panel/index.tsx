@@ -10,6 +10,11 @@ import { MemoSection } from "./MemoSection";
 import type { ScheduleItem, MemoItem, NoticeItem } from "./types";
 import { formatDateLabel } from "./types";
 
+// 공지사항 모듈 레벨 TTL 캐시 (5분) — 마운트마다 API 호출 방지
+const NOTICE_TTL_MS = 5 * 60 * 1000;
+type NoticeCache = { expiresAt: number; notice: NoticeItem | null; readByMe: boolean };
+let noticeCacheEntry: NoticeCache | null = null;
+
 export type { ScheduleItem };
 
 const RightPanel = memo(RightPanelBase);
@@ -45,14 +50,24 @@ function RightPanelBase({
     return new Date(koreaString).toISOString().slice(0, 10);
   }, []);
 
-  const fetchNotice = useCallback(async () => {
+  const fetchNotice = useCallback(async (force = false) => {
+    // 캐시 유효하면 API 생략
+    if (!force && noticeCacheEntry && noticeCacheEntry.expiresAt > Date.now()) {
+      setNotice(noticeCacheEntry.notice);
+      setReadByMe(noticeCacheEntry.readByMe);
+      setLoadingNotice(false);
+      return;
+    }
     setLoadingNotice(true);
     try {
       const res = await fetch("/api/notices");
       const data = await res.json() as { notice?: NoticeItem; readByMe?: boolean };
       if (res.ok) {
-        setNotice(data.notice ?? null);
-        setReadByMe(data.readByMe ?? false);
+        const notice = data.notice ?? null;
+        const readByMe = data.readByMe ?? false;
+        noticeCacheEntry = { expiresAt: Date.now() + NOTICE_TTL_MS, notice, readByMe };
+        setNotice(notice);
+        setReadByMe(readByMe);
       }
     } catch {
       setNotice(null);
@@ -170,7 +185,7 @@ function RightPanelBase({
           notice={notice}
           isAdmin={isAdmin}
           onClose={() => setPopupOpen(false)}
-          onSaved={() => { void fetchNotice(); setPopupOpen(false); }}
+          onSaved={() => { noticeCacheEntry = null; void fetchNotice(true); setPopupOpen(false); }}
         />
       )}
       {selectedSchedule && (

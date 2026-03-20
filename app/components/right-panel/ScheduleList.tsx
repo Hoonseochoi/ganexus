@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import type { ScheduleItem } from "./types";
 import { formatTime, parseHexColor } from "./types";
@@ -10,7 +11,9 @@ type Props = {
   onSelect: (s: ScheduleItem) => void;
 };
 
-export function ScheduleList({ schedules, isAdmin, onSelect }: Props) {
+export const ScheduleList = memo(ScheduleListBase);
+
+function ScheduleListBase({ schedules, isAdmin, onSelect }: Props) {
   if (schedules.length === 0) {
     return <p className="text-xs text-brand-gray py-2">오늘 일정이 없습니다.</p>;
   }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import Image from "next/image";
 import { EclipseButton } from "@/app/components/ui/EclipseButton";
 import type { NoticeItem } from "./types";
 
@@ -185,8 +186,9 @@ export function NoticePopup({ notice, isAdmin, onClose, onSaved }: Props) {
               {uploading && <p className="text-xs text-brand-gray mb-2">업로드 중...</p>}
               {imageUrl && (
                 <div className="mb-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={imageUrl} alt="첨부" className="max-h-40 rounded-lg border border-slate-200" />
+                  <div className="relative max-h-40 overflow-hidden rounded-lg border border-slate-200">
+                    <Image src={imageUrl} alt="첨부" width={480} height={160} className="w-full h-auto object-contain" unoptimized />
+                  </div>
                   <EclipseButton
                     type="button"
                     variant="destructive"
@@ -224,12 +226,16 @@ export function NoticePopup({ notice, isAdmin, onClose, onSaved }: Props) {
                     {notice.body || "내용 없음"}
                   </div>
                   {notice.image_url && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={notice.image_url}
-                      alt="첨부"
-                      className="mb-4 max-h-48 rounded-lg border border-slate-200 w-full object-cover"
-                    />
+                    <div className="mb-4 overflow-hidden rounded-lg border border-slate-200">
+                      <Image
+                        src={notice.image_url}
+                        alt="첨부"
+                        width={480}
+                        height={192}
+                        className="w-full h-auto max-h-48 object-cover"
+                        unoptimized
+                      />
+                    </div>
                   )}
 
                   {/* 확인한 사람 */}

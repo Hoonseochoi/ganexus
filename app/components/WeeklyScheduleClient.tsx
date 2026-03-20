@@ -29,6 +29,8 @@ type Props = {
   branchName?: string | null;
   isAdmin?: boolean;
   currentUserFullName?: string | null;
+  /** 인라인 패널 모드에서 닫기 콜백. 제공 시 compact 헤더로 렌더 */
+  onClose?: () => void;
 };
 
 const LOAD_DAYS = 3;
@@ -86,7 +88,7 @@ function collectDateKeys(start: Date, end: Date) {
   return keys;
 }
 
-export default function WeeklyScheduleClient({ branchName, isAdmin, currentUserFullName }: Props) {
+export default function WeeklyScheduleClient({ branchName, isAdmin, currentUserFullName, onClose }: Props) {
   const today = useMemo(() => new Date(), []);
   const [rangeStart, setRangeStart] = useState(() => addDays(today, -LOAD_DAYS));
   const [rangeEnd, setRangeEnd] = useState(() => addDays(today, LOAD_DAYS));
@@ -469,23 +471,33 @@ export default function WeeklyScheduleClient({ branchName, isAdmin, currentUserF
 
   return (
     <div className="h-full flex flex-col">
-      <header className="border-b border-slate-200 bg-background-light/95 backdrop-blur-sm px-4 md:px-6 py-3 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
+      <header className="border-b border-slate-200 bg-background-light/95 backdrop-blur-sm px-4 py-3 sticky top-0 z-10">
+        <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-xs text-brand-gray">{branchName} 지점</p>
-            <h1 className="text-base md:text-lg font-bold text-brand-black">주간일정 타임라인</h1>
+            <h1 className={`font-bold text-brand-black ${onClose ? "text-sm" : "text-base md:text-lg"}`}>주간일정</h1>
           </div>
-          <Link
-            href="/"
-            className="px-3 py-1.5 rounded-full border border-slate-200 text-xs font-semibold text-brand-gray hover:bg-slate-50"
-          >
-            MainCalender
-          </Link>
+          {onClose ? (
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-3 py-1.5 rounded-full border border-slate-200 text-xs font-semibold text-brand-gray hover:bg-slate-50 transition-colors"
+            >
+              ← 캘린더
+            </button>
+          ) : (
+            <Link
+              href="/"
+              className="px-3 py-1.5 rounded-full border border-slate-200 text-xs font-semibold text-brand-gray hover:bg-slate-50"
+            >
+              캘린더
+            </Link>
+          )}
         </div>
       </header>
 
-      <div ref={containerRef} className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
-        <div className="max-w-5xl mx-auto">
+      <div ref={containerRef} className="flex-1 overflow-y-auto px-4 py-4">
+        <div>
           <p className="text-xs text-brand-gray mb-3">위/아래로 당기면 3일 단위로 추가 로드됩니다.</p>
 
           <div ref={topSentinelRef} className="h-8 grid place-items-center text-[11px] text-brand-gray">
