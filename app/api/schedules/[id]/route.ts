@@ -41,6 +41,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     startAt?: string;
     endAt?: string;
     isAllDay?: boolean;
+    isPrivate?: boolean;
     dealerName?: string | null;
     location?: string | null;
     instructor?: string | null;
@@ -59,6 +60,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     startAt: body.startAt,
     endAt: body.endAt,
     isAllDay: body.isAllDay,
+    isPrivate: body.isPrivate,
     dealerName: body.dealerName,
     location: body.location,
     instructor: body.instructor,

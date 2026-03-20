@@ -1,0 +1,37 @@
+{
+  "affects_auth": false,
+  "requires_db_change": true,
+  "db_change_description": "ALTER TABLE public.schedules ADD COLUMN IF NOT EXISTS is_private BOOLEAN NOT NULL DEFAULT false;",
+  "files_to_modify": [
+    {
+      "path": "app/admin/schedules/_components/ScheduleAddScheduler.tsx",
+      "current_summary": "3단 레이아웃 폼. isPrivate state(line 73)와 API 전송(line 199, 238) 완성됨. Lock/Globe import됨(line 5). 토글 UI 없음.",
+      "changes_needed": "1단 Category 버튼 그룹 바로 아래에 나만보기 토글 버튼 추가. isPrivate=true: Lock + amber bg, false: Globe + 기본. 카테고리 버튼과 동일한 디자인.",
+      "insert_after": "Category 버튼 그룹 closing div 직후 (line 297), space-y-4 div (line 299) 전"
+    },
+    {
+      "path": "app/components/DraggableSchedulePill.tsx",
+      "current_summary": "로컬 ScheduleItem 타입(line 5-19)에 is_private 없음. CATEGORY_CLASSES 색상. instructor_color 커스텀 스타일.",
+      "changes_needed": "(1) is_private?: boolean 타입 추가. (2) is_private=true + instructor_color 없으면 amber 스타일(border-amber-300 bg-amber-50/80 text-amber-800). (3) is_private=true일 때 Lock 아이콘 추가. lucide-react Lock import.",
+      "insert_after": null
+    },
+    {
+      "path": "app/components/right-panel/ScheduleDetailPopup.tsx",
+      "current_summary": "types.ts에 is_private 존재. 상세 팝업에 나만보기 표시 없음.",
+      "changes_needed": "시간 정보(line 296) 아래에 is_private=true일 때 나만보기 뱃지. amber rounded-full + Lock 아이콘. lucide-react Lock import.",
+      "insert_after": "시간 정보 p 태그 직후 (line 296)"
+    }
+  ],
+  "files_to_create": [],
+  "api_routes": [],
+  "constraints": [
+    "백엔드(engine + API route) is_private 이미 완전 지원 — 변경 불필요",
+    "page.tsx와 route.ts의 is_private 필터링 이미 작동 중 — 중복 구현 금지",
+    "ScheduleAddScheduler isPrivate state + setIsPrivate + API 전송 이미 완성 — UI 토글만 추가",
+    "Pool은 모듈 레벨 선언 (src/lib/engines/db.ts)",
+    "Tailwind v4 사용 — v3 문법 혼용 금지",
+    "주석/UI/로그: 한국어",
+    "TypeScript strict, any 금지"
+  ],
+  "notes": "작업 범위: (1) ScheduleAddScheduler 토글 버튼 UI 1개 추가, (2) DraggableSchedulePill is_private 타입 + amber 색상 + Lock 아이콘, (3) ScheduleDetailPopup 나만보기 뱃지. DB ALTER TABLE은 별도 실행. 엔진/API 코드 변경 불필요."
+}

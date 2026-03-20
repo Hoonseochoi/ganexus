@@ -6,7 +6,9 @@
       "Bash(ls:*)",
       "Bash(node:*)",
       "Bash(grep -E \"dotenv|pg$\")",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(grep -r \"history\\\\.back\\\\|router\\\\.back\\\\|onClick.*back\" C:UserschlgnOneDriveDesktopGA_NEXUSapp --include=*.tsx --include=*.ts)",
+      "Bash(find C:UserschlgnOneDriveDesktopGA_NEXUS -name *.tsx -path */LeftPanel* -o -name *.tsx -path */left*)"
     ]
   }
 }

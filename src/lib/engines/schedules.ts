@@ -42,6 +42,7 @@ export type ScheduleRow = {
   created_by: string;
   created_at: string;
   is_soft_deleted?: boolean;
+  is_private?: boolean;
   creator_full_name?: string | null;
   creator_avatar_url?: string | null;
   target_full_name?: string | null;
@@ -61,6 +62,7 @@ export type ScheduleInput = {
   startAt: string; // ISO
   endAt?: string; // ISO (없으면 startAt 과 동일하게 처리)
   isAllDay?: boolean;
+  isPrivate?: boolean;
   createdByProfileId: string;
 };
 
@@ -163,6 +165,7 @@ export async function listSchedulesForBranch(params: {
         select s.id, s.branch_name, s.title, s.description, s.category,
                s.dealer_name, s.location, s.instructor, s.target_audience, s.manager_name,
                s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at, s.is_soft_deleted,
+               s.is_private,
                p1.full_name as creator_full_name,
                p3.instructor_color as instructor_color,
                p2.full_name as target_full_name
@@ -273,12 +276,12 @@ export async function createSchedule(input: ScheduleInput): Promise<ScheduleRow>
         insert into ${schema}.schedules (
           branch_name, title, description, category,
           dealer_name, location, instructor, target_audience, manager_name,
-          start_at, end_at, is_all_day, created_by
+          start_at, end_at, is_all_day, created_by, is_private
         )
-        values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
         returning id, branch_name, title, description, category,
                   dealer_name, location, instructor, target_audience, manager_name,
-                  start_at, end_at, is_all_day, created_by, created_at
+                  start_at, end_at, is_all_day, created_by, created_at, is_private
       `,
       [
         input.branchName,
@@ -294,6 +297,7 @@ export async function createSchedule(input: ScheduleInput): Promise<ScheduleRow>
         endAt,
         input.isAllDay ?? false,
         input.createdByProfileId,
+        input.isPrivate ?? false,
       ],
     );
     invalidateScheduleListCache(input.branchName);
@@ -439,6 +443,7 @@ export async function updateSchedule(params: {
   startAt?: string;
   endAt?: string;
   isAllDay?: boolean;
+  isPrivate?: boolean;
 }): Promise<ScheduleRow | null> {
   const { id, branchName } = params;
   const schema = (await getTenantSchemaForBranch(branchName)) ?? "public";
@@ -474,6 +479,7 @@ export async function updateSchedule(params: {
   if (params.startAt !== undefined) push("start_at", params.startAt);
   if (params.endAt !== undefined) push("end_at", params.endAt);
   if (params.isAllDay !== undefined) push("is_all_day", params.isAllDay);
+  if (params.isPrivate !== undefined) push("is_private", params.isPrivate);
 
   type LegacyRow = Omit<ScheduleRow, "dealer_name" | "location" | "instructor" | "target_audience" | "manager_name" | "category" | "target_full_name" | "target_avatar_url"> & { category: LegacyCategory };
 

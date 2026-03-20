@@ -35,11 +35,16 @@ export async function GET(req: NextRequest) {
     to = to ?? range.to;
   }
 
-  const schedules = await listSchedulesForBranch({
+  const allSchedules = await listSchedulesForBranch({
     branchName,
     from,
     to,
   });
+
+  const profileId = user.profile?.id;
+  const schedules = allSchedules.filter(
+    (s) => !s.is_private || s.created_by === profileId
+  );
 
   const elapsedMs = Date.now() - startedAt;
 
@@ -98,6 +103,7 @@ export async function POST(req: NextRequest) {
     startAt?: string;
     endAt?: string;
     isAllDay?: boolean;
+    isPrivate?: boolean;
     dealerName?: string | null;
     location?: string | null;
     instructor?: string | null;
@@ -123,6 +129,7 @@ export async function POST(req: NextRequest) {
     startAt,
     endAt: body.endAt,
     isAllDay: body.isAllDay ?? false,
+    isPrivate: body.isPrivate ?? false,
     dealerName: body.dealerName ?? null,
     location: body.location ?? null,
     instructor: body.instructor ?? null,

@@ -41,11 +41,15 @@ export default async function Page({ searchParams }: PageProps) {
   let schedules: ScheduleRow[] = [];
   if (user?.profile?.branch_name) {
     const { from, to } = getCalendarFetchRange(year, month);
-    schedules = await listSchedulesForBranch({
+    const allSchedules = await listSchedulesForBranch({
       branchName: user.profile.branch_name,
       from,
       to,
     });
+    const profileId = user.profile.id;
+    schedules = allSchedules.filter(
+      (s) => !s.is_private || s.created_by === profileId
+    );
   }
   const initialMonthData = buildCalendarMonthData({ year, month, schedules });
 
