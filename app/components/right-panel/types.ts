@@ -14,6 +14,7 @@ export type ScheduleItem = {
   target_audience?: string | null;
   manager_name?: string | null;
   is_soft_deleted?: boolean;
+  is_private?: boolean;
   creator_full_name?: string | null;
   creator_avatar_url?: string | null;
   target_full_name?: string | null;
