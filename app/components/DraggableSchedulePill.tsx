@@ -3,22 +3,7 @@
 import { Lock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 
-type ScheduleItem = {
-  id: string;
-  title: string;
-  start_at: string;
-  end_at: string;
-  is_all_day: boolean;
-  category?: string;
-  is_private?: boolean;
-  manager_name?: string | null;
-  creator_full_name?: string | null;
-  creator_avatar_url?: string | null;
-  target_full_name?: string | null;
-  target_avatar_url?: string | null;
-  instructor?: string | null;
-  instructor_color?: string | null;
-};
+import type { ScheduleItem } from "./right-panel/types";
 
 const CATEGORY_CLASSES: Record<string, string> = {
   dealer: "border-blue-200 bg-blue-50/80 text-blue-700",

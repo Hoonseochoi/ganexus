@@ -68,23 +68,7 @@ async function fetchAddMeta(): Promise<AddMetaCache> {
   }
 }
 
-type ScheduleItem = {
-  id: string;
-  title: string;
-  description: string | null;
-  start_at: string;
-  end_at: string;
-  is_all_day: boolean;
-  category: string;
-  is_private?: boolean;
-  creator_full_name?: string | null;
-  creator_avatar_url?: string | null;
-  target_full_name?: string | null;
-  target_avatar_url?: string | null;
-  manager_name?: string | null;
-  instructor?: string | null;
-  instructor_color?: string | null;
-};
+import type { ScheduleItem } from "./right-panel/types";
 
 type CellData = {
   key: number;
@@ -294,6 +278,7 @@ function CalendarGridClientBase({
                           schedule={{
                             id: ev.id,
                             title: ev.title,
+                            description: ev.description,
                             start_at: ev.start_at,
                             end_at: ev.end_at,
                             is_all_day: ev.is_all_day,
