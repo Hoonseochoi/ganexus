@@ -8,6 +8,8 @@ import CalendarGridClient from "./CalendarGridClient";
 import MobileCalendarShell from "./MobileCalendarShell";
 import RightPanel from "./RightPanel";
 import RightPanelCollapseWrapper, { DesktopRightPanelProvider } from "./RightPanelCollapseWrapper";
+import { ScheduleDetailPopup } from "./right-panel/ScheduleDetailPopup"; // Added import
+import type { ScheduleItem } from "./right-panel/types"; // Added import
 import dynamic from "next/dynamic";
 const WeeklyScheduleClient = dynamic(() => import("./WeeklyScheduleClient"), {
   loading: () => <div className="flex-1 animate-pulse bg-slate-100 rounded-lg" />,
@@ -46,6 +48,7 @@ export default function CalendarPageClientShell({
   const [selectedDateStr, setSelectedDateStr] = useState(initialSelectedDateStr);
   const [monthLoading, setMonthLoading] = useState(false);
   const [showWeekly, setShowWeekly] = useState(false);
+  const [selectedScheduleForPopup, setSelectedScheduleForPopup] = useState<ScheduleItem | null>(null); // Added state
   const requestIdRef = useRef(0);
 
   useEffect(() => {
@@ -231,6 +234,7 @@ export default function CalendarPageClientShell({
                   isAdmin={isAdmin}
                   canAddSchedule={canAddSchedule}
                   currentUserFullName={currentUserFullName ?? null}
+                  onScheduleSelectForPopup={setSelectedScheduleForPopup} // Pass the setter
                 />
               </RightPanelCollapseWrapper>
             )}
@@ -252,7 +256,22 @@ export default function CalendarPageClientShell({
         branchName={branchName ?? null}
         onMonthChange={navigateMonth}
         monthLoading={monthLoading}
+        onScheduleSelectForPopup={setSelectedScheduleForPopup} // Pass the setter
       />
+
+      {/* Central Schedule Detail Popup Modal */}
+      {selectedScheduleForPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <ScheduleDetailPopup
+              schedule={selectedScheduleForPopup}
+              isAdmin={isAdmin}
+              currentUserFullName={currentUserFullName}
+              onClose={() => setSelectedScheduleForPopup(null)}
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 }

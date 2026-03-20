@@ -26,12 +26,14 @@ function RightPanelBase({
   isAdmin,
   canAddSchedule,
   currentUserFullName,
+  onScheduleSelectForPopup, // Added new prop
 }: {
   todaySchedules: ScheduleItem[];
   selectedDateStr?: string | null;
   isAdmin: boolean;
   canAddSchedule?: boolean;
   currentUserFullName?: string | null;
+  onScheduleSelectForPopup: (schedule: ScheduleItem | null) => void; // Added new prop type
 }) {
   const [notice, setNotice] = useState<NoticeItem>(null);
   const [readByMe, setReadByMe] = useState(false);
@@ -42,7 +44,6 @@ function RightPanelBase({
   const [sendingMemo, setSendingMemo] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedSchedule, setSelectedSchedule] = useState<ScheduleItem | null>(null);
   const router = useRouter();
 
   const todayStr = useMemo(() => {
@@ -164,7 +165,7 @@ function RightPanelBase({
           <ScheduleList
             schedules={todaySchedules}
             isAdmin={isAdmin}
-            onSelect={setSelectedSchedule}
+            onSelect={onScheduleSelectForPopup}
           />
         </div>
 
@@ -188,14 +189,7 @@ function RightPanelBase({
           onSaved={() => { noticeCacheEntry = null; void fetchNotice(true); setPopupOpen(false); }}
         />
       )}
-      {selectedSchedule && (
-        <ScheduleDetailPopup
-          schedule={selectedSchedule}
-          isAdmin={isAdmin}
-          currentUserFullName={currentUserFullName}
-          onClose={() => setSelectedSchedule(null)}
-        />
-      )}
+
     </aside>
   );
 }

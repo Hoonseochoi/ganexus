@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import CalendarGridClient from "./CalendarGridClient";
 import LeftPanelBranchMembers from "./LeftPanelBranchMembers";
-import { ScheduleDetailPopup, type ScheduleItem } from "./RightPanel";
+import { type ScheduleItem } from "./RightPanel";
 import AdminSettingsMenu from "./AdminSettingsMenu";
 
 type CellData = {
@@ -31,6 +31,7 @@ type Props = {
   branchName?: string | null;
   onMonthChange?: (year: number, month: number) => void;
   monthLoading?: boolean;
+  onScheduleSelectForPopup: (schedule: ScheduleItem | null) => void; // Added new prop
 };
 
 function parseHexColor(hex: string | null | undefined): { r: number; g: number; b: number } | null {
@@ -65,12 +66,12 @@ function MobileCalendarShellBase({
   branchName,
   onMonthChange,
   monthLoading = false,
+  onScheduleSelectForPopup, // Destructure new prop
 }: Props) {
   const router = useRouter();
   const [mobileLeftOpen, setMobileLeftOpen] = useState(false);
   const [selectedDateForDetail, setSelectedDateForDetail] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
-  const [selectedSchedule, setSelectedSchedule] = useState<ScheduleItem | null>(null);
   const [navLoading, setNavLoading] = useState(false);
 
   const buildMonthHref = (y: number, m: number) => `/?year=${y}&month=${m + 1}`;
@@ -295,7 +296,7 @@ function MobileCalendarShellBase({
                               s.is_soft_deleted ? "opacity-60" : ""
                             } ${rgb ? "text-brand-black" : "border-slate-100 bg-slate-50"}`}
                             style={cardStyle}
-                            onClick={() => setSelectedSchedule(s)}
+                            onClick={() => onScheduleSelectForPopup(s)}
                           >
                             <div className="w-6 h-6 rounded-full border border-white shadow-sm overflow-hidden bg-slate-200 shrink-0 flex items-center justify-center text-[10px] font-bold text-slate-600">
                               {s.category === "leave" ? (
@@ -403,14 +404,7 @@ function MobileCalendarShellBase({
         </div>
       )}
 
-      {selectedSchedule && (
-        <ScheduleDetailPopup
-          schedule={selectedSchedule}
-          isAdmin={isAdmin}
-          currentUserFullName={userFullName ?? undefined}
-          onClose={() => setSelectedSchedule(null)}
-        />
-      )}
+
     </div>
   );
 }
