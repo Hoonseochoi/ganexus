@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ChevronRight, Settings, Info, CheckCircle, Users, CalendarDays } from "lucide-react";
+import { ChevronRight, Settings, Info, CheckCircle, Users, CalendarDays, Bell } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 
 interface SettingItemProps {
@@ -80,6 +80,12 @@ export default function AdminSettingsMenu({ onNavigate }: { onNavigate?: () => v
       label: "주간일정",
       icon: <CalendarDays className="w-4 h-4" />,
       iconBg: "bg-cyan-500",
+    },
+    {
+      href: "/admin/push",
+      label: "푸시 알림 발송",
+      icon: <Bell className="w-4 h-4" />,
+      iconBg: "bg-sky-500",
     },
   ];
 

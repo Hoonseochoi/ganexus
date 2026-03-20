@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { ReactNode } from "react";
 import PWAInstallHandler from "./components/PWAInstallHandler";
+import PushNotificationPrompt from "./components/PushNotificationPrompt";
 
 export const metadata = {
   title: "GALENDER",
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body className="min-h-screen bg-background-light text-slate-900 antialiased font-sans">
         <PWAInstallHandler />
+        <PushNotificationPrompt />
         {children}
       </body>
     </html>
