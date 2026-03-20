@@ -1,5 +1,6 @@
 "use client";
 
+import { Lock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 
 type ScheduleItem = {
@@ -9,6 +10,7 @@ type ScheduleItem = {
   end_at: string;
   is_all_day: boolean;
   category?: string;
+  is_private?: boolean;
   manager_name?: string | null;
   creator_full_name?: string | null;
   creator_avatar_url?: string | null;
@@ -24,6 +26,7 @@ const CATEGORY_CLASSES: Record<string, string> = {
   personal: "border-emerald-200 bg-emerald-50/80 text-emerald-700",
   leave: "border-rose-200 bg-rose-50/80 text-rose-700",
   etc: "border-slate-200 bg-slate-50/80 text-slate-600",
+  private: "border-fuchsia-300 bg-fuchsia-50/90 text-fuchsia-700",
 };
 
 function parseHexColor(hex: string | null | undefined): { r: number; g: number; b: number } | null {
@@ -62,6 +65,11 @@ export default function DraggableSchedulePill({
     (schedule.category && CATEGORY_CLASSES[schedule.category]) ||
     CATEGORY_CLASSES.etc;
   let customStyle: React.CSSProperties | undefined;
+
+  // 나만보기 일정: fuchsia 고유 컬러 적용
+  if (schedule.is_private) {
+    colorClass = CATEGORY_CLASSES.private;
+  }
 
   const rgb = parseHexColor(schedule.instructor_color);
   if (rgb) {
@@ -107,12 +115,14 @@ export default function DraggableSchedulePill({
           </span>
         ) : schedule.category === "dealer" ? (
           <span className="font-semibold">
+            {schedule.is_private && <Lock className="inline h-2.5 w-2.5 mr-0.5 mb-px" />}
             {schedule.title}
             {schedule.instructor ? ` / ${schedule.instructor}` : ""}
             {` / ${timeStr}`}
           </span>
         ) : (
           <span className="font-medium">
+            {schedule.is_private && <Lock className="inline h-2.5 w-2.5 mr-0.5 mb-px" />}
             {schedule.title} / {schedule.creator_full_name || "작성자"} / {timeStr}
           </span>
         )}

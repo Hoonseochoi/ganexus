@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, ChevronRight, Clock, MapPin, User, FileText, CheckCircle2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Clock, MapPin, User, FileText, CheckCircle2, Lock, Globe } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar"
 import { Button } from "@/app/components/ui/button"
 import { cn } from "@/src/lib/utils"
@@ -37,6 +37,7 @@ export interface ScheduleAddSchedulerProps {
     end_at: string
     is_all_day: boolean
     dealer_name?: string | null
+    is_private?: boolean
   }
   submitLabel?: string
   redirectToCalendarOnSuccess?: boolean
@@ -69,6 +70,7 @@ export function ScheduleAddScheduler({
   const [host, setHost] = useState<string | null>(null)
   const [targetAudience, setTargetAudience] = useState("")
   const [description, setDescription] = useState("")
+  const [isPrivate, setIsPrivate] = useState(false)
 
   const effectiveMode = mode ?? "create"
 
@@ -153,6 +155,7 @@ export function ScheduleAddScheduler({
     setHost(initialSchedule.instructor || null)
     setTargetAudience(initialSchedule.targetAudience || "")
     setDescription(initialSchedule.description || "")
+    setIsPrivate(initialSchedule.is_private ?? false)
   }, [effectiveMode, initialSchedule])
 
   // 생성 모드에서는 외부에서 전달한 날짜를 기본 선택값으로 사용
@@ -193,6 +196,7 @@ export function ScheduleAddScheduler({
             startAt,
             endAt,
             isAllDay: category === "leave",
+            isPrivate,
             location: location || null,
             instructor: host || null,
             targetAudience: targetAudience || null,
@@ -231,6 +235,7 @@ export function ScheduleAddScheduler({
             startAt,
             endAt,
             isAllDay: category === "leave",
+            isPrivate,
             location: location || null,
             instructor: host || null,
             targetAudience: targetAudience || null,
@@ -261,10 +266,24 @@ export function ScheduleAddScheduler({
             <AvatarImage src={userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userFullName}`} />
             <AvatarFallback>{userFullName?.charAt(0)}</AvatarFallback>
           </Avatar>
-          <div>
+          <div className="flex-1 min-w-0">
             <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Manager</p>
             <p className="text-sm font-semibold text-slate-700">{userFullName}님, 반갑습니다.</p>
           </div>
+          {/* 나만보기 토글 버튼 */}
+          <button
+            type="button"
+            onClick={() => setIsPrivate((prev) => !prev)}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[11px] font-bold transition-all shrink-0",
+              isPrivate
+                ? "bg-fuchsia-500 border-fuchsia-500 text-white shadow-md shadow-fuchsia-500/30"
+                : "bg-white border-slate-200 text-slate-500 hover:border-fuchsia-300 hover:text-fuchsia-600"
+            )}
+          >
+            <Lock className="h-3 w-3" />
+            나만보기
+          </button>
         </div>
 
         <div className="space-y-5">

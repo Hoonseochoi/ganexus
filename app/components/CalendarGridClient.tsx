@@ -76,6 +76,7 @@ type ScheduleItem = {
   end_at: string;
   is_all_day: boolean;
   category: string;
+  is_private?: boolean;
   creator_full_name?: string | null;
   creator_avatar_url?: string | null;
   target_full_name?: string | null;
@@ -297,6 +298,7 @@ function CalendarGridClientBase({
                             end_at: ev.end_at,
                             is_all_day: ev.is_all_day,
                             category: ev.category,
+                            is_private: ev.is_private,
                             creator_full_name: ev.creator_full_name,
                             creator_avatar_url: ev.creator_avatar_url,
                             target_full_name: ev.target_full_name,

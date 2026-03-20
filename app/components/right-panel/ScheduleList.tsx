@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+import { Lock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import type { ScheduleItem } from "./types";
 import { formatTime, parseHexColor } from "./types";
@@ -47,6 +48,9 @@ function ScheduleListBase({ schedules, isAdmin, onSelect }: Props) {
             };
             colorClass = "border-l-4";
           }
+        } else if (s.is_private) {
+          // 나만보기 일정: fuchsia 고유 컬러
+          colorClass = "border-fuchsia-400 bg-fuchsia-50 border-l-4";
         } else {
           colorClass =
             s.category === "dealer"
@@ -107,6 +111,11 @@ function ScheduleListBase({ schedules, isAdmin, onSelect }: Props) {
                       deleted ? "text-slate-400 line-through" : "text-brand-black"
                     }`}
                   >
+                    {s.is_private && (
+                      <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-fuchsia-600 bg-fuchsia-100 px-1.5 py-0.5 rounded-md mr-1.5 align-middle">
+                        <Lock className="h-2.5 w-2.5" />나만
+                      </span>
+                    )}
                     {isLeave ? (
                       <>
                         <span>[월차]</span>
