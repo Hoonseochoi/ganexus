@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Bell, Send } from 'lucide-react';
+import { Send } from 'lucide-react';
+import { AdminPageHeader } from '@/app/admin/_components/AdminPageHeader';
 
 export default function AdminPushPage() {
   const [title, setTitle] = useState('');
@@ -33,16 +34,10 @@ export default function AdminPushPage() {
   return (
     <div className="min-h-screen bg-slate-50 p-4">
       <div className="max-w-lg mx-auto pt-8">
-        {/* 헤더 */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-sky-100 flex items-center justify-center">
-            <Bell className="w-5 h-5 text-sky-600" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-slate-800">푸시 알림 발송</h1>
-            <p className="text-xs text-slate-400">지점 전체 멤버에게 알림을 보냅니다</p>
-          </div>
-        </div>
+        <AdminPageHeader
+          title="푸시 알림 발송"
+          description="지점 전체 멤버에게 알림을 보냅니다"
+        />
 
         {/* 입력 폼 */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-4">
