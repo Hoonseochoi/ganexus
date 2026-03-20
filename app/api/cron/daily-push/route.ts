@@ -1,49 +1,63 @@
-// 매일 18시(KST) 크론 작업 — 다음날 일정 푸시 알림 발송
+// 매일 18시(KST) = 09:00 UTC 크론 작업 — 다음날 지점 일정 푸시 알림 발송
 
-import { Pool } from 'pg';
-import webpush from 'web-push';
-
-const pool = new Pool({ connectionString: process.env.NEON_DATABASE_URL });
+import { NextRequest } from "next/server";
+import webpush from "web-push";
+import { query } from "@/src/lib/engines/db";
 
 webpush.setVapidDetails(
-  process.env.VAPID_EMAIL ?? 'mailto:admin@galender.app',
-  process.env.VAPID_PUBLIC_KEY ?? '',
-  process.env.VAPID_PRIVATE_KEY ?? ''
+  process.env.VAPID_EMAIL ?? "mailto:admin@galender.app",
+  process.env.VAPID_PUBLIC_KEY ?? "",
+  process.env.VAPID_PRIVATE_KEY ?? ""
 );
 
-export async function POST(request: Request) {
-  // 크론 시크릿 검증
-  const authHeader = request.headers.get('authorization');
+export async function POST(request: NextRequest) {
+  const authHeader = request.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return Response.json({ error: '인증 실패' }, { status: 401 });
+    return Response.json({ error: "인증 실패" }, { status: 401 });
   }
 
-  // 내일 날짜 계산 (KST 기준)
+  // 내일 날짜 계산 (KST 기준: UTC+9)
   const kstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
   const tomorrow = new Date(kstNow);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
   const tomorrowStr = tomorrow.toISOString().slice(0, 10); // YYYY-MM-DD
 
-  // 내일 일정이 있는 사용자의 구독 정보 조회
-  const { rows: subscriptions } = await pool.query<{
+  /*
+   * 내일 일정이 있는 지점의 모든 구독자 조회.
+   * - 지점 단위로 묶어서 일정 제목 목록을 포함
+   * - admin/manager도 포함 (is_approved 무관)
+   * - is_soft_deleted 제외
+   */
+  const subscriptions = await query<{
     endpoint: string;
     p256dh: string;
     auth: string;
     full_name: string;
+    branch_name: string;
     schedule_titles: string;
+    schedule_count: string;
   }>(
     `SELECT
        ps.endpoint,
        ps.p256dh,
        ps.auth,
        p.full_name,
-       STRING_AGG(s.title, ', ') AS schedule_titles
+       p.branch_name,
+       branch_sched.titles  AS schedule_titles,
+       branch_sched.cnt     AS schedule_count
      FROM public.push_subscriptions ps
      JOIN public.profiles p ON p.id = ps.user_id
-     JOIN public.schedules s ON s.user_id = ps.user_id
-     WHERE s.start_date::date = $1::date
-       AND p.is_approved = true
-     GROUP BY ps.endpoint, ps.p256dh, ps.auth, p.full_name`,
+     JOIN (
+       SELECT
+         branch_name,
+         STRING_AGG(title, ', ' ORDER BY start_at) AS titles,
+         COUNT(*)::text AS cnt
+       FROM public.schedules
+       WHERE start_at::date = $1::date
+         AND (is_soft_deleted IS NULL OR is_soft_deleted = false)
+       GROUP BY branch_name
+     ) branch_sched ON branch_sched.branch_name = p.branch_name
+     WHERE (p.is_approved = true OR p.role IN ('admin', 'manager'))`,
     [tomorrowStr]
   );
 
@@ -51,10 +65,16 @@ export async function POST(request: Request) {
   let failed = 0;
 
   for (const sub of subscriptions) {
+    const count = parseInt(sub.schedule_count, 10);
+    const body =
+      count === 1
+        ? `내일 일정: ${sub.schedule_titles}`
+        : `내일 ${count}개의 일정이 있습니다. ${sub.schedule_titles}`;
+
     const payload = JSON.stringify({
-      title: 'GALENDER — 내일 일정',
-      body: `${sub.full_name}님, 내일 일정: ${sub.schedule_titles}`,
-      url: '/',
+      title: "GALENDER — 내일 일정 안내",
+      body,
+      url: "/",
       tag: `daily-${tomorrowStr}`,
     });
 
@@ -65,19 +85,13 @@ export async function POST(request: Request) {
       );
       sent++;
     } catch {
-      // 만료된 구독은 DB에서 삭제
-      await pool.query(
-        'DELETE FROM public.push_subscriptions WHERE endpoint = $1',
-        [sub.endpoint]
-      );
+      // 만료된 구독 삭제
+      await query("DELETE FROM public.push_subscriptions WHERE endpoint = $1", [sub.endpoint]);
       failed++;
     }
   }
 
-  return Response.json({
-    success: true,
-    date: tomorrowStr,
-    sent,
-    failed,
-  });
+  console.log(`[daily-push] ${tomorrowStr} 기준 발송 완료: ${sent}건 성공, ${failed}건 실패`);
+
+  return Response.json({ success: true, date: tomorrowStr, sent, failed });
 }

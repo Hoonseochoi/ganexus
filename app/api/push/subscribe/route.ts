@@ -1,25 +1,16 @@
-// 푸시 구독 저장 API
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/src/lib/engines/auth";
+import { query } from "@/src/lib/engines/db";
 
-import { Pool } from 'pg';
-import { cookies } from 'next/headers';
-
-const pool = new Pool({ connectionString: process.env.NEON_DATABASE_URL });
-
-export async function POST(request: Request) {
-  // 인증 확인
-  const cookieStore = await cookies();
-  const userId = cookieStore.get('user_id')?.value;
-  if (!userId) {
-    return Response.json({ error: '로그인이 필요합니다.' }, { status: 401 });
+export async function POST(request: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user || !user.profile) {
+    return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
   }
 
-  // 승인 여부 확인
-  const profileRes = await pool.query(
-    'SELECT is_approved FROM public.profiles WHERE id = $1',
-    [userId]
-  );
-  if (!profileRes.rows[0]?.is_approved) {
-    return Response.json({ error: '승인되지 않은 사용자입니다.' }, { status: 401 });
+  // 어드민/매니저는 is_approved 무관 허용
+  if (!user.profile.is_approved && user.role === "agent") {
+    return NextResponse.json({ error: "승인되지 않은 사용자입니다." }, { status: 401 });
   }
 
   const body = await request.json() as {
@@ -28,15 +19,15 @@ export async function POST(request: Request) {
   };
 
   if (!body.endpoint || !body.keys?.p256dh || !body.keys?.auth) {
-    return Response.json({ error: '구독 정보가 올바르지 않습니다.' }, { status: 400 });
+    return NextResponse.json({ error: "구독 정보가 올바르지 않습니다." }, { status: 400 });
   }
 
-  await pool.query(
+  await query(
     `INSERT INTO public.push_subscriptions (user_id, endpoint, p256dh, auth)
      VALUES ($1, $2, $3, $4)
      ON CONFLICT (user_id, endpoint) DO NOTHING`,
-    [userId, body.endpoint, body.keys.p256dh, body.keys.auth]
+    [user.profile.id, body.endpoint, body.keys.p256dh, body.keys.auth as string]
   );
 
-  return Response.json({ success: true });
+  return NextResponse.json({ success: true });
 }
