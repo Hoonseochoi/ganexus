@@ -25,6 +25,7 @@ export type CalendarScheduleItem = {
   target_audience?: string | null;
   manager_name?: string | null;
   is_soft_deleted?: boolean;
+  is_private?: boolean;
   creator_full_name?: string | null;
   creator_avatar_url?: string | null;
   target_full_name?: string | null;
@@ -82,6 +83,7 @@ function mapScheduleItem(schedule: ScheduleRow): CalendarScheduleItem {
     target_audience: schedule.target_audience ?? null,
     manager_name: schedule.manager_name ?? null,
     is_soft_deleted: schedule.is_soft_deleted ?? false,
+    is_private: schedule.is_private ?? false,
     creator_full_name: schedule.creator_full_name ?? null,
     creator_avatar_url: schedule.creator_avatar_url ?? null,
     target_full_name: schedule.target_full_name ?? null,

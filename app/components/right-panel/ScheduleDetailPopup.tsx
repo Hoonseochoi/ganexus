@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Lock } from "lucide-react";
 import { EclipseButton } from "@/app/components/ui/EclipseButton";
 import { ScheduleAddScheduler } from "@/app/admin/schedules/_components/ScheduleAddScheduler";
 import { notifyCalendarMonthDataChanged } from "@/src/lib/calendar/month-client-cache";
@@ -222,9 +223,16 @@ export function ScheduleDetailPopup({
       >
         {/* 헤더 */}
         <div className="p-4 border-b flex items-center justify-between">
-          <h2 className="text-base font-bold text-brand-black">
-            {editing ? "일정 수정" : schedule.title}
-          </h2>
+          <div className="flex items-center gap-2 min-w-0">
+            <h2 className="text-base font-bold text-brand-black truncate">
+              {editing ? "일정 수정" : schedule.title}
+            </h2>
+            {!editing && schedule.is_private && (
+              <span className="inline-flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full bg-slate-900 text-yellow-400 text-[11px] font-bold">
+                <Lock className="h-3 w-3" />나만보기
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             {(isAdmin || canDelete) && !editing && (
               <EclipseButton
