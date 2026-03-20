@@ -54,7 +54,8 @@ export async function createTenantForAdmin(params: {
         created_by uuid not null,
         creator_name text,
         created_at timestamptz default timezone('utc'::text, now()),
-        is_soft_deleted boolean default false
+        is_soft_deleted boolean default false,
+        is_private boolean not null default false
       )
     `);
 
