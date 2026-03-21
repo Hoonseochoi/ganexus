@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, Clock, MapPin, User, FileText, CheckCircle2,
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar"
 import { Button } from "@/app/components/ui/button"
 import { cn } from "@/src/lib/utils"
+import { buildRruleString } from "@/src/lib/utils/rrule-helpers"
 
 interface TimeSlot {
   time: string
@@ -62,6 +63,7 @@ export function ScheduleAddScheduler({
   const [selectedTime, setSelectedTime] = useState("14:00")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [conflictWarning, setConflictWarning] = useState<string | null>(null)
 
   // Form States
   const [category, setCategory] = useState<"dealer" | "internal" | "personal" | "leave" | "etc">("dealer")
@@ -71,6 +73,14 @@ export function ScheduleAddScheduler({
   const [targetAudience, setTargetAudience] = useState("")
   const [description, setDescription] = useState("")
   const [isPrivate, setIsPrivate] = useState(false)
+
+  // 반복 일정 상태
+  const [isRecurring, setIsRecurring] = useState(false)
+  const [recurFreq, setRecurFreq] = useState<"daily" | "weekly" | "monthly" | "yearly">("weekly")
+  const [recurByDay, setRecurByDay] = useState<string[]>(["MO", "WE", "FR"])
+  const [recurEndType, setRecurEndType] = useState<"none" | "until" | "count">("none")
+  const [recurUntilDate, setRecurUntilDate] = useState("")
+  const [recurCount, setRecurCount] = useState(10)
 
   const effectiveMode = mode ?? "create"
 
@@ -185,6 +195,19 @@ export function ScheduleAddScheduler({
       const startAt = new Date(`${isoDate}T${finalTime}:00`).toISOString()
       const endAt = startAt
 
+      // 반복 일정 RRULE 생성
+      let recurrenceRule: string | undefined
+      if (isRecurring && category !== "leave") {
+        recurrenceRule = buildRruleString({
+          freq: recurFreq,
+          byDay: recurFreq === "weekly" ? recurByDay : undefined,
+          until: recurEndType === "until" && recurUntilDate
+            ? new Date(recurUntilDate + "T23:59:59Z")
+            : undefined,
+          count: recurEndType === "count" ? recurCount : undefined,
+        })
+      }
+
       if (effectiveMode === "create") {
         const res = await fetch("/api/schedules", {
           method: "POST",
@@ -202,13 +225,33 @@ export function ScheduleAddScheduler({
             targetAudience: targetAudience || null,
             dealerName: category === "dealer" ? title.trim() : null,
             managerName: category === "leave" ? title.trim() : null,
+            recurrenceRule,
           }),
         })
 
-        const data = await res.json()
+        const data = await res.json() as {
+          message?: string;
+          conflicts?: { id: string; title: string; start_at: string; end_at: string }[];
+          warning?: string;
+        }
         if (!res.ok) {
           setError(data.message ?? "일정 생성에 실패했습니다.")
           return
+        }
+
+        // 충돌 경고 표시
+        if (data.conflicts && data.conflicts.length > 0) {
+          const conflictTexts = data.conflicts.map((c) => {
+            const start = new Date(c.start_at).toLocaleTimeString("ko-KR", {
+              hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Seoul",
+            })
+            const end = new Date(c.end_at).toLocaleTimeString("ko-KR", {
+              hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Seoul",
+            })
+            return `${c.title} (${start}~${end})`
+          }).join(", ")
+          setConflictWarning(`⚠ 겹치는 일정: ${conflictTexts}`)
+          setTimeout(() => setConflictWarning(null), 5000)
         }
 
         // 리다이렉트 설정이 있으면 캘린더로 이동, 없으면 onSuccess 콜백 실행
@@ -217,7 +260,7 @@ export function ScheduleAddScheduler({
         } else {
           onSuccess()
         }
-        
+
         // Reset (생성 모드에서만)
         setTitle("")
         setLocation("")
@@ -258,7 +301,13 @@ export function ScheduleAddScheduler({
   }
 
   return (
-    <div className="flex flex-col lg:flex-row w-full max-w-6xl gap-0 rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-2xl animate-fade-in mb-8">
+    <div className="relative flex flex-col lg:flex-row w-full max-w-6xl gap-0 rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-2xl animate-fade-in mb-8">
+      {/* 충돌 경고 배너 */}
+      {conflictWarning && (
+        <div className="absolute top-0 left-0 right-0 z-20 px-4 py-3 bg-amber-50 border-b border-amber-400 text-amber-800 text-sm font-medium">
+          {conflictWarning}
+        </div>
+      )}
       {/* 1단 - 일정 정보 입력 */}
       <div className="w-full lg:w-[350px] border-b lg:border-b-0 lg:border-r border-slate-100 bg-slate-50/50 p-6 space-y-6">
         <div className="flex items-center gap-3">
@@ -388,6 +437,128 @@ export function ScheduleAddScheduler({
                   onChange={(e) => setDescription(e.target.value)}
                 />
              </div>
+
+             {/* 반복 일정 설정 — 월차 제외 */}
+             {category !== "leave" && (
+               <div className="space-y-3 pt-2 border-t border-slate-100">
+                 <label className="flex items-center gap-2 cursor-pointer">
+                   <input
+                     type="checkbox"
+                     checked={isRecurring}
+                     onChange={(e) => setIsRecurring(e.target.checked)}
+                     className="rounded border-slate-300"
+                   />
+                   <span className="text-[11px] font-bold text-slate-500">🔁 반복 일정</span>
+                 </label>
+
+                 {isRecurring && (
+                   <div className="space-y-3 pl-1">
+                     {/* 반복 주기 */}
+                     <div className="space-y-1">
+                       <p className="text-[10px] text-slate-400">반복 주기</p>
+                       <select
+                         value={recurFreq}
+                         onChange={(e) => setRecurFreq(e.target.value as typeof recurFreq)}
+                         className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs"
+                       >
+                         <option value="daily">매일</option>
+                         <option value="weekly">매주</option>
+                         <option value="monthly">매월</option>
+                         <option value="yearly">매년</option>
+                       </select>
+                     </div>
+
+                     {/* 매주 선택 시 요일 체크박스 */}
+                     {recurFreq === "weekly" && (
+                       <div className="space-y-1">
+                         <p className="text-[10px] text-slate-400">요일 선택</p>
+                         <div className="flex gap-1.5 flex-wrap">
+                           {[
+                             { value: "MO", label: "월" },
+                             { value: "TU", label: "화" },
+                             { value: "WE", label: "수" },
+                             { value: "TH", label: "목" },
+                             { value: "FR", label: "금" },
+                           ].map((d) => (
+                             <button
+                               key={d.value}
+                               type="button"
+                               onClick={() =>
+                                 setRecurByDay((prev) =>
+                                   prev.includes(d.value)
+                                     ? prev.filter((v) => v !== d.value)
+                                     : [...prev, d.value],
+                                 )
+                               }
+                               className={cn(
+                                 "px-2.5 py-1.5 rounded-lg text-[10px] font-bold border transition-all",
+                                 recurByDay.includes(d.value)
+                                   ? "bg-primary text-white border-primary"
+                                   : "bg-white text-slate-500 border-slate-200",
+                               )}
+                             >
+                               {d.label}
+                             </button>
+                           ))}
+                         </div>
+                       </div>
+                     )}
+
+                     {/* 반복 종료 */}
+                     <div className="space-y-1.5">
+                       <p className="text-[10px] text-slate-400">반복 종료</p>
+                       <div className="space-y-1.5">
+                         <label className="flex items-center gap-2 text-[11px] text-slate-600">
+                           <input
+                             type="radio"
+                             name="recurEnd"
+                             checked={recurEndType === "none"}
+                             onChange={() => setRecurEndType("none")}
+                           />
+                           종료 없음
+                         </label>
+                         <label className="flex items-center gap-2 text-[11px] text-slate-600">
+                           <input
+                             type="radio"
+                             name="recurEnd"
+                             checked={recurEndType === "until"}
+                             onChange={() => setRecurEndType("until")}
+                           />
+                           날짜까지
+                           {recurEndType === "until" && (
+                             <input
+                               type="date"
+                               value={recurUntilDate}
+                               onChange={(e) => setRecurUntilDate(e.target.value)}
+                               className="ml-1 px-2 py-1 border border-slate-200 rounded text-[11px]"
+                             />
+                           )}
+                         </label>
+                         <label className="flex items-center gap-2 text-[11px] text-slate-600">
+                           <input
+                             type="radio"
+                             name="recurEnd"
+                             checked={recurEndType === "count"}
+                             onChange={() => setRecurEndType("count")}
+                           />
+                           횟수
+                           {recurEndType === "count" && (
+                             <input
+                               type="number"
+                               min={1}
+                               max={365}
+                               value={recurCount}
+                               onChange={(e) => setRecurCount(Number(e.target.value))}
+                               className="ml-1 w-16 px-2 py-1 border border-slate-200 rounded text-[11px]"
+                             />
+                           )}
+                         </label>
+                       </div>
+                     </div>
+                   </div>
+                 )}
+               </div>
+             )}
           </div>
         </div>
       </div>

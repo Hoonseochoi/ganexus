@@ -10,7 +10,12 @@ import RightPanel from "./RightPanel";
 import RightPanelCollapseWrapper, { DesktopRightPanelProvider } from "./RightPanelCollapseWrapper";
 import { ScheduleDetailPopup } from "./right-panel/ScheduleDetailPopup"; // Added import
 import type { ScheduleItem } from "./right-panel/types"; // Added import
+import { Download } from "lucide-react";
 import dynamic from "next/dynamic";
+const CalendarPdfExport = dynamic(() => import("./CalendarPdfExport"), {
+  ssr: false,
+  loading: () => null,
+});
 const WeeklyScheduleClient = dynamic(() => import("./WeeklyScheduleClient"), {
   loading: () => <div className="flex-1 animate-pulse bg-slate-100 rounded-lg" />,
 });
@@ -30,6 +35,7 @@ type Props = {
   isAdmin: boolean;
   canAddSchedule: boolean;
   currentUserFullName?: string | null;
+  currentUserProfileId?: string | null;
   branchName?: string | null;
 };
 
@@ -40,6 +46,7 @@ export default function CalendarPageClientShell({
   isAdmin,
   canAddSchedule,
   currentUserFullName,
+  currentUserProfileId,
   branchName,
 }: Props) {
   const [viewYear, setViewYear] = useState(initialMonthData.year);
@@ -48,7 +55,8 @@ export default function CalendarPageClientShell({
   const [selectedDateStr, setSelectedDateStr] = useState(initialSelectedDateStr);
   const [monthLoading, setMonthLoading] = useState(false);
   const [showWeekly, setShowWeekly] = useState(false);
-  const [selectedScheduleForPopup, setSelectedScheduleForPopup] = useState<ScheduleItem | null>(null); // Added state
+  const [selectedScheduleForPopup, setSelectedScheduleForPopup] = useState<ScheduleItem | null>(null);
+  const [showPdfExport, setShowPdfExport] = useState(false);
   const requestIdRef = useRef(0);
 
   useEffect(() => {
@@ -183,7 +191,17 @@ export default function CalendarPageClientShell({
                     navigating={monthLoading}
                   />
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
+                  {(isAdmin || canAddSchedule) && (
+                    <button
+                      type="button"
+                      onClick={() => setShowPdfExport(true)}
+                      className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-brand-gray hover:bg-slate-50 transition-colors"
+                    >
+                      <Download className="h-4 w-4" />
+                      PDF
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => setShowWeekly((v) => !v)}
@@ -259,6 +277,17 @@ export default function CalendarPageClientShell({
         onScheduleSelectForPopup={setSelectedScheduleForPopup} // Pass the setter
       />
 
+      {/* PDF 내보내기 모달 */}
+      {showPdfExport && branchName && (
+        <CalendarPdfExport
+          year={viewYear}
+          month={viewMonth}
+          monthData={monthData}
+          branchName={branchName}
+          onClose={() => setShowPdfExport(false)}
+        />
+      )}
+
       {/* Central Schedule Detail Popup Modal */}
       {selectedScheduleForPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
@@ -267,6 +296,7 @@ export default function CalendarPageClientShell({
               schedule={selectedScheduleForPopup}
               isAdmin={isAdmin}
               currentUserFullName={currentUserFullName}
+              currentUserProfileId={currentUserProfileId}
               onClose={() => setSelectedScheduleForPopup(null)}
             />
           </div>

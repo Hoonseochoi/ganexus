@@ -26,6 +26,8 @@ export type CalendarScheduleItem = {
   manager_name?: string | null;
   is_soft_deleted?: boolean;
   is_private?: boolean;
+  recurrence_rule?: string | null;
+  is_recurring?: boolean;
   creator_full_name?: string | null;
   creator_avatar_url?: string | null;
   target_full_name?: string | null;
@@ -84,6 +86,8 @@ function mapScheduleItem(schedule: ScheduleRow): CalendarScheduleItem {
     manager_name: schedule.manager_name ?? null,
     is_soft_deleted: schedule.is_soft_deleted ?? false,
     is_private: schedule.is_private ?? false,
+    recurrence_rule: schedule.recurrence_rule ?? null,
+    is_recurring: !!schedule.recurrence_rule,
     creator_full_name: schedule.creator_full_name ?? null,
     creator_avatar_url: schedule.creator_avatar_url ?? null,
     target_full_name: schedule.target_full_name ?? null,

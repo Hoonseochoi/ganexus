@@ -1,5 +1,6 @@
 import { query, isRelationNotFound, isColumnNotFound } from "./db";
 import { getTenantSchemaForBranch } from "./tenant";
+import { expandRecurringSchedules } from "@/src/lib/utils/rrule-helpers";
 
 const SCHEDULE_LIST_CACHE_TTL_MS = Number(process.env.SCHEDULE_LIST_CACHE_TTL_MS ?? 15_000);
 const SCHEDULE_LIST_CACHE_MAX_ENTRIES = Number(process.env.SCHEDULE_LIST_CACHE_MAX_ENTRIES ?? 200);
@@ -43,6 +44,7 @@ export type ScheduleRow = {
   created_at: string;
   is_soft_deleted?: boolean;
   is_private?: boolean;
+  recurrence_rule?: string | null;
   creator_full_name?: string | null;
   creator_avatar_url?: string | null;
   target_full_name?: string | null;
@@ -63,6 +65,7 @@ export type ScheduleInput = {
   endAt?: string; // ISO (없으면 startAt 과 동일하게 처리)
   isAllDay?: boolean;
   isPrivate?: boolean;
+  recurrenceRule?: string;
   createdByProfileId: string;
 };
 
@@ -165,7 +168,7 @@ export async function listSchedulesForBranch(params: {
         select s.id, s.branch_name, s.title, s.description, s.category,
                s.dealer_name, s.location, s.instructor, s.target_audience, s.manager_name,
                s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at, s.is_soft_deleted,
-               s.is_private,
+               s.is_private, s.recurrence_rule,
                p1.full_name as creator_full_name,
                p3.instructor_color as instructor_color,
                p2.full_name as target_full_name
@@ -182,8 +185,12 @@ export async function listSchedulesForBranch(params: {
       ...r,
       category: (LEGACY_TO_CATEGORY[r.category as LegacyCategory] || r.category) as ScheduleCategory
     }));
-    setScheduleListCache(cacheKey, mappedRows);
-    return mappedRows;
+    // 반복 일정 확장
+    const fromDate = from ? new Date(from) : new Date(2020, 0, 1);
+    const toDate = to ? new Date(to) : new Date(2099, 11, 31);
+    const expandedRows = expandRecurringSchedules(mappedRows, fromDate, toDate);
+    setScheduleListCache(cacheKey, expandedRows);
+    return expandedRows;
   } catch (err) {
     if (isRelationNotFound(err)) {
       console.warn("[schedules] schedules 테이블이 없어 빈 결과를 반환합니다.");
@@ -276,12 +283,12 @@ export async function createSchedule(input: ScheduleInput): Promise<ScheduleRow>
         insert into ${schema}.schedules (
           branch_name, title, description, category,
           dealer_name, location, instructor, target_audience, manager_name,
-          start_at, end_at, is_all_day, created_by, is_private
+          start_at, end_at, is_all_day, created_by, is_private, recurrence_rule
         )
-        values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
         returning id, branch_name, title, description, category,
                   dealer_name, location, instructor, target_audience, manager_name,
-                  start_at, end_at, is_all_day, created_by, created_at, is_private
+                  start_at, end_at, is_all_day, created_by, created_at, is_private, recurrence_rule
       `,
       [
         input.branchName,
@@ -298,6 +305,7 @@ export async function createSchedule(input: ScheduleInput): Promise<ScheduleRow>
         input.isAllDay ?? false,
         input.createdByProfileId,
         input.isPrivate ?? false,
+        input.recurrenceRule ?? null,
       ],
     );
     invalidateScheduleListCache(input.branchName);
@@ -608,6 +616,38 @@ export async function deleteSchedule(params: {
   invalidateScheduleListCache(branchName);
 }
 
+/** 같은 branch에서 시간이 겹치는 일정을 검색 (충돌 감지) */
+export async function checkScheduleConflicts(params: {
+  branchName: string;
+  startAt: string;
+  endAt: string;
+  excludeId?: string;
+}): Promise<ScheduleRow[]> {
+  const { branchName, startAt, endAt, excludeId } = params;
+  const schema = (await getTenantSchemaForBranch(branchName)) ?? "public";
+  try {
+    const rows = await query<ScheduleRow>(
+      `SELECT s.id, s.branch_name, s.title, s.description, s.category,
+              s.dealer_name, s.location, s.instructor, s.target_audience, s.manager_name,
+              s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at, s.is_soft_deleted,
+              s.is_private
+       FROM ${schema}.schedules s
+       WHERE s.branch_name = $1
+         AND s.is_soft_deleted IS NOT TRUE
+         AND s.start_at < $3
+         AND s.end_at > $2
+         AND ($4::uuid IS NULL OR s.id != $4)`,
+      [branchName, startAt, endAt, excludeId ?? null],
+    );
+    return rows;
+  } catch (err) {
+    if (isRelationNotFound(err) || isColumnNotFound(err)) {
+      return [];
+    }
+    throw err;
+  }
+}
+
 export async function getScheduleById(params: {
   id: string;
   branchName: string;
@@ -619,7 +659,7 @@ export async function getScheduleById(params: {
       `select s.id, s.branch_name, s.title, s.description, s.category,
               s.dealer_name, s.location, s.instructor, s.target_audience, s.manager_name,
               s.start_at, s.end_at, s.is_all_day, s.created_by, s.created_at, s.is_soft_deleted,
-              s.is_private,
+              s.is_private, s.recurrence_rule,
               p1.full_name as creator_full_name,
               p3.instructor_color as instructor_color,
               p2.full_name as target_full_name
@@ -715,4 +755,63 @@ export async function getScheduleById(params: {
     }
     throw err;
   }
+}
+
+// ── RSVP (참석/불참) ──────────────────────────────────────
+
+export type ScheduleParticipant = {
+  id: string;
+  schedule_id: string;
+  profile_id: string;
+  status: "attending" | "declined" | "tentative";
+  created_at: string;
+  full_name?: string | null;
+  avatar_url?: string | null;
+};
+
+export async function getScheduleParticipants(
+  scheduleId: string,
+): Promise<ScheduleParticipant[]> {
+  try {
+    const rows = await query<ScheduleParticipant>(
+      `SELECT sp.id, sp.schedule_id, sp.profile_id, sp.status, sp.created_at,
+              p.full_name, p.avatar_url
+       FROM public.schedule_participants sp
+       LEFT JOIN public.profiles p ON sp.profile_id = p.id
+       WHERE sp.schedule_id = $1
+       ORDER BY sp.created_at ASC`,
+      [scheduleId],
+    );
+    return rows;
+  } catch (err) {
+    if (isRelationNotFound(err)) return [];
+    throw err;
+  }
+}
+
+export async function upsertScheduleParticipant(params: {
+  scheduleId: string;
+  profileId: string;
+  status: "attending" | "declined" | "tentative";
+}): Promise<ScheduleParticipant> {
+  const { scheduleId, profileId, status } = params;
+  const rows = await query<ScheduleParticipant>(
+    `INSERT INTO public.schedule_participants (schedule_id, profile_id, status)
+     VALUES ($1, $2, $3)
+     ON CONFLICT (schedule_id, profile_id) DO UPDATE SET status = $3
+     RETURNING id, schedule_id, profile_id, status, created_at`,
+    [scheduleId, profileId, status],
+  );
+  return rows[0];
+}
+
+export async function deleteScheduleParticipant(params: {
+  scheduleId: string;
+  profileId: string;
+}): Promise<void> {
+  await query(
+    `DELETE FROM public.schedule_participants
+     WHERE schedule_id = $1 AND profile_id = $2`,
+    [params.scheduleId, params.profileId],
+  );
 }

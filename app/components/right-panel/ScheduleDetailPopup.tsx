@@ -8,12 +8,15 @@ import { ScheduleAddScheduler } from "@/app/admin/schedules/_components/Schedule
 import { notifyCalendarMonthDataChanged } from "@/src/lib/calendar/month-client-cache";
 import type { ScheduleItem, ScheduleEditLogItem, MemoItem, ManagersApiResponse } from "./types";
 import { formatDateTime } from "./types";
+import RsvpSection from "./RsvpSection";
+import { rruleToKorean } from "@/src/lib/utils/rrule-helpers";
 
 type Props = {
   schedule: ScheduleItem;
   onClose: () => void;
   isAdmin?: boolean;
   currentUserFullName?: string | null;
+  currentUserProfileId?: string | null;
   showMemos?: boolean;
   memoDate?: string;
 };
@@ -23,6 +26,7 @@ export function ScheduleDetailPopup({
   onClose,
   isAdmin,
   currentUserFullName,
+  currentUserProfileId,
   showMemos,
   memoDate,
 }: Props) {
@@ -301,6 +305,9 @@ export function ScheduleDetailPopup({
             <p className="text-xs text-brand-gray mb-3">
               {formatDateTime(schedule.start_at)}
               {schedule.is_all_day ? " · 종일" : <> ~ {formatDateTime(schedule.end_at)}</>}
+              {schedule.recurrence_rule && (
+                <span className="ml-2 text-blue-600">🔁 반복: {rruleToKorean(schedule.recurrence_rule)}</span>
+              )}
             </p>
             <div className="space-y-1.5 text-sm text-slate-800">
               {isDealer && (
@@ -322,6 +329,14 @@ export function ScheduleDetailPopup({
               {description || <span className="text-xs text-brand-gray">설명이 없습니다.</span>}
             </div>
           </div>
+        )}
+
+        {/* RSVP 섹션 */}
+        {!editing && (
+          <RsvpSection
+            scheduleId={schedule.id}
+            currentUserProfileId={currentUserProfileId}
+          />
         )}
 
         {/* 수정 이력 */}

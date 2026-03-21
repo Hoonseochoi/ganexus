@@ -118,6 +118,7 @@ export default async function Page({ searchParams }: PageProps) {
           user?.profile?.role === "agent"
         }
         currentUserFullName={user?.profile?.full_name ?? null}
+        currentUserProfileId={user?.profile?.id ?? null}
         branchName={user?.profile?.branch_name ?? null}
       />
     </main>

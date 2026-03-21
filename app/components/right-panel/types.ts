@@ -15,6 +15,8 @@ export type ScheduleItem = {
   manager_name?: string | null;
   is_soft_deleted?: boolean;
   is_private?: boolean;
+  recurrence_rule?: string | null;
+  is_recurring?: boolean;
   creator_full_name?: string | null;
   creator_avatar_url?: string | null;
   target_full_name?: string | null;
@@ -36,6 +38,16 @@ export type NoticeItem = {
   image_url: string | null;
   created_at: string;
 } | null;
+
+export type ScheduleParticipant = {
+  id: string;
+  schedule_id: string;
+  profile_id: string;
+  status: "attending" | "declined" | "tentative";
+  created_at: string;
+  full_name?: string | null;
+  avatar_url?: string | null;
+};
 
 export type ScheduleEditLogItem = {
   id: string;

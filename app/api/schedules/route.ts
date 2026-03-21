@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/src/lib/engines/auth";
 import {
   createSchedule,
   listSchedulesForBranch,
+  checkScheduleConflicts,
 } from "@/src/lib/engines/schedules";
 import { buildCalendarMonthData, getCalendarFetchRange } from "@/src/lib/calendar/month-view";
 
@@ -109,6 +110,7 @@ export async function POST(req: NextRequest) {
     instructor?: string | null;
     targetAudience?: string | null;
     managerName?: string | null;
+    recurrenceRule?: string;
   };
 
   if (!body.title?.trim()) {
@@ -120,6 +122,15 @@ export async function POST(req: NextRequest) {
 
   const now = new Date();
   const startAt = body.startAt ?? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0).toISOString();
+
+  const endAt = body.endAt ?? startAt;
+
+  // 충돌 감지 (경고만, 등록 차단 안 함)
+  const conflictRows = await checkScheduleConflicts({
+    branchName: profile.branch_name,
+    startAt,
+    endAt,
+  });
 
   const created = await createSchedule({
     branchName: profile.branch_name,
@@ -135,9 +146,22 @@ export async function POST(req: NextRequest) {
     instructor: body.instructor ?? null,
     targetAudience: body.targetAudience ?? null,
     managerName: body.managerName ?? null,
+    recurrenceRule: body.recurrenceRule,
     createdByProfileId: profile.id,
   });
 
-  return NextResponse.json({ schedule: created }, { status: 201 });
+  const response: Record<string, unknown> = { schedule: created };
+
+  if (conflictRows.length > 0) {
+    response.conflicts = conflictRows.map((c) => ({
+      id: c.id,
+      title: c.title,
+      start_at: c.start_at,
+      end_at: c.end_at,
+    }));
+    response.warning = `겹치는 일정이 ${conflictRows.length}건 있습니다`;
+  }
+
+  return NextResponse.json(response, { status: 201 });
 }
 
