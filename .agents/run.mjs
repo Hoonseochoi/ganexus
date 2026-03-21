@@ -147,36 +147,111 @@ async function runParallel(agents) {
   ));
   if (!ok0) { console.error('🛑 오케스트레이터 실패'); process.exit(1); }
 
-  // Phase 1. scan-agent
-  console.log(`\n🔍 Phase 1: 코드 스캔`);
-  runAgent('scan-agent', MODELS.HAIKU, buildPrompt('scan-agent.md',
-    [{ label:'orchestration_plan.json', content:readFile(path.join(WS,'orchestration_plan.json')) }],
-    `orchestration_plan의 scan_targets 파일들을 읽고 요약해서 ${path.join(WS,'scan_result.json')} 에 저장해.`
-  ));
-  const scanResult = readResult('scan_result.json');
+  // Phase 1~3: subtasks 분리 or 단일 실행
+  const orchestrationPlan = readResult('orchestration_plan.json');
+  const subtasks = orchestrationPlan?.subtasks;
+  const useSubtasks = Array.isArray(subtasks) && subtasks.length > 1;
 
-  // Phase 2. 스펙 작성
-  console.log(`\n📝 Phase 2: 정밀 스펙 작성`);
-  runAgent('spec-writer', MODELS.OPUS, buildPrompt('orchestrator-plan.md',
-    [
-      { label:'orchestration_plan.json', content:readFile(path.join(WS,'orchestration_plan.json')) },
-      { label:'scan_result.json',        content:JSON.stringify(scanResult,null,2) },
-    ],
-    `scan 결과 바탕으로 feature-agent용 정밀 스펙을 ${path.join(WS,'feature_spec.json')} 에 작성해.`
-  ));
-  const featureSpec = readResult('feature_spec.json');
-  if (!featureSpec) { console.error('🛑 스펙 작성 실패'); process.exit(1); }
+  let featureResult;
 
-  // Phase 3. feature-agent
-  console.log(`\n⚙️  Phase 3: 코드 작성`);
-  const fileInj = (scanResult?.file_contents||[]).map(f=>({ label:f.path, content:f.content }));
-  const ok3 = runAgent('feature-agent', MODELS.OPUS, buildPrompt('feature-agent.md',
-    [{ label:'feature_spec.json', content:JSON.stringify(featureSpec,null,2) }, ...fileInj],
-    `feature_spec.json의 스펙대로 코드를 작성하고 ${path.join(WS,'feature_result.json')} 에 결과 저장.`
-  ));
-  if (!ok3) { console.error('🛑 feature 실패'); process.exit(1); }
-  const featureResult = readResult('feature_result.json');
-  if (featureResult?.status === 'failed') { console.error('🛑', featureResult.summary); process.exit(1); }
+  if (useSubtasks) {
+    // ── 서브태스크 분리 모드 ──────────────────────────────────
+    console.log(`\n📦 서브태스크 모드: ${subtasks.length}개 분리 실행`);
+    const allResults = [];
+
+    for (let i = 0; i < subtasks.length; i++) {
+      const st = subtasks[i];
+      console.log(`\n${'─'.repeat(56)}\n📦 [${i+1}/${subtasks.length}] ${st.description}`);
+
+      // 서브태스크용 임시 plan (scan_targets만 교체)
+      const stPlan = { ...orchestrationPlan, scan_targets: st.scan_targets, task_summary: st.description };
+
+      // Phase 1. scan
+      runAgent('scan-agent', MODELS.HAIKU, buildPrompt('scan-agent.md',
+        [{ label:'orchestration_plan.json', content:JSON.stringify(stPlan,null,2) }],
+        `orchestration_plan의 scan_targets 파일들을 읽고 요약해서 ${path.join(WS,'scan_result.json')} 에 저장해.`
+      ));
+      const scanResult = readResult('scan_result.json');
+
+      // Phase 2. spec
+      runAgent('spec-writer', MODELS.OPUS, buildPrompt('orchestrator-plan.md',
+        [
+          { label:'orchestration_plan.json', content:JSON.stringify(stPlan,null,2) },
+          { label:'scan_result.json',        content:JSON.stringify(scanResult,null,2) },
+        ],
+        `"${st.description}" 기능만을 위한 정밀 스펙을 ${path.join(WS,'feature_spec.json')} 에 작성해.`
+      ));
+      const featureSpec = readResult('feature_spec.json');
+      if (!featureSpec) { console.error(`⚠️  서브태스크 ${i+1} 스펙 실패 — 건너뜀`); continue; }
+
+      // Phase 3. feature
+      const fileInj = (scanResult?.file_contents||[]).map(f=>({ label:f.path, content:f.content }));
+      const ok = runAgent('feature-agent', MODELS.OPUS, buildPrompt('feature-agent.md',
+        [{ label:'feature_spec.json', content:JSON.stringify(featureSpec,null,2) }, ...fileInj],
+        `feature_spec.json의 스펙대로 코드를 작성하고 ${path.join(WS,'feature_result.json')} 에 결과 저장.`
+      ));
+
+      if (ok) {
+        const r = readResult('feature_result.json');
+        if (r && r.status !== 'failed') {
+          allResults.push(r);
+          // 백업 (디버깅용)
+          fs.copyFileSync(path.join(WS,'feature_result.json'), path.join(WS,`feature_result_${i}.json`));
+        } else {
+          console.error(`⚠️  서브태스크 ${i+1} feature 실패 — 건너뜀`);
+        }
+      }
+    }
+
+    if (!allResults.length) { console.error('🛑 모든 서브태스크 실패'); process.exit(1); }
+
+    // 결과 병합
+    featureResult = {
+      status: allResults.every(r => r.status === 'done') ? 'done' : 'partial',
+      changed_files: [...new Set(allResults.flatMap(r => r.changed_files||[]))],
+      new_files:     [...new Set(allResults.flatMap(r => r.new_files||[]))],
+      requires_db_change: allResults.some(r => r.requires_db_change),
+      db_change_description: allResults.filter(r => r.db_change_description).map(r => r.db_change_description).join('\n'),
+      new_patterns: allResults.filter(r => r.new_patterns).map(r => r.new_patterns).join('\n'),
+      summary: allResults.map((r,i) => `[${i+1}] ${r.summary}`).join('\n'),
+      known_issues: allResults.flatMap(r => r.known_issues||[]),
+    };
+    fs.writeFileSync(path.join(WS,'feature_result.json'), JSON.stringify(featureResult,null,2));
+    console.log(`\n✅ 서브태스크 ${allResults.length}/${subtasks.length}개 완료 — 결과 병합됨`);
+
+  } else {
+    // ── 단일 태스크 모드 (기존 방식) ──────────────────────────
+    // Phase 1. scan-agent
+    console.log(`\n🔍 Phase 1: 코드 스캔`);
+    runAgent('scan-agent', MODELS.HAIKU, buildPrompt('scan-agent.md',
+      [{ label:'orchestration_plan.json', content:readFile(path.join(WS,'orchestration_plan.json')) }],
+      `orchestration_plan의 scan_targets 파일들을 읽고 요약해서 ${path.join(WS,'scan_result.json')} 에 저장해.`
+    ));
+    const scanResult = readResult('scan_result.json');
+
+    // Phase 2. 스펙 작성
+    console.log(`\n📝 Phase 2: 정밀 스펙 작성`);
+    runAgent('spec-writer', MODELS.OPUS, buildPrompt('orchestrator-plan.md',
+      [
+        { label:'orchestration_plan.json', content:readFile(path.join(WS,'orchestration_plan.json')) },
+        { label:'scan_result.json',        content:JSON.stringify(scanResult,null,2) },
+      ],
+      `scan 결과 바탕으로 feature-agent용 정밀 스펙을 ${path.join(WS,'feature_spec.json')} 에 작성해.`
+    ));
+    const featureSpec = readResult('feature_spec.json');
+    if (!featureSpec) { console.error('🛑 스펙 작성 실패'); process.exit(1); }
+
+    // Phase 3. feature-agent
+    console.log(`\n⚙️  Phase 3: 코드 작성`);
+    const fileInj = (scanResult?.file_contents||[]).map(f=>({ label:f.path, content:f.content }));
+    const ok3 = runAgent('feature-agent', MODELS.OPUS, buildPrompt('feature-agent.md',
+      [{ label:'feature_spec.json', content:JSON.stringify(featureSpec,null,2) }, ...fileInj],
+      `feature_spec.json의 스펙대로 코드를 작성하고 ${path.join(WS,'feature_result.json')} 에 결과 저장.`
+    ));
+    if (!ok3) { console.error('🛑 feature 실패'); process.exit(1); }
+    featureResult = readResult('feature_result.json');
+    if (featureResult?.status === 'failed') { console.error('🛑', featureResult.summary); process.exit(1); }
+  }
 
   // Phase 4. qa + db 병렬
   console.log(`\n🔀 Phase 4: 검증 (병렬)`);

@@ -20,10 +20,15 @@ PROJECT_CONTEXT.md와 작업 요청을 읽고 아래 JSON을 작성한다.
   "affects_layout": false,
   "complexity": "low | medium | high",
   "scan_targets": [
-    "스캔이 필요한 파일/폴더 경로 목록",
-    "예: app/components/CalendarGridClient.tsx",
-    "예: app/api/schedules/",
-    "예: src/lib/engines/"
+    "단일 태스크일 때 사용 (subtasks가 없을 때만)"
+  ],
+  "subtasks": [
+    {
+      "id": "subtask-a",
+      "description": "기능 설명 (한 문장)",
+      "scan_targets": ["이 기능에만 필요한 파일 목록"],
+      "affects_db": false
+    }
   ],
   "risk_areas": ["주의해야 할 영역 목록"],
   "commit_message": "feat: ...",
@@ -36,6 +41,12 @@ PROJECT_CONTEXT.md와 작업 요청을 읽고 아래 JSON을 작성한다.
 - `affects_db`: 새 컬럼, 테이블, 쿼리 변경이면 true
 - `scan_targets`: 변경될 것 같은 파일만 (전체 프로젝트 X, 관련된 것만)
 - `complexity`: 파일 3개 이하 = low, 5개 이하 = medium, 그 이상 = high
+
+### subtasks 분리 기준
+- **독립적인 기능이 2개 이상** 동시에 요청된 경우 → 기능별로 subtask 분리
+- **complexity = high** (파일 6개 이상) → subtask 분리 권장
+- **단일 버그수정 / 간단한 UI 변경** → subtasks 생략, scan_targets만 사용
+- subtask당 파일 수는 **5개 이하**를 목표로 분리
 
 ---
 
