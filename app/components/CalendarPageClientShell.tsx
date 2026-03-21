@@ -10,7 +10,7 @@ import RightPanel from "./RightPanel";
 import RightPanelCollapseWrapper, { DesktopRightPanelProvider } from "./RightPanelCollapseWrapper";
 import { ScheduleDetailPopup } from "./right-panel/ScheduleDetailPopup"; // Added import
 import type { ScheduleItem } from "./right-panel/types"; // Added import
-import { Download } from "lucide-react";
+import { Download, BarChart2 } from "lucide-react";
 import dynamic from "next/dynamic";
 const CalendarPdfExport = dynamic(() => import("./CalendarPdfExport"), {
   ssr: false,
@@ -192,6 +192,15 @@ export default function CalendarPageClientShell({
                   />
                 </div>
                 <div className="flex items-center gap-3">
+                  {isAdmin && (
+                    <Link
+                      href="/admin/analytics"
+                      className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-brand-gray hover:bg-slate-50 transition-colors"
+                    >
+                      <BarChart2 className="h-4 w-4" />
+                      통계
+                    </Link>
+                  )}
                   {(isAdmin || canAddSchedule) && (
                     <button
                       type="button"
