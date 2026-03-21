@@ -95,7 +95,13 @@ function AnalyticsDashboardBase({ initialYear, initialMonth }: Props) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
+      <div className="flex flex-col items-center justify-center py-24 gap-6">
+        <div className="text-[18px]">
+          <div className="relative w-[2.5em] h-[2.5em] rotate-[165deg]">
+            <span className="beforeEl" />
+            <span className="afterEl" />
+          </div>
+        </div>
         <p className="text-sm text-brand-gray">통계 데이터를 불러오는 중...</p>
       </div>
     );

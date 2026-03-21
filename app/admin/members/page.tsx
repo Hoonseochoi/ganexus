@@ -82,7 +82,15 @@ export default function AdminMembersPage() {
           </div>
 
           {loading ? (
-            <div className="px-4 py-6 text-xs text-brand-gray">불러오는 중...</div>
+            <div className="flex flex-col items-center gap-3 py-8">
+              <div className="text-[14px]">
+                <div className="relative w-[2.5em] h-[2.5em] rotate-[165deg]">
+                  <span className="beforeEl" />
+                  <span className="afterEl" />
+                </div>
+              </div>
+              <p className="text-xs text-brand-gray">멤버 목록을 불러오는 중...</p>
+            </div>
           ) : members.length === 0 ? (
             <div className="px-4 py-6 text-xs text-brand-gray">
               현재 등록된 브랜치 멤버가 없습니다.

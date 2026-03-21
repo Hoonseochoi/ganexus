@@ -505,8 +505,14 @@ export default function WeeklyScheduleClient({ branchName, isAdmin, currentUserF
           </div>
 
           {initialLoading ? (
-            <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-brand-gray">
-              주간일정을 불러오는 중입니다...
+            <div className="rounded-xl border border-slate-200 bg-white p-8 flex flex-col items-center gap-4">
+              <div className="text-[16px]">
+                <div className="relative w-[2.5em] h-[2.5em] rotate-[165deg]">
+                  <span className="beforeEl" />
+                  <span className="afterEl" />
+                </div>
+              </div>
+              <p className="text-sm text-brand-gray">주간일정을 불러오는 중...</p>
             </div>
           ) : (
             <Component

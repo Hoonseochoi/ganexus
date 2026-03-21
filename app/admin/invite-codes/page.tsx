@@ -220,8 +220,14 @@ export default function InviteCodesPage() {
           </div>
           <div className="divide-y divide-slate-100">
             {loading ? (
-              <div className="px-4 py-6 text-xs text-brand-gray">
-                불러오는 중...
+              <div className="flex flex-col items-center gap-3 py-8">
+                <div className="text-[14px]">
+                  <div className="relative w-[2.5em] h-[2.5em] rotate-[165deg]">
+                    <span className="beforeEl" />
+                    <span className="afterEl" />
+                  </div>
+                </div>
+                <p className="text-xs text-brand-gray">초대 코드를 불러오는 중...</p>
               </div>
             ) : codes.length === 0 ? (
               <div className="px-4 py-6 text-xs text-brand-gray">
