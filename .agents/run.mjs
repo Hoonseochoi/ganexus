@@ -153,6 +153,7 @@ async function runParallel(agents) {
   const useSubtasks = Array.isArray(subtasks) && subtasks.length > 1;
 
   let featureResult;
+  let featureSpec;
 
   if (useSubtasks) {
     // ── 서브태스크 분리 모드 ──────────────────────────────────
@@ -238,7 +239,7 @@ async function runParallel(agents) {
       ],
       `scan 결과 바탕으로 feature-agent용 정밀 스펙을 ${path.join(WS,'feature_spec.json')} 에 작성해.`
     ));
-    const featureSpec = readResult('feature_spec.json');
+    featureSpec = readResult('feature_spec.json');
     if (!featureSpec) { console.error('🛑 스펙 작성 실패'); process.exit(1); }
 
     // Phase 3. feature-agent

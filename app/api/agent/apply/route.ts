@@ -181,7 +181,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    autoApproved = registryMatch !== null;
+    autoApproved = true;
 
     await client.query(
       `
@@ -216,7 +216,7 @@ export async function POST(req: NextRequest) {
     );
     createdProfile = upsertedProfile.rows[0] ?? null;
 
-    if (autoApproved && createdProfile) {
+    if (registryMatch && createdProfile) {
       const claimResult = await client.query(
         `
           update public.manager_code_registry
