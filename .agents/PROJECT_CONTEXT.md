@@ -121,6 +121,8 @@ type ScheduleCategory = "dealer" | "internal" | "personal" | "leave" | "etc";
 | `/api/cron/daily-push` | POST | 매일 18시 다음날 일정 자동 발송 (Vercel Cron) |
 | `/api/cron/cleanup-push` | POST | 주간 push 구독 정리 (매주 월 02:00 UTC, 30일 이상 레코드 삭제) |
 | `/api/admin/push/send` | POST | 어드민 수동 전체 발송 |
+| `/api/admin/analytics` | GET | 통계 데이터 (월차추이, 카테고리분포, 교육현황) admin only |
+| `/api/schedules/[id]/participants` | GET, POST, DELETE | RSVP 참석 여부 관리 |
 
 ---
 
@@ -131,12 +133,13 @@ type ScheduleCategory = "dealer" | "internal" | "personal" | "leave" | "etc";
 | `auth_users` | login_id, password_hash, role | 로그인 전용 |
 | `profiles` | id, login_id, full_name, branch_name, birth_date, phone_number, is_approved, role | |
 | `sessions` | id, user_login_id, expires_at, revoked_at | 세션 관리 |
-| `schedules` | id, branch_name, title, description, category, start_at, end_at, is_all_day, creator_profile_id 등 | |
+| `schedules` | id, branch_name, title, description, category, start_at, end_at, is_all_day, creator_profile_id, is_private, recurrence_rule 등 | |
 | `invite_codes` | id, code, created_by, is_used, expires_at | |
 | `notices` | id, title, body, image_url, created_by | |
 | `memos` | id, user_login_id, content, target_date | |
 | `schedule_edit_logs` | id, schedule_id, modified_by, changed_fields(jsonb) | 수정이력 |
 | `push_subscriptions` | id, user_id FK→profiles, endpoint, p256dh, auth, created_at | UNIQUE(user_id, endpoint). web-push VAPID 구독 정보 |
+| `schedule_participants` | id, schedule_id FK→schedules(CASCADE), profile_id FK→profiles(CASCADE), status(attending/declined/tentative), created_at | UNIQUE(schedule_id, profile_id). TASK-018d RSVP 기능 |
 
 
 ---
@@ -206,6 +209,10 @@ onDateSelect?: (dateISO: string | null) => void
 - manager-login 경로(`/manager-login`)가 PUBLIC_PATHS에 없어서 미들웨어 이슈 가능성
 - 푸시 API (`/api/push/*`, `/api/cron/*`)가 `getCurrentUser()` 대신 `cookies()`+Pool 직접 사용 → 추후 통일 필요
 - iOS Safari는 PWA 홈화면 추가 + Safari 17.4+ 이상에서만 Web Push 지원. 구형 iOS는 알림 안 옴
+- **반복 일정 v1 한계**: 단일 occurrence 편집 미지원. 수정/삭제 시 해당 원본 recurrence_rule 일정 전체에 적용됨
+- **PDF 한글 폰트**: `public/fonts/NotoSansKR-Regular.ttf` 없으면 PDF 한글 깨짐 (폰트 파일 배치 필요)
+- **expandRecurringSchedules()**: id가 `originalId_YYYYMMDD` 형태 → DB에 없는 가상 ID이므로 수정/삭제 시 원본 ID 파싱 필요
+- **recharts/@react-pdf/renderer**: dynamic import 필수 (번들 사이즈, SSR 이슈)
 
 ---
 
@@ -232,6 +239,7 @@ onDateSelect?: (dateISO: string | null) => void
 | 2026-03-20 | TASK-017 | 나만보기 UI 완성 | ScheduleAddScheduler 상단 [나만보기] 토글 버튼, DraggableSchedulePill fuchsia 컬러+Lock 아이콘, ScheduleList fuchsia 보더+[나만] 뱃지, CalendarGridClient is_private 전달 | schedules.is_private 컬럼(기존 코드에 이미 반영, DB에 없으면 ADD COLUMN IF NOT EXISTS 실행 필요) |
 | 2026-03-20 | TASK-017p | 나만보기 pill 스타일 개선 | DraggableSchedulePill: 블랙배경+흰글씨+끝에 노란 자물쇠(yellow-400)로 최종 확정 | 없음 |
 | 2026-03-20 | TASK-017b | 나만보기 캘린더 미표시 버그 수정 | month-view.ts CalendarScheduleItem+mapScheduleItem에 is_private 추가(근본원인), ScheduleDetailPopup 헤더 [나만보기] 뱃지 | 없음 |
+| 2026-03-21 | TASK-018 | 5개 기능 구현(통계/반복일정/PDF/RSVP/충돌감지) | +16개 파일. analytics.ts, AnalyticsDashboard, CalendarPdfExport, RsvpSection, rrule-helpers, /admin/analytics 페이지, participants API, ScheduleAddScheduler 충돌경고+반복UI, ScheduleDetailPopup RSVP섹션 | recurrence_rule 컬럼(schedules), schedule_participants 테이블 신규 |
 
 ---
 
@@ -263,4 +271,32 @@ let noticeCacheEntry: NoticeCache | null = null;
 //   mapScheduleItem()에서 누락되면 eventsByDay로 전달 시 필드가 사라짐 → 표시 안됨
 ```
 
-*마지막 갱신: 2026-03-20*
+### 반복 일정 패턴 (TASK-018b)
+```typescript
+// DB 컬럼: schedules.recurrence_rule TEXT DEFAULT NULL (RRULE 포맷)
+// 예: "FREQ=WEEKLY;BYDAY=MO;UNTIL=20261231T000000Z"
+// 서버사이드 확장: expandRecurringSchedules() in schedules.ts
+//   → 가상 ScheduleRow 생성, id = `${originalId}_${YYYYMMDD}`
+// 수정/삭제 시 원본 ID 파싱: id.split('_')[0]
+// ⚠️ 단일 occurrence 편집 미지원 (v1 한계)
+```
+
+### RSVP 패턴 (TASK-018d)
+```typescript
+// DB: schedule_participants(schedule_id, profile_id, status)
+// status: 'attending' | 'declined' | 'tentative'
+// API: GET/POST/DELETE /api/schedules/[id]/participants
+// UI: RsvpSection 컴포넌트 → ScheduleDetailPopup 내 렌더링
+// currentUserProfileId prop 필요: page.tsx → CalendarPageClientShell → ScheduleDetailPopup
+```
+
+### 통계 대시보드 패턴 (TASK-018a)
+```typescript
+// 엔진: src/lib/engines/analytics.ts
+// API: GET /api/admin/analytics?year=YYYY&month=MM (admin only)
+// 페이지: /admin/analytics (서버 컴포넌트)
+// 차트: recharts dynamic import (AnalyticsDashboard.tsx)
+// 차트 3종: 월차 인원 추이(LineChart), 카테고리 분포(PieChart), 교육 현황(BarChart)
+```
+
+*마지막 갱신: 2026-03-21*

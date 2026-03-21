@@ -1,0 +1,31 @@
+📊 통계 대시보드 (Analytics Panel)
+월차 인원 추이, 카테고리별 일정 분포, 교육 참석률을 차트로 제공. schedules 테이블 쿼리만으로 구현 가능. 우측 패널 또는 별도 /admin/analytics 페이지로 추가.
+Recharts or Chart.js
+기존 DB 활용
+admin only
+난이도
+02
+🔁 반복 일정 (Recurring Events)
+매주 월요일 조회, 매월 첫째주 교육 등 반복 패턴 설정. schedules에 recurrence_rule 컬럼(RRULE 포맷) 추가. FullCalendar가 natively 지원함.
+FullCalendar rrule plugin
+DB 컬럼 1개 추가
+난이도
+03
+📄 월간 일정표 PDF 내보내기
+지점장이 월간 일정을 PDF로 출력해서 보고 또는 인쇄. Next.js에서 @react-pdf/renderer 또는 puppeteer 기반 캘린더 캡처로 구현. 실무에서 매우 자주 쓰임.
+react-pdf
+puppeteer 옵션
+즉각적인 실무 가치
+난이도
+04
+✅ 일정 참석/불참 RSVP
+대리점 교육 등록 시 에이전트가 "참석" 클릭. schedule_participants 테이블 추가 (schedule_id, profile_id, status). 우측패널에서 누가 참석했는지 확인 + QR 체크인과 연동.
+QR 체크인 연동
+DB 테이블 1개 추가
+난이도
+05
+🔔 일정 충돌 감지 & 경고
+일정 등록 시 같은 날짜·시간에 겹치는 일정이 있으면 "⚠️ 같은 시간 교육이 있습니다" 토스트 알림. POST /api/schedules에서 겹침 쿼리 1개로 구현.
+서버사이드 검증
+UX 개선
+난이도

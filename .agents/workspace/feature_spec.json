@@ -1,37 +1,275 @@
 {
-  "affects_auth": false,
+  "task_id": "TASK-018",
+  "affects_auth": true,
   "requires_db_change": true,
-  "db_change_description": "ALTER TABLE public.schedules ADD COLUMN IF NOT EXISTS is_private BOOLEAN NOT NULL DEFAULT false;",
-  "files_to_modify": [
+  "db_change_description": "1) schedules 테이블에 recurrence_rule TEXT 컬럼 추가 (TASK-018b). 2) schedule_participants 테이블 신규 생성 (TASK-018d)",
+  "db_migrations": [
     {
-      "path": "app/admin/schedules/_components/ScheduleAddScheduler.tsx",
-      "current_summary": "3단 레이아웃 폼. isPrivate state(line 73)와 API 전송(line 199, 238) 완성됨. Lock/Globe import됨(line 5). 토글 UI 없음.",
-      "changes_needed": "1단 Category 버튼 그룹 바로 아래에 나만보기 토글 버튼 추가. isPrivate=true: Lock + amber bg, false: Globe + 기본. 카테고리 버튼과 동일한 디자인.",
-      "insert_after": "Category 버튼 그룹 closing div 직후 (line 297), space-y-4 div (line 299) 전"
+      "feature": "TASK-018b",
+      "sql": "ALTER TABLE public.schedules ADD COLUMN IF NOT EXISTS recurrence_rule TEXT DEFAULT NULL;",
+      "rollback": "ALTER TABLE public.schedules DROP COLUMN IF EXISTS recurrence_rule;"
     },
     {
-      "path": "app/components/DraggableSchedulePill.tsx",
-      "current_summary": "로컬 ScheduleItem 타입(line 5-19)에 is_private 없음. CATEGORY_CLASSES 색상. instructor_color 커스텀 스타일.",
-      "changes_needed": "(1) is_private?: boolean 타입 추가. (2) is_private=true + instructor_color 없으면 amber 스타일(border-amber-300 bg-amber-50/80 text-amber-800). (3) is_private=true일 때 Lock 아이콘 추가. lucide-react Lock import.",
-      "insert_after": null
-    },
-    {
-      "path": "app/components/right-panel/ScheduleDetailPopup.tsx",
-      "current_summary": "types.ts에 is_private 존재. 상세 팝업에 나만보기 표시 없음.",
-      "changes_needed": "시간 정보(line 296) 아래에 is_private=true일 때 나만보기 뱃지. amber rounded-full + Lock 아이콘. lucide-react Lock import.",
-      "insert_after": "시간 정보 p 태그 직후 (line 296)"
+      "feature": "TASK-018d",
+      "sql": "CREATE TABLE IF NOT EXISTS public.schedule_participants (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), schedule_id UUID NOT NULL REFERENCES public.schedules(id) ON DELETE CASCADE, profile_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE, status VARCHAR(20) NOT NULL DEFAULT 'attending' CHECK (status IN ('attending', 'declined', 'tentative')), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), UNIQUE(schedule_id, profile_id));",
+      "rollback": "DROP TABLE IF EXISTS public.schedule_participants;"
     }
   ],
-  "files_to_create": [],
-  "api_routes": [],
-  "constraints": [
-    "백엔드(engine + API route) is_private 이미 완전 지원 — 변경 불필요",
-    "page.tsx와 route.ts의 is_private 필터링 이미 작동 중 — 중복 구현 금지",
-    "ScheduleAddScheduler isPrivate state + setIsPrivate + API 전송 이미 완성 — UI 토글만 추가",
-    "Pool은 모듈 레벨 선언 (src/lib/engines/db.ts)",
-    "Tailwind v4 사용 — v3 문법 혼용 금지",
-    "주석/UI/로그: 한국어",
-    "TypeScript strict, any 금지"
+  "npm_install": ["recharts", "rrule", "@react-pdf/renderer"],
+  "execution_order": [
+    "TASK-018e (충돌 감지) — 기존 API에 쿼리 추가만",
+    "TASK-018d (RSVP) — DB 1테이블 + API + UI",
+    "TASK-018a (통계 대시보드) — 별도 페이지, 기존 코드 영향 최소",
+    "TASK-018b (반복 일정) — DB 변경 + 조회 로직 변경",
+    "TASK-018c (PDF 내보내기) — 반복 일정 포함 가능"
   ],
-  "notes": "작업 범위: (1) ScheduleAddScheduler 토글 버튼 UI 1개 추가, (2) DraggableSchedulePill is_private 타입 + amber 색상 + Lock 아이콘, (3) ScheduleDetailPopup 나만보기 뱃지. DB ALTER TABLE은 별도 실행. 엔진/API 코드 변경 불필요."
+
+  "sub_features": [
+    {
+      "id": "TASK-018e",
+      "name": "일정 충돌 감지 & 경고",
+
+      "files_to_modify": [
+        {
+          "path": "src/lib/engines/schedules.ts",
+          "current_summary": "ScheduleRow 타입 + CRUD 함수들 (listSchedulesForBranch, createSchedule, updateSchedule, deleteSchedule, getScheduleById). query() 헬퍼 사용. 캐시 TTL 15초.",
+          "changes_needed": "새 함수 `checkScheduleConflicts({branchName, startAt, endAt, excludeId?})` 추가. 같은 branch에서 시간 겹침 검사 쿼리: `WHERE branch_name=$1 AND is_soft_deleted IS NOT TRUE AND start_at < $3 AND end_at > $2 AND ($4::uuid IS NULL OR id != $4)`. 반환: ScheduleRow[] (겹치는 일정 목록)"
+        },
+        {
+          "path": "app/api/schedules/route.ts",
+          "current_summary": "GET: listSchedulesForBranch + buildCalendarMonthData / POST: createSchedule. 인증: getCurrentUser(). Cache-Control: private, max-age=30.",
+          "changes_needed": "POST 핸들러에서 createSchedule 호출 **전에** checkScheduleConflicts 호출. 겹치는 일정이 있으면 응답에 `conflicts: [{id, title, start_at, end_at}]` 배열과 `warning: '겹치는 일정이 N건 있습니다'` 필드를 추가해서 반환. status는 여전히 201 (등록 차단이 아닌 경고). 즉 충돌이 있어도 일정은 생성됨."
+        },
+        {
+          "path": "app/admin/schedules/_components/ScheduleAddScheduler.tsx",
+          "current_summary": "일정 생성/수정 폼. POST /api/schedules (create) or PATCH /api/schedules/{id} (edit). 성공 시 notifyCalendarMonthDataChanged() + router.refresh(). 상태: category, title, location, targetAudience, description, isPrivate, selectedDate, selectedTime, host, loading, error.",
+          "changes_needed": "POST 응답에서 `conflicts` 배열이 있으면 토스트 경고 표시. 토스트 구현: 컴포넌트 상단에 `conflictWarning` state 추가. 충돌 시 노란색 배너(bg-amber-50 border-amber-400 text-amber-800) 표시: '⚠ 겹치는 일정: {title} ({시간})' 형태. 3초 후 자동 사라짐(setTimeout). 일정 생성 자체는 정상 완료 처리(기존 성공 로직 그대로 실행)."
+        }
+      ],
+      "files_to_create": [],
+      "api_routes": [],
+      "constraints": [
+        "query() 헬퍼 사용 (pool 직접 사용 금지)",
+        "is_all_day 일정은 시간 겹침 로직 주의: start_at=00:00, end_at=23:59 또는 다음날 00:00으로 처리될 수 있음",
+        "soft_deleted 일정은 충돌 검사에서 제외 (is_soft_deleted IS NOT TRUE)",
+        "경고만 표시, 등록 차단 안 함"
+      ],
+      "notes": "가장 단순한 기능. 기존 POST API에 쿼리 1개 + 응답 필드 추가, 프론트에 토스트 1개 추가."
+    },
+
+    {
+      "id": "TASK-018d",
+      "name": "일정 참석/불참 RSVP",
+
+      "files_to_modify": [
+        {
+          "path": "src/lib/engines/schedules.ts",
+          "current_summary": "위와 동일. ScheduleRow 타입 + CRUD 함수들.",
+          "changes_needed": "새 타입 `ScheduleParticipant = {id, schedule_id, profile_id, status: 'attending'|'declined'|'tentative', created_at, full_name?, avatar_url?}` 추가. 새 함수 3개: 1) `getScheduleParticipants(scheduleId): ScheduleParticipant[]` — LEFT JOIN profiles로 full_name, avatar_url 가져옴. 2) `upsertScheduleParticipant({scheduleId, profileId, status}): ScheduleParticipant` — INSERT ... ON CONFLICT(schedule_id, profile_id) DO UPDATE SET status=$3. 3) `deleteScheduleParticipant({scheduleId, profileId}): void` — 참석 취소."
+        },
+        {
+          "path": "app/api/schedules/[id]/route.ts",
+          "current_summary": "PATCH: updateSchedule / DELETE: deleteSchedule. 인증: getCurrentUser(). 수정 로그: insertScheduleEditLog.",
+          "changes_needed": "기존 파일 하단 또는 별도 route가 나을 수 있으나, Next.js App Router 구조상 `/api/schedules/[id]/participants/route.ts`로 분리 권장. 이 파일 자체는 수정 불필요."
+        },
+        {
+          "path": "app/components/right-panel/ScheduleDetailPopup.tsx",
+          "current_summary": "일정 상세 팝업: 편집 모드 + 상세 뷰. 메모, 수정 이력, 삭제 기능. Props: schedule, onClose, isAdmin, currentUserFullName, showMemos, memoDate.",
+          "changes_needed": "상세 뷰에 RSVP 섹션 추가. 위치: 메타 정보(카테고리, 시간, 장소 등) 아래, 메모 섹션 위. 구성: 1) 참석/불참/미정 3버튼 (현재 유저 상태에 따라 활성). 2) 참석자 목록: Avatar + full_name + status 뱃지. API 호출: GET /api/schedules/{id}/participants (목록), POST /api/schedules/{id}/participants (참석 표시). 새 prop 필요: `currentUserProfileId?: string` (CalendarPageClientShell에서 전달). 참석자 state: `participants: ScheduleParticipant[]`, `myStatus: string|null`. 컴포넌트 마운트 시 fetchParticipants() 호출."
+        },
+        {
+          "path": "app/components/right-panel/types.ts",
+          "current_summary": "ScheduleItem, MemoItem, NoticeItem, ScheduleEditLogItem, ManagersApiResponse 타입 + formatTime, formatDateTime, formatDateLabel, parseHexColor 유틸.",
+          "changes_needed": "`ScheduleParticipant` 타입 추가: `{id: string, schedule_id: string, profile_id: string, status: 'attending'|'declined'|'tentative', created_at: string, full_name?: string, avatar_url?: string}`"
+        },
+        {
+          "path": "app/components/CalendarPageClientShell.tsx",
+          "current_summary": "캘린더 페이지 클라이언트 쉘. 월 네비게이션 + 캘린더그리드 + 주간일정 + 우측패널. selectedScheduleForPopup state로 팝업 관리.",
+          "changes_needed": "ScheduleDetailPopup에 `currentUserProfileId` prop 전달. 이 값은 서버에서 내려받거나 props에 이미 있는 currentUserFullName과 함께 관리. 만약 profileId가 props에 없으면 새 prop으로 추가 필요 (page.tsx에서 getCurrentUser().profile.id 전달)."
+        }
+      ],
+      "files_to_create": [
+        {
+          "path": "app/api/schedules/[id]/participants/route.ts",
+          "purpose": "RSVP API: GET(참석자 목록), POST(참석/불참 등록), DELETE(참석 취소)",
+          "interface": "GET → {participants: ScheduleParticipant[]}. POST body: {status: 'attending'|'declined'|'tentative'} → {participant: ScheduleParticipant}. DELETE → {ok: true}",
+          "dependencies": ["src/lib/engines/schedules.ts (getScheduleParticipants, upsertScheduleParticipant, deleteScheduleParticipant)", "src/lib/engines/auth.ts (getCurrentUser)"]
+        }
+      ],
+      "api_routes": [
+        {
+          "path": "app/api/schedules/[id]/participants/route.ts",
+          "methods": ["GET", "POST", "DELETE"],
+          "auth_required": true,
+          "request_shape": "POST: {status: 'attending'|'declined'|'tentative'}, DELETE: body 없음",
+          "response_shape": "GET: {participants: ScheduleParticipant[]}, POST: {participant: ScheduleParticipant}, DELETE: {ok: true}"
+        }
+      ],
+      "constraints": [
+        "query() 헬퍼 사용",
+        "getCurrentUser() 인증 필수 — profileId는 user.profile.id에서 가져옴",
+        "schedule_participants FK CASCADE — schedules 삭제 시 자동 정리됨 (DB 레벨)",
+        "UNIQUE(schedule_id, profile_id) — ON CONFLICT DO UPDATE로 upsert 처리",
+        "Avatar 컴포넌트: import { Avatar, AvatarFallback, AvatarImage } from '@/app/components/ui/avatar'"
+      ],
+      "notes": "ScheduleDetailPopup이 이미 280줄로 큰 편. RSVP 섹션은 별도 컴포넌트(RsvpSection.tsx)로 분리해서 import하는 것을 권장. 참석자 목록은 최대 20명 정도 예상이므로 페이지네이션 불필요."
+    },
+
+    {
+      "id": "TASK-018a",
+      "name": "통계 대시보드 (Analytics Panel)",
+
+      "files_to_modify": [
+        {
+          "path": "app/admin/_components/AdminPageHeader.tsx",
+          "current_summary": "admin 페이지 공용 헤더. BackButton + 제목.",
+          "changes_needed": "수정 불필요. 새 페이지에서 그대로 사용."
+        }
+      ],
+      "files_to_create": [
+        {
+          "path": "app/admin/analytics/page.tsx",
+          "purpose": "통계 대시보드 메인 페이지 (서버 컴포넌트). admin 전용 접근 제어. 데이터 프리페칭 후 클라이언트 컴포넌트에 전달.",
+          "interface": "서버 컴포넌트. getCurrentUser() → admin 체크 → getAnalyticsData() → <AnalyticsDashboard data={...} />",
+          "dependencies": ["src/lib/engines/auth.ts", "src/lib/engines/analytics.ts (신규)"]
+        },
+        {
+          "path": "app/admin/analytics/_components/AnalyticsDashboard.tsx",
+          "purpose": "'use client' 컴포넌트. recharts 차트 3종 렌더링: 1) 월차 인원 추이(LineChart), 2) 카테고리별 일정 분포(PieChart/BarChart), 3) 교육 참석률(BarChart). dynamic import로 recharts 로드.",
+          "interface": "Props: {monthlyLeaveData: {month: string, count: number}[], categoryDistribution: {category: string, count: number}[], educationAttendance: {month: string, rate: number}[]}",
+          "dependencies": ["recharts (dynamic import)", "app/admin/_components/AdminPageHeader.tsx"]
+        },
+        {
+          "path": "src/lib/engines/analytics.ts",
+          "purpose": "통계 쿼리 엔진. schedules 테이블 집계 쿼리 3종.",
+          "interface": "export async function getMonthlyLeaveStats(branchName: string, year: number): Promise<{month: string, count: number}[]> — 월별 월차(leave) 카운트. export async function getCategoryDistribution(branchName: string, year: number, month: number): Promise<{category: string, count: number}[]> — 해당 월 카테고리별 일정 수. export async function getEducationAttendance(branchName: string, year: number): Promise<{month: string, total: number, attended: number}[]> — dealer+internal 카테고리 교육 월별 건수 (참석률은 schedule_participants 테이블 활용, TASK-018d 이후)",
+          "dependencies": ["src/lib/engines/db.ts (query)"]
+        }
+      ],
+      "api_routes": [
+        {
+          "path": "app/api/admin/analytics/route.ts",
+          "methods": ["GET"],
+          "auth_required": true,
+          "request_shape": "query params: ?year=2026&month=3&branchName=xxx",
+          "response_shape": "{monthlyLeave: [...], categoryDistribution: [...], educationAttendance: [...]}"
+        }
+      ],
+      "constraints": [
+        "admin 전용 — getCurrentUser().role === 'admin' 체크 필수",
+        "recharts는 반드시 dynamic import + React.lazy 또는 next/dynamic으로 로드 (번들 사이즈 절감)",
+        "쿼리는 query() 헬퍼 사용",
+        "schedules 테이블 인덱스 확인: branch_name, start_at, category 기준 집계이므로 인덱스 없으면 성능 이슈 가능. 단 현재 데이터 규모에서는 문제 없을 것",
+        "한국어 UI: 차트 레이블, 축 이름 모두 한국어",
+        "AdminPageHeader 사용: <AdminPageHeader title='통계 대시보드' />"
+      ],
+      "notes": "별도 /admin/analytics 페이지이므로 기존 코드 영향 최소. page.tsx는 서버 컴포넌트로 데이터 프리페칭, 차트는 클라이언트 컴포넌트에서 렌더링. API route는 선택사항 — page.tsx에서 직접 DB 조회해도 됨 (서버 컴포넌트이므로). 다만 클라이언트에서 기간 변경 시 재조회가 필요하면 API route도 필요."
+    },
+
+    {
+      "id": "TASK-018b",
+      "name": "반복 일정 (Recurring Events)",
+
+      "files_to_modify": [
+        {
+          "path": "src/lib/engines/schedules.ts",
+          "current_summary": "ScheduleRow 타입 + CRUD. listSchedulesForBranch는 15초 캐시. createSchedule은 INSERT + invalidateScheduleListCache.",
+          "changes_needed": "1) ScheduleRow 타입에 `recurrence_rule?: string | null` 추가. 2) ScheduleInput에 `recurrenceRule?: string` 추가. 3) createSchedule INSERT 쿼리에 recurrence_rule 컬럼 추가. 4) listSchedulesForBranch 반환 후 반복 일정 확장 함수 호출: `expandRecurringSchedules(rows, fromDate, toDate)` — rrule 라이브러리로 RRULE 파싱 → 각 occurrence를 가상 ScheduleRow로 복제 (id는 원본id_날짜 형태, start_at/end_at을 해당 날짜로 이동). 5) getScheduleById에도 recurrence_rule SELECT 추가. 6) updateSchedule에도 recurrence_rule 업데이트 지원."
+        },
+        {
+          "path": "app/api/schedules/route.ts",
+          "current_summary": "GET: listSchedulesForBranch / POST: createSchedule.",
+          "changes_needed": "POST body에서 recurrenceRule 파싱 추가. GET은 listSchedulesForBranch가 이미 확장된 결과를 반환하므로 수정 불필요."
+        },
+        {
+          "path": "app/admin/schedules/_components/ScheduleAddScheduler.tsx",
+          "current_summary": "일정 생성/수정 폼. category, title, date, time 등 선택.",
+          "changes_needed": "반복 설정 UI 추가. 위치: 날짜/시간 선택 아래. 구성: 1) '반복' 토글 스위치 (기본 off). 2) 반복 주기 선택: 매일/매주/매월/매년 (select). 3) 반복 종료: 없음/특정 날짜까지/N회 (radio + input). 4) 매주 선택 시 요일 체크박스 (월~금 기본). 이 UI에서 RRULE 문자열 생성: 예) 'FREQ=WEEKLY;BYDAY=MO,WE,FR;UNTIL=20260630T235959Z'. recurrenceRule state 추가 → POST body에 포함. 월차(leave) 카테고리 선택 시 반복 옵션 숨기기."
+        },
+        {
+          "path": "src/lib/calendar/month-view.ts",
+          "current_summary": "buildCalendarMonthData: schedules → cells + eventsByDay + eventsByDateStr 매핑. mapScheduleItem으로 변환.",
+          "changes_needed": "CalendarScheduleItem 타입에 `recurrence_rule?: string | null`, `is_recurring?: boolean` 추가. mapScheduleItem에서 recurrence_rule 매핑. 반복 일정은 서버에서 이미 확장되어 오므로 month-view 로직 자체는 크게 변경 불필요. 단 확장된 가상 일정의 id가 'originalId_YYYYMMDD' 형태이므로 seenScheduleIds 중복 제거 로직이 정상 작동하는지 확인."
+        },
+        {
+          "path": "app/components/right-panel/types.ts",
+          "current_summary": "ScheduleItem 등 타입 정의.",
+          "changes_needed": "ScheduleItem에 `recurrence_rule?: string | null`, `is_recurring?: boolean` 필드 추가."
+        },
+        {
+          "path": "app/components/right-panel/ScheduleDetailPopup.tsx",
+          "current_summary": "일정 상세 팝업.",
+          "changes_needed": "반복 일정 표시: recurrence_rule이 있으면 메타 정보에 '🔁 반복: 매주 월,수,금' 등 사람이 읽을 수 있는 형태로 표시. rruleToKorean() 유틸 함수 필요 (간단한 RRULE → 한국어 변환). 수정/삭제 시: 반복 일정은 '이 일정만' vs '모든 반복 일정' 선택 모달 → v1에서는 '모든 반복 일정' 수정/삭제만 지원 (단일 occurrence 편집은 복잡도 높아 v2로 미룸)."
+        }
+      ],
+      "files_to_create": [
+        {
+          "path": "src/lib/utils/rrule-helpers.ts",
+          "purpose": "RRULE 관련 유틸: 1) buildRruleString(options) — UI 선택값 → RRULE 문자열 생성. 2) expandRecurringSchedules(rows, from, to) — rrule 라이브러리로 반복 일정 확장. 3) rruleToKorean(rruleStr) — RRULE → 사람이 읽을 수 있는 한국어 설명.",
+          "interface": "export function buildRruleString(opts: {freq: 'daily'|'weekly'|'monthly'|'yearly', interval?: number, byDay?: string[], until?: Date, count?: number}): string. export function expandRecurringSchedules<T extends {id: string, start_at: string, end_at: string, recurrence_rule?: string|null}>(rows: T[], from: Date, to: Date): T[]. export function rruleToKorean(rruleStr: string): string.",
+          "dependencies": ["rrule"]
+        }
+      ],
+      "api_routes": [],
+      "constraints": [
+        "rrule 라이브러리 사용 (npm install rrule)",
+        "반복 확장 시 maxDate 제한 필수 — from/to 범위 밖으로 확장하지 않음. 무한 루프 방지",
+        "확장된 가상 일정의 id는 `${originalId}_${YYYYMMDD}` 형태로 원본과 구분",
+        "is_all_day=true인 반복 일정: start_at/end_at 시간 부분은 00:00 고정, 날짜만 이동",
+        "캐시 무효화: createSchedule 시 invalidateScheduleListCache 호출 (기존 로직 유지)",
+        "v1에서는 단일 occurrence 편집 미지원 — 모든 반복 일정 일괄 수정/삭제만",
+        "recurrence_rule은 RRULE 표준 포맷 (RFC 5545): 'FREQ=WEEKLY;BYDAY=MO,WE,FR;UNTIL=20260630T235959Z'"
+      ],
+      "notes": "영향 범위가 가장 넓은 기능. listSchedulesForBranch → expandRecurringSchedules → month-view → CalendarGrid로 이어지는 전체 파이프라인에 영향. 확장 로직은 서버사이드(schedules.ts)에서 처리하여 프론트 변경 최소화. rrule-helpers.ts로 유틸 분리하여 schedules.ts 복잡도 관리."
+    },
+
+    {
+      "id": "TASK-018c",
+      "name": "월간 일정표 PDF 내보내기",
+
+      "files_to_modify": [
+        {
+          "path": "app/components/CalendarPageClientShell.tsx",
+          "current_summary": "캘린더 페이지 쉘. 월 네비게이션 + 캘린더 + 우측패널.",
+          "changes_needed": "월 네비게이션 영역에 'PDF 내보내기' 버튼 추가 (manager 이상만 표시). 클릭 시 CalendarPdfExport 컴포넌트를 dynamic import로 로드 → PDF 생성 + 다운로드. 버튼: EclipseButton variant='outline' size='sm' + Download 아이콘(lucide-react). 새 state: `showPdfExport: boolean`."
+        }
+      ],
+      "files_to_create": [
+        {
+          "path": "app/components/CalendarPdfExport.tsx",
+          "purpose": "'use client' 컴포넌트. @react-pdf/renderer로 월간 일정표 PDF 생성 + 다운로드. dynamic import으로 로드됨.",
+          "interface": "Props: {year: number, month: number, monthData: CalendarMonthData, branchName: string, onClose: () => void}. 내부에서 @react-pdf/renderer의 Document, Page, View, Text, Font, pdf() 사용. Font.register()로 한글 폰트 등록 (Google Fonts Noto Sans KR). 레이아웃: A4 가로, 월~금 5열 캘린더 형태, 각 셀에 날짜 + 일정 제목(카테고리 색상). pdf().toBlob() → URL.createObjectURL → 자동 다운로드.",
+          "dependencies": ["@react-pdf/renderer (dynamic import)", "src/lib/calendar/month-view.ts (CalendarMonthData 타입)"]
+        }
+      ],
+      "api_routes": [],
+      "constraints": [
+        "@react-pdf/renderer는 반드시 dynamic import (번들 사이즈 절감)",
+        "한글 폰트 필수: Font.register({family: 'NotoSansKR', src: 'https://fonts.gstatic.com/s/notosanskr/v36/...'}) — Google Fonts CDN 직접 참조 또는 public/ 폴더에 폰트 파일 배치",
+        "manager 이상 권한: isAdmin prop 또는 role === 'manager' || role === 'admin' 체크",
+        "PDF 레이아웃: A4 landscape, 5열(월~금), 셀당 최대 4개 일정 표시",
+        "카테고리 색상 매핑: dealer=#3B82F6, internal=#10B981, personal=#F59E0B, leave=#EF4444, etc=#6B7280",
+        "EclipseButton 사용: import { EclipseButton } from '@/app/components/ui/EclipseButton'",
+        "Vercel serverless 환경에서 puppeteer 사용 불가 → 클라이언트사이드 PDF 생성 필수"
+      ],
+      "notes": "클라이언트사이드 PDF 생성이므로 API route 불필요. CalendarPageClientShell에서 monthData를 이미 가지고 있으므로 추가 데이터 페칭 없이 바로 PDF 생성 가능. 한글 폰트 로딩이 가장 큰 리스크 — 폰트 파일 URL이 유효한지 확인 필요. public/fonts/NotoSansKR-Regular.ttf로 번들링하는 것이 CDN보다 안정적."
+    }
+  ],
+
+  "constraints": [
+    "DB 쿼리는 반드시 query() 헬퍼 사용 — import { query } from '@/src/lib/engines/db'",
+    "API 인증은 getCurrentUser() — import { getCurrentUser } from '@/src/lib/engines/auth'",
+    "Pool 직접 사용 금지 (푸시 API 제외)",
+    "any 타입 금지 (TypeScript strict)",
+    "Tailwind v4 문법만 사용 (v3 @apply 등 혼용 금지)",
+    "주석, UI 텍스트, 로그 모두 한국어",
+    "EclipseButton 사용 (shadcn Button 아님)",
+    "Avatar: import { Avatar, AvatarFallback, AvatarImage } from '@/app/components/ui/avatar'",
+    "일정 변경 후 반드시 notifyCalendarMonthDataChanged() 호출",
+    "is_private 기존 패턴 유지 — 나만보기 일정은 통계/PDF에서 본인 것만 포함",
+    "recharts, @react-pdf/renderer는 반드시 dynamic import / next/dynamic 사용",
+    "컴포넌트 패턴: memo + Base 분리 (const X = memo(XBase); export default X;)"
+  ],
+
+  "notes": "5개 기능을 recommended_execution_order 순서대로 구현. 각 기능이 이전 기능에 약간의 의존성이 있음: 충돌감지(독립) → RSVP(독립, 단 통계에서 참석률 활용) → 통계(RSVP 테이블 활용 가능) → 반복일정(조회 파이프라인 변경) → PDF(반복 포함 데이터 활용). npm install은 TASK-018a 시작 전 recharts, TASK-018b 시작 전 rrule, TASK-018c 시작 전 @react-pdf/renderer 설치. 한 번에 전부 설치해도 무방."
 }

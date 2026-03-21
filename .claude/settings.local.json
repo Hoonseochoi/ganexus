@@ -8,7 +8,11 @@
       "Bash(grep -E \"dotenv|pg$\")",
       "Bash(npm install:*)",
       "Bash(grep -r \"history\\\\.back\\\\|router\\\\.back\\\\|onClick.*back\" C:UserschlgnOneDriveDesktopGA_NEXUSapp --include=*.tsx --include=*.ts)",
-      "Bash(find C:UserschlgnOneDriveDesktopGA_NEXUS -name *.tsx -path */LeftPanel* -o -name *.tsx -path */left*)"
+      "Bash(find C:UserschlgnOneDriveDesktopGA_NEXUS -name *.tsx -path */LeftPanel* -o -name *.tsx -path */left*)",
+      "Bash(npm run:*)",
+      "Bash(node --env-file=.env.local -e \":*)",
+      "Bash(curl -s \"https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400&display=swap\" -H \"User-Agent: Mozilla/5.0\")",
+      "Bash(curl -L \"https://fonts.gstatic.com/s/notosanskr/v39/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA-vvnIzzuoyeLQ.ttf\" -o \"C:/Users/chlgn/OneDrive/Desktop/GA_NEXUS/public/fonts/NotoSansKR-Regular.ttf\")"
     ]
   }
 }

@@ -1,29 +1,105 @@
 {
-  "task_id": "TASK-017",
-  "task_summary": "일정추가 폼에 나만보기 토글 UI 추가 + 캘린더 Pill 색상 차별화 + DB is_private 컬럼 확인/추가",
+  "task_id": "TASK-018",
+  "task_summary": "5개 기능 일괄 구현: 통계 대시보드, 반복 일정, PDF 내보내기, RSVP 참석, 일정 충돌 감지",
   "task_type": "feature",
-  "affects_auth": false,
+  "affects_auth": true,
   "affects_db": true,
-  "affects_layout": false,
-  "complexity": "medium",
+  "affects_layout": true,
+  "complexity": "high",
+  "sub_features": [
+    {
+      "id": "TASK-018a",
+      "name": "통계 대시보드 (Analytics Panel)",
+      "priority": 1,
+      "summary": "/admin/analytics 페이지에 월차 인원 추이, 카테고리별 일정 분포, 교육 참석률 차트 제공",
+      "requires_install": ["recharts"],
+      "affects_db": false,
+      "affects_auth": true,
+      "notes": "admin only 접근. schedules 테이블 집계 쿼리만으로 구현. Recharts 선택 (React 네이티브, 가볍고 SSR 호환)"
+    },
+    {
+      "id": "TASK-018b",
+      "name": "반복 일정 (Recurring Events)",
+      "priority": 2,
+      "summary": "schedules에 recurrence_rule 컬럼(RRULE 포맷) 추가, 일정 생성/조회 시 반복 확장",
+      "requires_install": ["rrule"],
+      "affects_db": true,
+      "affects_auth": false,
+      "notes": "FullCalendar rrule plugin 대신 rrule 라이브러리 직접 사용 (현재 FullCalendar 미사용). recurrence_rule TEXT 컬럼 + 조회 시 서버사이드 확장"
+    },
+    {
+      "id": "TASK-018c",
+      "name": "월간 일정표 PDF 내보내기",
+      "priority": 3,
+      "summary": "지점장이 월간 일정을 PDF로 출력/다운로드",
+      "requires_install": ["@react-pdf/renderer"],
+      "affects_db": false,
+      "affects_auth": true,
+      "notes": "manager 이상 권한. puppeteer는 Vercel serverless 제약으로 부적합 → @react-pdf/renderer 클라이언트 사이드 생성"
+    },
+    {
+      "id": "TASK-018d",
+      "name": "일정 참석/불참 RSVP",
+      "priority": 4,
+      "summary": "schedule_participants 테이블 추가, 참석/불참 버튼 + 참석자 목록 표시",
+      "requires_install": [],
+      "affects_db": true,
+      "affects_auth": true,
+      "notes": "schedule_participants(schedule_id, profile_id, status, created_at). 우측패널 ScheduleDetailPopup에 참석 버튼 + 참석자 리스트"
+    },
+    {
+      "id": "TASK-018e",
+      "name": "일정 충돌 감지 & 경고",
+      "priority": 5,
+      "summary": "일정 등록 시 같은 날짜·시간 겹침 체크 후 토스트 경고",
+      "requires_install": [],
+      "affects_db": false,
+      "affects_auth": false,
+      "notes": "POST /api/schedules에서 겹침 쿼리. 프론트에 warning 응답 → 토스트 표시. 등록 차단은 아닌 경고만"
+    }
+  ],
   "scan_targets": [
-    "app/admin/schedules/_components/ScheduleAddScheduler.tsx",
-    "app/components/DraggableSchedulePill.tsx",
-    "app/components/CalendarGridClient.tsx",
-    "app/components/right-panel/types.ts",
-    "app/components/right-panel/ScheduleList.tsx",
-    "app/components/right-panel/ScheduleDetailPopup.tsx",
+    "app/admin/",
     "app/api/schedules/route.ts",
     "app/api/schedules/[id]/route.ts",
     "src/lib/engines/schedules.ts",
-    "app/page.tsx"
+    "src/lib/engines/db.ts",
+    "app/components/right-panel/ScheduleDetailPopup.tsx",
+    "app/components/right-panel/index.tsx",
+    "app/components/right-panel/types.ts",
+    "app/components/CalendarGridClient.tsx",
+    "app/components/ScheduleAddScheduler.tsx",
+    "app/components/CalendarPageClientShell.tsx",
+    "src/lib/engines/month-view.ts",
+    "middleware.ts",
+    "package.json"
   ],
   "risk_areas": [
-    "DB: public.schedules에 is_private 컬럼이 이미 존재하는지 확인 필요",
-    "is_private 필터링 로직이 route.ts:46과 page.tsx:51에 이미 있으므로 중복 구현 주의",
-    "ScheduleAddScheduler에 isPrivate state와 API 전송 로직은 이미 완성됨 - UI 토글 버튼만 누락",
-    "DraggableSchedulePill에 is_private 필드가 ScheduleItem 타입에 없음 - 타입 확장 + 색상 분기 필요"
+    "recharts/@react-pdf/renderer 번들 사이즈 — dynamic import + lazy load 필수",
+    "반복 일정 확장 시 무한 루프 방지 — maxDate 제한 필요",
+    "RSVP schedule_participants FK 제약 — schedules 삭제 시 CASCADE 처리",
+    "PDF 생성 시 한글 폰트 번들링 이슈 — @react-pdf/renderer 한글 폰트 등록 필요",
+    "통계 쿼리 성능 — schedules 테이블 인덱스 확인 (branch_name, start_at, category)",
+    "CalendarGridClient 433줄 — 충돌 감지 UI 추가 시 신중하게",
+    "ScheduleAddScheduler — 반복 일정 UI + 충돌 경고 토스트 둘 다 추가됨, 복잡도 증가"
   ],
-  "commit_message": "feat: 나만보기 일정 - UI 토글 + Pill 색상 차별화 + DB 컬럼",
-  "notes": "백엔드(engine, API route)는 이미 is_private를 완전히 지원. 주요 작업: (1) ScheduleAddScheduler 프로필 섹션(1면 상단)에 Lock/Globe 토글 버튼 추가, (2) DraggableSchedulePill에서 is_private=true 색상 차별화 (amber 계열 + 자물쇠), (3) DB ALTER TABLE, (4) ScheduleDetailPopup에 나만보기 표시."
+  "recommended_execution_order": [
+    "TASK-018e (충돌 감지) — 가장 단순, 기존 API에 쿼리 1개 추가",
+    "TASK-018d (RSVP) — DB 테이블 1개, API + UI 추가",
+    "TASK-018a (통계 대시보드) — 별도 페이지, 기존 코드 영향 최소",
+    "TASK-018b (반복 일정) — DB 변경 + 조회 로직 변경, 영향 범위 넓음",
+    "TASK-018c (PDF 내보내기) — 반복 일정 구현 후 PDF에 반영 가능"
+  ],
+  "db_changes": [
+    {
+      "feature": "TASK-018b",
+      "sql": "ALTER TABLE public.schedules ADD COLUMN IF NOT EXISTS recurrence_rule TEXT DEFAULT NULL;"
+    },
+    {
+      "feature": "TASK-018d",
+      "sql": "CREATE TABLE IF NOT EXISTS public.schedule_participants (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), schedule_id UUID NOT NULL REFERENCES public.schedules(id) ON DELETE CASCADE, profile_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE, status VARCHAR(20) NOT NULL DEFAULT 'attending' CHECK (status IN ('attending', 'declined', 'tentative')), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), UNIQUE(schedule_id, profile_id));"
+    }
+  ],
+  "commit_message": "feat: 5종 기능 추가 — 통계 대시보드, 반복 일정, PDF 내보내기, RSVP, 충돌 감지",
+  "notes": "5개 기능이라 한 번에 전부 구현하면 리스크가 높다. recommended_execution_order 순서대로 하나씩 구현·검증·배포하는 것을 권장. 각 서브태스크를 별도 TASK로 분리해서 run.mjs를 5회 실행하는 것도 고려."
 }

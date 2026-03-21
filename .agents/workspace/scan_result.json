@@ -1,0 +1,213 @@
+{
+  "scanned_at": "2026-03-21T00:00:00Z",
+  "file_contents": [
+    {
+      "path": "app/api/schedules/route.ts",
+      "summary": "GET: listSchedulesForBranch(브랜치별, 날짜범위 필터링, 권한별 필터) + buildCalendarMonthData / POST: createSchedule(title, category, startAt, endAt, isAllDay, isPrivate, dealerName, location, instructor, targetAudience, managerName, createdByProfileId). 권한: admin/manager/agent. 권장인증",
+      "key_exports": [
+        "GET(req) → {schedules, monthData?}",
+        "POST(req) → {schedule} with status 201"
+      ],
+      "notes": "캐싱: Cache-Control: private, max-age=30 / 일정 생성 시 충돌 감지 미구현(planned for TASK-018e) / is_private 컬럼 이미 지원중"
+    },
+    {
+      "path": "app/api/schedules/[id]/route.ts",
+      "summary": "PATCH: updateSchedule(id, branchName, modifiedBy, modifiedByName, title, description, category, startAt, endAt, isAllDay, isPrivate, dealerName, location, instructor, targetAudience, managerName) / DELETE: deleteSchedule(id, branchName, hardDelete). 권한: admin/manager/agent. 삭제 시 작성자 또는 admin만 가능",
+      "key_exports": [
+        "PATCH(req, {params}) → {schedule} with Server-Timing header",
+        "DELETE(req, {params}) → {ok: true} with Server-Timing header"
+      ],
+      "notes": "수정 로그: insertScheduleEditLog (변경 필드 추적) / 삭제 모드: hardDelete 또는 soft_delete(is_soft_deleted=true)"
+    },
+    {
+      "path": "src/lib/engines/schedules.ts",
+      "summary": "ScheduleRow 타입 정의 (id, branch_name, title, description, category, dealer_name, location, instructor, target_audience, manager_name, start_at, end_at, is_all_day, created_by, created_at, is_soft_deleted?, is_private?, creator_full_name?, instructor_color?, target_full_name?, target_avatar_url?). 함수: listSchedulesForBranch(캐싱 15초), createSchedule, updateSchedule, deleteSchedule, getScheduleById, getScheduleEditLogs, invalidateScheduleListCache. 레거시 폴백: 메타 컬럼 미추가 시 자동 폴백(education→dealer, vacation→leave, hq→internal)",
+      "key_exports": [
+        "listSchedulesForBranch({branchName, from?, to?}) → ScheduleRow[]",
+        "createSchedule(input: ScheduleInput) → ScheduleRow",
+        "updateSchedule(params) → ScheduleRow | null",
+        "deleteSchedule({id, branchName, hardDelete?})",
+        "getScheduleById({id, branchName}) → ScheduleRow | null",
+        "invalidateScheduleListCache(branchName?)"
+      ],
+      "cache_ttl_ms": 15000,
+      "cache_max_entries": 200,
+      "notes": "3단계 폴백 로직(full metadata → mid(instructor only) → full legacy) / soft delete 지원 / 수정 이력 로깅: schedule_edit_logs 테이블(FK schedules.id CASCADE)"
+    },
+    {
+      "path": "src/lib/engines/db.ts",
+      "summary": "Postgres pool 관리 (max 10, idleTimeoutMillis 30s, connectionTimeoutMillis 10s). query<T>(text, params) 함수 + 느린 쿼리 로깅(기본 200ms). 에러 감지: isRelationNotFound(42P01), isColumnNotFound(42703)",
+      "key_exports": [
+        "pool: Pool",
+        "query<T>(text, params?) → Promise<T[]>",
+        "isRelationNotFound(err) → boolean",
+        "isColumnNotFound(err) → boolean"
+      ],
+      "notes": "연결문자열: process.env.NEON_DATABASE_URL / DB_QUERY_SLOW_MS 환경변수 기본 200ms"
+    },
+    {
+      "path": "app/components/right-panel/ScheduleDetailPopup.tsx",
+      "summary": "일정 상세 팝업: 편집 모드(ScheduleAddScheduler 재사용) + 상세 뷰(메타정보). 메모 기능(POST/PUT/DELETE /api/memos?date=). 수정 이력(GET /api/schedules/{id}/logs). 교육자 목록(GET /api/admin/managers). 삭제(DELETE /api/schedules/{id}, 작성자/admin만). is_private 배지 표시",
+      "key_functions": [
+        "loadLogs() → ScheduleEditLogItem[]",
+        "handleDelete() → DELETE /api/schedules/{id}",
+        "handleMemoSubmit(e) → POST /api/memos",
+        "handleMemoDelete(memoId) → DELETE /api/memos/{memoId}",
+        "handleMemoEditSave(memoId) → PUT /api/memos/{memoId}"
+      ],
+      "notes": "Props: schedule(ScheduleItem), onClose, isAdmin?, currentUserFullName?, showMemos?, memoDate? / 높이: max-h-[95vh] / 메모는 memoDate 기준(오늘 일정 섹션용)"
+    },
+    {
+      "path": "app/components/right-panel/index.tsx",
+      "summary": "우측 패널: 일정추가버튼(→/admin/schedules) + 공지사항(캐시 5분, 읽음 표시) + 선택날짜 일정목록 + 메모섹션(오늘만). 공지: NoticePopup(admin 전용 편집), 메모: MemoSection(날짜별)",
+      "key_state": [
+        "todaySchedules: ScheduleItem[]",
+        "selectedDateStr?: string | null",
+        "isAdmin: boolean",
+        "canAddSchedule?: boolean",
+        "currentUserFullName?: string | null",
+        "onScheduleSelectForPopup: (schedule | null) => void"
+      ],
+      "cache_ttl_ms": 300000,
+      "notes": "모바일 대응: w-full lg:w-80 / 공지 모듈 레벨 캐시 (noticeCacheEntry) / ScheduleList 컴포넌트 + MemoSection 컴포넌트"
+    },
+    {
+      "path": "app/components/right-panel/types.ts",
+      "summary": "타입 정의: ScheduleItem(id, title, description, start_at, end_at, is_all_day, category, dealer_name?, location?, instructor?, target_audience?, manager_name?, is_soft_deleted?, is_private?, creator_full_name?, creator_avatar_url?, target_full_name?, target_avatar_url?, instructor_color?), MemoItem(id, content, author_name, created_at), NoticeItem(id, title, body, image_url, created_at | null), ScheduleEditLogItem(id, schedule_id, modified_by, modifier_name?, created_at, changed_fields), ManagersApiResponse. 유틸: formatTime, formatDateTime, formatDateLabel, parseHexColor",
+      "key_types": [
+        "ScheduleItem",
+        "MemoItem",
+        "NoticeItem",
+        "ScheduleEditLogItem",
+        "ManagersApiResponse"
+      ],
+      "notes": "parseHexColor: #RGB, #RRGGBB → {r, g, b} | null / formatDateTime: 'M월 D일 HH:mm' 형식"
+    },
+    {
+      "path": "app/components/CalendarGridClient.tsx",
+      "summary": "캘린더 그리드 렌더링(columns 5 or 7): CellData[] + eventsByDay Record로 일정 표시. 드래그&드롭 지원(CalendarCellDropZone, DraggableSchedulePill). 퀵 일정추가(+버튼) + ScheduleAddScheduler 팝업. addMetaCache(5분 캐시): userFullName, instructors 프리페칭. Props: cells, eventsByDay, year, month, isAdmin, columns, selectedDateStr, todayStr, onDateSelect?, detailDateISO?, renderDetailRow?",
+      "key_functions": [
+        "handleCellClick(dateISO) → router.push or onDateSelect callback",
+        "closeAddPopup()",
+        "fetchAddMeta() → {userFullName, instructors[]}"
+      ],
+      "add_meta_cache_ttl": 300000,
+      "notes": "모바일: min-h-[70px] lg:min-h-[120px] / 최대 3개 일정 표시 + '+N개 더보기' / 선택 날짜: border-2 border-primary bg-primary/5 / 오늘: TODAY 배지 + 굵은 글씨(dayWeight=font-bold)"
+    },
+    {
+      "path": "app/admin/schedules/_components/ScheduleAddScheduler.tsx",
+      "summary": "일정 생성/수정 폼(mode='create'|'edit'): 월/일/시간 선택 캘린더 + 카테고리(dealer/internal/personal/leave/etc) + 제목 + 위치 + 교육자 + 대상자 + 설명 + 비공개. 월차는 is_all_day=true + 시간 00:00 강제. 초기값: initialDateISO, initialSchedule. 성공 시: notifyCalendarMonthDataChanged(), router.refresh()",
+      "key_state": [
+        "category: ScheduleCategory",
+        "title, location, targetAudience, description, isPrivate: string/bool",
+        "selectedDate, selectedTime, currentMonth, currentYear",
+        "host(교육자): string | null",
+        "loading, error"
+      ],
+      "submit_action": "POST /api/schedules (create) or PATCH /api/schedules/{id} (edit)",
+      "notes": "시간슬롯: 09:00~20:30 (30분 단위) / 월차 선택 시 시간 자동 00:00 / 수정모드: initialSchedule 값으로 폼 초기화 / 생성모드: initialDateISO 날짜 기본값 / dealer 카테고리: dealer_name 필드 사용"
+    },
+    {
+      "path": "app/components/CalendarPageClientShell.tsx",
+      "summary": "캘린더 페이지 클라이언트: 월 네비게이션 + 캘린더그리드 + 주간일정 토글 + 우측패널. 월 데이터 캐싱(buildMonthCacheKey, readMonthCache, writeMonthCache). URL 동기화(year, month, date 쿼리). 선택 일정: selectedScheduleForPopup state. Props: leftPanel, initialMonthData, initialSelectedDateStr, isAdmin, canAddSchedule, currentUserFullName, branchName",
+      "key_state": [
+        "viewYear, viewMonth",
+        "monthData: CalendarMonthData",
+        "selectedDateStr: string | null",
+        "monthLoading: boolean",
+        "showWeekly: boolean",
+        "selectedScheduleForPopup: ScheduleItem | null"
+      ],
+      "cache_functions": [
+        "buildMonthCacheKey(branchName, year, month)",
+        "readMonthCache(key)",
+        "writeMonthCache(key, data)",
+        "invalidateMonthCache(branchName, year, month)"
+      ],
+      "notes": "캐시 무효화: subscribeCalendarMonthDataChanged 이벤트 구독 / URL 동기화: syncUrl(year, month, dateISO, replace) / 날짜 선택 시 showWeekly false / 뒤로가기 popstate 이벤트 처리"
+    },
+    {
+      "path": "src/lib/calendar/month-view.ts",
+      "summary": "CalendarMonthData 빌드: 한국 시간대 기준(getKoreaNow, getKoreaDateFromISO) + 공휴일(korean-holidays) + 일정 매핑(mapScheduleItem). 함수: buildCalendarMonthData({year, month, schedules}) → CalendarMonthData. 5일 캘린더(월~금) 또는 7일(일~토). eventsByDay(Number→items) + eventsByDateStr(ISO→items) 이중 매핑. 중복 제거: seenScheduleIds Set",
+      "key_functions": [
+        "buildCalendarMonthData({year, month, schedules}) → CalendarMonthData",
+        "getCalendarFetchRange(year, month) → {from, to}",
+        "getKoreaNow() → Date",
+        "mapScheduleItem(ScheduleRow) → CalendarScheduleItem"
+      ],
+      "types": [
+        "CalendarCellData {key, day, dateISO, isToday, isSunday, isSaturday, isHoliday}",
+        "CalendarMonthData {year, month, todayStr, mobileMonthLabel, cells, eventsByDay, eventsByDateStr}"
+      ],
+      "notes": "5일 캘린더 전용:월~금만 표시, 오프셋 5로 정렬 / 공휴일 Set으로 매핑(ISO 비교) / 단일 schedule은 eventsByDay[day]와 eventsByDateStr[iso] 모두에 추가"
+    },
+    {
+      "path": "middleware.ts",
+      "summary": "인증 미들웨어: PUBLIC_PATHS 제외하고 ga_session 쿠키 체크. 없으면 /login으로 리다이렉트(redirectTo 쿼리 추가). matcher: '/((?!_next/static|_next/image|favicon.ico).*)'",
+      "key_paths": [
+        "PUBLIC_PATHS: [/, /login, /admin/signup, /apply, /api/auth/*, /api/invite/validate, /api/agent/apply, /_next, /favicon.ico]"
+      ],
+      "notes": "ga_session 쿠키 필수(세션 기반) / 모든 /admin/* 경로는 인증 필수"
+    },
+    {
+      "path": "package.json",
+      "summary": "의존성: Next.js 16, React 19, TypeScript 5, Tailwind v4.2, Neon(pg), Lucide, korean-holidays 등. 필요할 라이브러리(계획): recharts(통계), rrule(반복), @react-pdf/renderer(PDF)",
+      "dependencies": {
+        "next": "16.1.6",
+        "react": "19.2.4",
+        "tailwindcss": "4.2.1",
+        "typescript": "5.9.3",
+        "pg": "8.20.0",
+        "lucide-react": "0.577.0",
+        "korean-holidays": "1.0.0"
+      },
+      "missing_for_tasks": [
+        "recharts (TASK-018a)",
+        "rrule (TASK-018b)",
+        "@react-pdf/renderer (TASK-018c)"
+      ],
+      "notes": "ORM 없음(pg 직접 사용) / Vercel 배포"
+    }
+  ],
+  "folder_structures": [
+    {
+      "path": "app/admin/",
+      "files": [
+        "branch/page.tsx",
+        "onboarding/page.tsx",
+        "signup/page.tsx",
+        "members/page.tsx",
+        "managers/page.tsx",
+        "approvals/page.tsx",
+        "invite-codes/page.tsx",
+        "schedules/page.tsx",
+        "push/page.tsx",
+        "_components/AdminPageHeader.tsx",
+        "schedules/_components/ScheduleAddScheduler.tsx"
+      ],
+      "summary": "admin/ 페이지들(branch, members, managers, approvals, invite-codes, schedules 등) + ScheduleAddScheduler 컴포넌트(schedules 서브폴더)"
+    }
+  ],
+  "key_types": [
+    "ScheduleRow: {id, branch_name, title, description, category, dealer_name?, location?, instructor?, target_audience?, manager_name?, start_at, end_at, is_all_day, created_by, created_at, is_soft_deleted?, is_private?, creator_full_name?, instructor_color?, target_full_name?, target_avatar_url?}",
+    "ScheduleItem: ScheduleRow 동일 필드 + category enum",
+    "ScheduleInput: {branchName, title, description?, category?, dealerName?, location?, instructor?, targetAudience?, managerName?, startAt, endAt?, isAllDay?, isPrivate?, createdByProfileId}",
+    "ScheduleEditLogItem: {id, schedule_id, branch_name, modified_by, modifier_name?, changed_fields: Record, created_at}",
+    "CalendarMonthData: {year, month, todayStr, mobileMonthLabel, cells: CellData[], eventsByDay: Record<string, ScheduleItem[]>, eventsByDateStr: Record<string, ScheduleItem[]>}",
+    "ScheduleCategory: 'dealer' | 'internal' | 'personal' | 'leave' | 'etc'"
+  ],
+  "potential_conflicts": [
+    "recurrence_rule 컬럼 추가(TASK-018b) → listSchedulesForBranch, getScheduleById 쿼리 수정 필요(is_private와 동일 패턴)",
+    "schedule_participants 테이블 추가(TASK-018d) → 우측패널/ScheduleDetailPopup에 RSVP UI 추가, DB FK 체크(schedules 삭제 시 CASCADE)",
+    "conflict detection(TASK-018e) → POST /api/schedules에 겹침 쿼리 추가, 응답에 warning 필드 추가 → ScheduleAddScheduler에서 토스트 표시",
+    "PDF 생성(TASK-018c) → 새 API 엔드포인트(/api/schedules/export-pdf?) 또는 클라이언트사이드 @react-pdf/renderer, 한글 폰트 번들링 필요",
+    "recharts 번들 사이즈 → dynamic import + lazy load 필수(TASK-018a)",
+    "CalendarGridClient 433줄 이미 큼 → 반복 일정 UI, 충돌 경고 추가 시 신중히 리팩토링"
+  ],
+  "db_schema_observations": [
+    "schedules 테이블: id(UUID), branch_name, title, description, category(enum legacy), dealer_name, location, instructor, target_audience, manager_name, start_at(TIMESTAMPTZ), end_at(TIMESTAMPTZ), is_all_day(BOOLEAN), created_by(UUID→profiles), created_at(TIMESTAMPTZ), is_soft_deleted(BOOLEAN?), is_private(BOOLEAN?) — 메타 컬럼 점진적 마이그레이션",
+    "schedule_edit_logs 테이블: id, schedule_id(FK→schedules CASCADE), branch_name, modified_by(UUID), modifier_name, changed_fields(JSONB), created_at — 수정 이력 추적",
+    "schedule_participants 테이블(계획): id(UUID), schedule_id(FK CASCADE), profile_id(FK), status('attending'|'declined'|'tentative'), created_at, UNIQUE(schedule_id, profile_id)"
+  ],
+  "notes": "5개 기능이 연쇄적 의존성 있음. TASK-018e(충돌감지) → TASK-018d(RSVP) → TASK-018a(통계) → TASK-018b(반복) → TASK-018c(PDF) 순서 권장. 반복 일정 구현 후 조회 로직이 대폭 변경되므로 상단 순서 준수 필수."
+}
