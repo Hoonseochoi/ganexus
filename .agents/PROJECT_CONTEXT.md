@@ -7,6 +7,7 @@
 ## ⚠️ 가장 중요한 사실들 (먼저 읽기)
 
 1. **환경변수 이름은 `NEON_DATABASE_URL`** — `DATABASE_URL` 아님. 틀리면 DB 연결 안 됨
+2. **스키마가 3개** — `public`, `t_121202730`, `t_319000430`. 컬럼 추가 마이그레이션은 **3개 스키마 모두** 실행해야 함. `public`에만 하면 tenant 스키마에서 쿼리 실패
 2. **DB 쿼리는 `query()` 헬퍼 함수 사용** — `pool` 직접 안 씀. `src/lib/engines/db.ts`에서 import
 3. **인증은 `getCurrentUser()`** — `is_approved` 직접 체크 안 함. 이 함수가 세션+프로필 한번에 반환
 4. **세션 쿠키 이름: `ga_session`** — middleware도 이걸 체크함
@@ -210,6 +211,7 @@ onDateSelect?: (dateISO: string | null) => void
 - 푸시 API (`/api/push/*`, `/api/cron/*`)가 `getCurrentUser()` 대신 `cookies()`+Pool 직접 사용 → 추후 통일 필요
 - iOS Safari는 PWA 홈화면 추가 + Safari 17.4+ 이상에서만 Web Push 지원. 구형 iOS는 알림 안 옴
 - **반복 일정 v1 한계**: 단일 occurrence 편집 미지원. 수정/삭제 시 해당 원본 recurrence_rule 일정 전체에 적용됨
+- **컬럼 추가 시 tenant 스키마 필수**: `ALTER TABLE public.schedules ADD COLUMN ...` 만 하면 `t_121202730`, `t_319000430` 쿼리 실패. 마이그레이션 파일에 3개 스키마 모두 포함할 것
 - **PDF 한글 폰트**: `public/fonts/NotoSansKR-Regular.ttf` 없으면 PDF 한글 깨짐 (폰트 파일 배치 필요)
 - **expandRecurringSchedules()**: id가 `originalId_YYYYMMDD` 형태 → DB에 없는 가상 ID이므로 수정/삭제 시 원본 ID 파싱 필요
 - **recharts/@react-pdf/renderer**: dynamic import 필수 (번들 사이즈, SSR 이슈)
