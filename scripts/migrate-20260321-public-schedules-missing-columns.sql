@@ -9,3 +9,7 @@ ALTER TABLE public.schedules
   ADD COLUMN IF NOT EXISTS is_soft_deleted  BOOLEAN DEFAULT FALSE;
 
 COMMIT;
+
+-- tenant 스키마에도 recurrence_rule 추가 (TASK-018 누락분)
+ALTER TABLE t_121202730.schedules ADD COLUMN IF NOT EXISTS recurrence_rule TEXT DEFAULT NULL;
+ALTER TABLE t_319000430.schedules ADD COLUMN IF NOT EXISTS recurrence_rule TEXT DEFAULT NULL;
