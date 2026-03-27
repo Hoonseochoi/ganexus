@@ -2,212 +2,32 @@
   "scanned_at": "2026-03-21T00:00:00Z",
   "file_contents": [
     {
-      "path": "app/api/schedules/route.ts",
-      "summary": "GET: listSchedulesForBranch(브랜치별, 날짜범위 필터링, 권한별 필터) + buildCalendarMonthData / POST: createSchedule(title, category, startAt, endAt, isAllDay, isPrivate, dealerName, location, instructor, targetAudience, managerName, createdByProfileId). 권한: admin/manager/agent. 권장인증",
-      "key_exports": [
-        "GET(req) → {schedules, monthData?}",
-        "POST(req) → {schedule} with status 201"
-      ],
-      "notes": "캐싱: Cache-Control: private, max-age=30 / 일정 생성 시 충돌 감지 미구현(planned for TASK-018e) / is_private 컬럼 이미 지원중"
+      "path": "app/api/agent/apply/route.ts",
+      "content": "import { NextRequest, NextResponse } from \"next/server\";\nimport { addProfileToTenant, getTenantSchemaForBranch } from \"@/src/lib/engines/tenant\";\nimport { isRelationNotFound, pool, query } from \"@/src/lib/engines/db\";\n\ntype InviteRow = {\n  id: string;\n  branch_name: string;\n  max_uses: number | null;\n  used_count: number;\n  expires_at: string | null;\n};\n\ntype RegistryRow = {\n  manager_code: string;\n  manager_name: string;\n  branch_name: string;\n  is_active: boolean;\n  claimed_profile_id: string | null;\n};\n\ntype ProfileUpsertRow = {\n  id: string;\n  login_id: string;\n  full_name: string | null;\n  branch_name: string | null;\n  phone_number: string | null;\n  role: \"admin\" | \"manager\" | \"agent\" | null;\n  is_approved: boolean;\n  manager_code: string | null;\n};\n\nfunction normalizeName(value: string): string {\n  return value.replace(/\\s+/g, \"\").trim().toLowerCase();\n}\n\nexport async function POST(req: NextRequest) {\n  const { code, fullName, birthDate, phoneNumber, managerCode } = (await req.json()) as {\n    code?: string;\n    fullName?: string;\n    birthDate?: string;\n    phoneNumber?: string;\n    managerCode?: string;\n  };\n\n  // 필수 필드 검증\n  if (!code || !fullName || !birthDate || !phoneNumber) {\n    return NextResponse.json(\n      { message: \"초대 코드, 성함, 생년월일, 휴대폰 번호를 모두 입력해주세요.\" },\n      { status: 400 },\n    );\n  }\n\n  const managerCodeTrimmed = (managerCode ?? \"\").trim();\n  if (!managerCodeTrimmed) {\n    return NextResponse.json(\n      { message: \"매니저 코드를 입력해주세요.\" },\n      { status: 400 },\n    );\n  }\n\n  const phoneDigits = phoneNumber.replace(/\\D/g, \"\");\n  if (phoneDigits.length < 8) {\n    return NextResponse.json(\n      { message: \"휴대폰 번호 형식이 올바르지 않습니다.\" },\n      { status: 400 },\n    );\n  }\n\n  if (!/^[0-9]{6}$/.test(birthDate)) {\n    return NextResponse.json(\n      { message: \"생년월일은 YYMMDD 6자리로 입력해주세요.\" },\n      { status: 400 },\n    );\n  }\n\n  const inviteRows = await query<InviteRow>(\n    \"select * from public.invite_codes where code = $1\",\n    [code],\n  );\n\n  const invite = inviteRows[0];\n  if (!invite) {\n    return NextResponse.json(\n      { message: \"유효하지 않은 초대 코드입니다.\" },\n      { status: 404 },\n    );\n  }\n\n  const now = Date.now();\n  if (\n    invite.expires_at &&\n    new Date(invite.expires_at).getTime() < now\n  ) {\n    return NextResponse.json(\n      { message: \"만료된 초대 코드입니다.\" },\n      { status: 410 },\n    );\n  }\n\n  if (\n    invite.max_uses !== null &&\n    invite.used_count >= invite.max_uses\n  ) {\n    return NextResponse.json(\n      { message: \"사용 가능한 횟수를 모두 소진한 초대 코드입니다.\" },\n      { status: 409 },\n    );\n  }\n\n  const client = await pool.connect();\n  let createdProfile: ProfileUpsertRow | null = null;\n  let autoApproved = false;\n  let effectiveLoginId = \"\";\n\n  try {\n    await client.query(\"begin\");\n\n    effectiveLoginId = managerCodeTrimmed;\n\n    const existingAuth = await client.query(\n      \"select 1 from public.auth_users where login_id = $1\",\n      [managerCodeTrimmed],\n    );\n    if (existingAuth.rowCount && existingAuth.rowCount > 0) {\n      await client.query(\"rollback\");\n      return NextResponse.json(\n        { message: \"이미 사용 중인 매니저 코드입니다. 다른 코드를 입력해주세요.\" },\n        { status: 409 },\n      );\n    }\n\n    const existingProfileByCode = await client.query<{ login_id: string }>(\n      \"select login_id from public.profiles where manager_code = $1 or login_id = $1 limit 1\",\n      [managerCodeTrimmed],\n    );\n    if ((existingProfileByCode.rowCount ?? 0) > 0) {\n      await client.query(\"rollback\");\n      return NextResponse.json(\n        { message: \"이미 사용 중인 매니저 코드입니다. 다른 코드를 입력해주세요.\" },\n        { status: 409 },\n      );\n    }\n\n    let registryMatch: RegistryRow | null = null;\n    let codeAndBranchMatched = false;\n    let nameMatched = false;\n    try {\n      const registryRows = await client.query<RegistryRow>(\n        `\n          select manager_code, manager_name, branch_name, is_active, claimed_profile_id\n          from public.manager_code_registry\n          where manager_code = $1\n          limit 1\n        `,\n        [managerCodeTrimmed],\n      );\n      const candidate = registryRows.rows[0] ?? null;\n      if (\n        candidate &&\n        candidate.is_active &&\n        candidate.claimed_profile_id === null &&\n        candidate.branch_name === invite.branch_name\n      ) {\n        codeAndBranchMatched = true;\n        nameMatched = normalizeName(fullName) === normalizeName(candidate.manager_name);\n        if (nameMatched) {\n          registryMatch = candidate;\n        }\n      }\n    } catch (err) {\n      if (!isRelationNotFound(err)) throw err;\n      // 레지스트리 테이블이 아직 없으면 기존 승인 대기 플로우 유지\n      registryMatch = null;\n    }\n\n    if (codeAndBranchMatched && !nameMatched) {\n      await client.query(\"rollback\");\n      return NextResponse.json(\n        { message: \"이름과 코드가 일치하지않습니다.\" },\n        { status: 400 },\n      );\n    }\n\n    autoApproved = registryMatch !== null;\n\n    await client.query(\n      `\n        insert into public.auth_users (login_id, password, role, must_change_password, branch_name, invite_code)\n        values ($1, $2, 'manager', true, $3, $4)\n        on conflict (login_id)\n        do update set role = 'manager',\n                     must_change_password = true,\n                     password = $2,\n                     branch_name = $3,\n                     invite_code = $4\n      `,\n      [managerCodeTrimmed, managerCodeTrimmed, invite.branch_name, code],\n    );\n\n    const upsertedProfile = await client.query<ProfileUpsertRow>(\n      `\n        insert into public.profiles (login_id, full_name, branch_name, birth_date, phone_number, role, is_approved, manager_code, invite_code)\n        values ($1, $2, $3, $4, $5, 'manager', $6, $1, $7)\n        on conflict (login_id)\n        do update set full_name = excluded.full_name,\n                    branch_name = excluded.branch_name,\n                    birth_date = excluded.birth_date,\n                    phone_number = excluded.phone_number,\n                    role = 'manager',\n                    is_approved = excluded.is_approved,\n                    manager_code = excluded.manager_code,\n                    invite_code = excluded.invite_code\n        returning id, login_id, full_name, branch_name, phone_number, role, is_approved, manager_code\n      `,\n      [managerCodeTrimmed, fullName, invite.branch_name, birthDate, phoneDigits, autoApproved, code],\n    );\n    createdProfile = upsertedProfile.rows[0] ?? null;\n\n    if (autoApproved && createdProfile) {\n      const claimResult = await client.query(\n        `\n          update public.manager_code_registry\n          set claimed_profile_id = $2,\n              claimed_at = timezone('utc'::text, now()),\n              updated_at = timezone('utc'::text, now())\n          where manager_code = $1\n            and branch_name = $3\n            and is_active = true\n            and claimed_profile_id is null\n        `,\n        [managerCodeTrimmed, createdProfile.id, invite.branch_name],\n      );\n\n      if ((claimResult.rowCount ?? 0) === 0) {\n        throw new Error(\"MANAGER_CODE_ALREADY_CLAIMED\");\n      }\n    }\n\n    await client.query(\n      \"update public.invite_codes set used_count = used_count + 1 where id = $1\",\n      [invite.id],\n    );\n\n    await client.query(\"commit\");\n  } catch (err) {\n    await client.query(\"rollback\");\n    if (err instanceof Error && err.message === \"MANAGER_CODE_ALREADY_CLAIMED\") {\n      return NextResponse.json(\n        { message: \"이미 사용된 사전등록 매니저 코드입니다. 관리자에게 문의해주세요.\" },\n        { status: 409 },\n      );\n    }\n    if (\n      err !== null &&\n      typeof err === \"object\" &&\n      \"code\" in err &&\n      (err as { code?: string }).code === \"23505\"\n    ) {\n      return NextResponse.json(\n        { message: \"이미 사용 중인 매니저 코드입니다. 다른 코드를 입력해주세요.\" },\n        { status: 409 },\n      );\n    }\n    console.error(\"[agent/apply] signup failed\", err);\n    return NextResponse.json(\n      { message: \"가입 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.\" },\n      { status: 500 },\n    );\n  } finally {\n    client.release();\n  }\n\n  if (autoApproved && createdProfile) {\n    try {\n      const tenantSchema = await getTenantSchemaForBranch(invite.branch_name);\n      if (tenantSchema) {\n        await addProfileToTenant({\n          tenantSchema,\n          profileId: createdProfile.id,\n          loginId: createdProfile.login_id,\n          fullName: createdProfile.full_name,\n          branchName: createdProfile.branch_name,\n          phoneNumber: createdProfile.phone_number,\n          role: createdProfile.role,\n          isApproved: true,\n          managerCode: createdProfile.manager_code,\n        });\n      }\n    } catch (tenantSyncErr) {\n      console.error(\"[agent/apply] tenant sync failed after auto-approval\", tenantSyncErr);\n    }\n  }\n\n  return NextResponse.json({\n    status: \"ok\",\n    loginId: effectiveLoginId,\n    autoApproved,\n    message: autoApproved\n      ? \"사전등록된 매니저 코드가 확인되어 즉시 승인되었습니다. 매니저 코드(ID·PW 동일)로 바로 로그인할 수 있습니다.\"\n      : \"지점장 승인 후 매니저 로그인에서 해당 코드(ID·PW 동일)로 접속할 수 있습니다.\",\n  });\n}",
+      "summary": "매니저 초대코드 가입 핸들러. 필수 필드: code, fullName, birthDate, phoneNumber, managerCode. 초대코드 유효성 검증 후 manager_code_registry 매칭 여부로 autoApproved 결정(라인 184). autoApproved=true면 테넌트 프로필 동기화. auth_users에 'manager' role 고정 설정(라인 189)."
     },
     {
-      "path": "app/api/schedules/[id]/route.ts",
-      "summary": "PATCH: updateSchedule(id, branchName, modifiedBy, modifiedByName, title, description, category, startAt, endAt, isAllDay, isPrivate, dealerName, location, instructor, targetAudience, managerName) / DELETE: deleteSchedule(id, branchName, hardDelete). 권한: admin/manager/agent. 삭제 시 작성자 또는 admin만 가능",
-      "key_exports": [
-        "PATCH(req, {params}) → {schedule} with Server-Timing header",
-        "DELETE(req, {params}) → {ok: true} with Server-Timing header"
-      ],
-      "notes": "수정 로그: insertScheduleEditLog (변경 필드 추적) / 삭제 모드: hardDelete 또는 soft_delete(is_soft_deleted=true)"
+      "path": "app/api/auth/login/route.ts",
+      "content": "import { NextRequest, NextResponse } from \"next/server\";\nimport { query } from \"@/src/lib/engines/db\";\nimport { getCurrentUser } from \"@/src/lib/engines/auth\";\nimport { createSession, destroyCurrentSession } from \"@/src/lib/engines/session\";\nimport { isColumnNotFound } from \"@/src/lib/engines/db\";\n\ntype AuthUserRow = {\n  login_id: string;\n  password: string;\n  role: \"admin\" | \"manager\" | \"agent\";\n  must_change_password: boolean;\n};\n\ntype ProfileManagerRow = {\n  login_id: string;\n  is_approved: boolean;\n};\n\nexport async function POST(req: NextRequest) {\n  try {\n    const { loginId, password } = (await req.json()) as {\n      loginId?: string;\n      password?: string;\n    };\n\n    if (!loginId || !password) {\n      return NextResponse.json(\n        { message: \"ID와 비밀번호를 모두 입력해주세요.\" },\n        { status: 400 },\n      );\n    }\n\n    let user: AuthUserRow | undefined;\n\n    // 매니저 코드 로그인: ID와 PW가 동일할 때 profiles.manager_code 로 매니저 조회 후 해당 계정으로 세션 생성\n    if (loginId === password && loginId.trim() !== \"\") {\n      try {\n        const profileRows = await query<ProfileManagerRow>(\n          `select login_id, is_approved from public.profiles\n           where manager_code = $1 and role = 'manager'\n           limit 1`,\n          [loginId.trim()],\n        );\n        const profile = profileRows[0];\n        if (profile) {\n          if (!profile.is_approved) {\n            return NextResponse.json(\n              { message: \"아직 승인이 완료되지 않았습니다. 승인 후 다시 시도해주세요.\" },\n              { status: 403 },\n            );\n          }\n          const authRows = await query<AuthUserRow>(\n            \"select login_id, password, role, must_change_password from public.auth_users where login_id = $1\",\n            [profile.login_id],\n          );\n          user = authRows[0];\n        }\n      } catch (err) {\n        if (isColumnNotFound(err)) {\n          // manager_code 컬럼이 없으면 무시하고 일반 로그인으로 진행\n        } else {\n          throw err;\n        }\n      }\n    }\n\n    if (!user) {\n      const rows = await query<AuthUserRow>(\n        \"select login_id, password, role, must_change_password from public.auth_users where login_id = $1\",\n        [loginId],\n      );\n      user = rows[0];\n      if (!user || user.password !== password) {\n        return NextResponse.json(\n          { message: \"ID 또는 비밀번호가 올바르지 않습니다.\" },\n          { status: 401 },\n        );\n      }\n    }\n\n    // 기존 세션은 정리하고 새 세션 발급\n    await destroyCurrentSession();\n\n    if (user.must_change_password) {\n      const res = NextResponse.json({\n        status: \"must_change_password\",\n        loginId: user.login_id,\n      });\n      await createSession(user.login_id);\n      return res;\n    }\n\n    await createSession(user.login_id);\n\n    // 세션 생성 이후 프로필 정보를 확인해 온보딩 / 승인 여부 판단\n    const currentUser = await getCurrentUser();\n\n    // 매니저는 승인된 경우에만 로그인 허용\n    if (currentUser?.role === \"manager\" && !currentUser.profile?.is_approved) {\n      return NextResponse.json(\n        { message: \"아직 승인이 완료되지 않았습니다. 승인 후 다시 시도해주세요.\" },\n        { status: 403 },\n      );\n    }\n\n    const needsOnboarding =\n      currentUser?.role === \"admin\" &&\n      (!currentUser.profile?.full_name || !currentUser.profile?.branch_name);\n\n    const res = NextResponse.json({\n      status: \"ok\",\n      loginId: user.login_id,\n      role: user.role,\n      redirectTo: needsOnboarding ? \"/admin/onboarding\" : \"/\",\n    });\n\n    return res;\n  } catch (err) {\n    console.error(\"[auth/login]\", err);\n    return NextResponse.json(\n      { message: \"로그인 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.\" },\n      { status: 500 },\n    );\n  }\n}",
+      "summary": "로그인 핸들러. 매니저 코드 로그인(loginId===password) 시 profiles.manager_code 조회, 일반 로그인 시 auth_users 조회. manager role은 is_approved=true 필수(라인 99). must_change_password 플로우 지원."
     },
     {
-      "path": "src/lib/engines/schedules.ts",
-      "summary": "ScheduleRow 타입 정의 (id, branch_name, title, description, category, dealer_name, location, instructor, target_audience, manager_name, start_at, end_at, is_all_day, created_by, created_at, is_soft_deleted?, is_private?, creator_full_name?, instructor_color?, target_full_name?, target_avatar_url?). 함수: listSchedulesForBranch(캐싱 15초), createSchedule, updateSchedule, deleteSchedule, getScheduleById, getScheduleEditLogs, invalidateScheduleListCache. 레거시 폴백: 메타 컬럼 미추가 시 자동 폴백(education→dealer, vacation→leave, hq→internal)",
-      "key_exports": [
-        "listSchedulesForBranch({branchName, from?, to?}) → ScheduleRow[]",
-        "createSchedule(input: ScheduleInput) → ScheduleRow",
-        "updateSchedule(params) → ScheduleRow | null",
-        "deleteSchedule({id, branchName, hardDelete?})",
-        "getScheduleById({id, branchName}) → ScheduleRow | null",
-        "invalidateScheduleListCache(branchName?)"
-      ],
-      "cache_ttl_ms": 15000,
-      "cache_max_entries": 200,
-      "notes": "3단계 폴백 로직(full metadata → mid(instructor only) → full legacy) / soft delete 지원 / 수정 이력 로깅: schedule_edit_logs 테이블(FK schedules.id CASCADE)"
-    },
-    {
-      "path": "src/lib/engines/db.ts",
-      "summary": "Postgres pool 관리 (max 10, idleTimeoutMillis 30s, connectionTimeoutMillis 10s). query<T>(text, params) 함수 + 느린 쿼리 로깅(기본 200ms). 에러 감지: isRelationNotFound(42P01), isColumnNotFound(42703)",
-      "key_exports": [
-        "pool: Pool",
-        "query<T>(text, params?) → Promise<T[]>",
-        "isRelationNotFound(err) → boolean",
-        "isColumnNotFound(err) → boolean"
-      ],
-      "notes": "연결문자열: process.env.NEON_DATABASE_URL / DB_QUERY_SLOW_MS 환경변수 기본 200ms"
-    },
-    {
-      "path": "app/components/right-panel/ScheduleDetailPopup.tsx",
-      "summary": "일정 상세 팝업: 편집 모드(ScheduleAddScheduler 재사용) + 상세 뷰(메타정보). 메모 기능(POST/PUT/DELETE /api/memos?date=). 수정 이력(GET /api/schedules/{id}/logs). 교육자 목록(GET /api/admin/managers). 삭제(DELETE /api/schedules/{id}, 작성자/admin만). is_private 배지 표시",
-      "key_functions": [
-        "loadLogs() → ScheduleEditLogItem[]",
-        "handleDelete() → DELETE /api/schedules/{id}",
-        "handleMemoSubmit(e) → POST /api/memos",
-        "handleMemoDelete(memoId) → DELETE /api/memos/{memoId}",
-        "handleMemoEditSave(memoId) → PUT /api/memos/{memoId}"
-      ],
-      "notes": "Props: schedule(ScheduleItem), onClose, isAdmin?, currentUserFullName?, showMemos?, memoDate? / 높이: max-h-[95vh] / 메모는 memoDate 기준(오늘 일정 섹션용)"
-    },
-    {
-      "path": "app/components/right-panel/index.tsx",
-      "summary": "우측 패널: 일정추가버튼(→/admin/schedules) + 공지사항(캐시 5분, 읽음 표시) + 선택날짜 일정목록 + 메모섹션(오늘만). 공지: NoticePopup(admin 전용 편집), 메모: MemoSection(날짜별)",
-      "key_state": [
-        "todaySchedules: ScheduleItem[]",
-        "selectedDateStr?: string | null",
-        "isAdmin: boolean",
-        "canAddSchedule?: boolean",
-        "currentUserFullName?: string | null",
-        "onScheduleSelectForPopup: (schedule | null) => void"
-      ],
-      "cache_ttl_ms": 300000,
-      "notes": "모바일 대응: w-full lg:w-80 / 공지 모듈 레벨 캐시 (noticeCacheEntry) / ScheduleList 컴포넌트 + MemoSection 컴포넌트"
-    },
-    {
-      "path": "app/components/right-panel/types.ts",
-      "summary": "타입 정의: ScheduleItem(id, title, description, start_at, end_at, is_all_day, category, dealer_name?, location?, instructor?, target_audience?, manager_name?, is_soft_deleted?, is_private?, creator_full_name?, creator_avatar_url?, target_full_name?, target_avatar_url?, instructor_color?), MemoItem(id, content, author_name, created_at), NoticeItem(id, title, body, image_url, created_at | null), ScheduleEditLogItem(id, schedule_id, modified_by, modifier_name?, created_at, changed_fields), ManagersApiResponse. 유틸: formatTime, formatDateTime, formatDateLabel, parseHexColor",
-      "key_types": [
-        "ScheduleItem",
-        "MemoItem",
-        "NoticeItem",
-        "ScheduleEditLogItem",
-        "ManagersApiResponse"
-      ],
-      "notes": "parseHexColor: #RGB, #RRGGBB → {r, g, b} | null / formatDateTime: 'M월 D일 HH:mm' 형식"
-    },
-    {
-      "path": "app/components/CalendarGridClient.tsx",
-      "summary": "캘린더 그리드 렌더링(columns 5 or 7): CellData[] + eventsByDay Record로 일정 표시. 드래그&드롭 지원(CalendarCellDropZone, DraggableSchedulePill). 퀵 일정추가(+버튼) + ScheduleAddScheduler 팝업. addMetaCache(5분 캐시): userFullName, instructors 프리페칭. Props: cells, eventsByDay, year, month, isAdmin, columns, selectedDateStr, todayStr, onDateSelect?, detailDateISO?, renderDetailRow?",
-      "key_functions": [
-        "handleCellClick(dateISO) → router.push or onDateSelect callback",
-        "closeAddPopup()",
-        "fetchAddMeta() → {userFullName, instructors[]}"
-      ],
-      "add_meta_cache_ttl": 300000,
-      "notes": "모바일: min-h-[70px] lg:min-h-[120px] / 최대 3개 일정 표시 + '+N개 더보기' / 선택 날짜: border-2 border-primary bg-primary/5 / 오늘: TODAY 배지 + 굵은 글씨(dayWeight=font-bold)"
-    },
-    {
-      "path": "app/admin/schedules/_components/ScheduleAddScheduler.tsx",
-      "summary": "일정 생성/수정 폼(mode='create'|'edit'): 월/일/시간 선택 캘린더 + 카테고리(dealer/internal/personal/leave/etc) + 제목 + 위치 + 교육자 + 대상자 + 설명 + 비공개. 월차는 is_all_day=true + 시간 00:00 강제. 초기값: initialDateISO, initialSchedule. 성공 시: notifyCalendarMonthDataChanged(), router.refresh()",
-      "key_state": [
-        "category: ScheduleCategory",
-        "title, location, targetAudience, description, isPrivate: string/bool",
-        "selectedDate, selectedTime, currentMonth, currentYear",
-        "host(교육자): string | null",
-        "loading, error"
-      ],
-      "submit_action": "POST /api/schedules (create) or PATCH /api/schedules/{id} (edit)",
-      "notes": "시간슬롯: 09:00~20:30 (30분 단위) / 월차 선택 시 시간 자동 00:00 / 수정모드: initialSchedule 값으로 폼 초기화 / 생성모드: initialDateISO 날짜 기본값 / dealer 카테고리: dealer_name 필드 사용"
-    },
-    {
-      "path": "app/components/CalendarPageClientShell.tsx",
-      "summary": "캘린더 페이지 클라이언트: 월 네비게이션 + 캘린더그리드 + 주간일정 토글 + 우측패널. 월 데이터 캐싱(buildMonthCacheKey, readMonthCache, writeMonthCache). URL 동기화(year, month, date 쿼리). 선택 일정: selectedScheduleForPopup state. Props: leftPanel, initialMonthData, initialSelectedDateStr, isAdmin, canAddSchedule, currentUserFullName, branchName",
-      "key_state": [
-        "viewYear, viewMonth",
-        "monthData: CalendarMonthData",
-        "selectedDateStr: string | null",
-        "monthLoading: boolean",
-        "showWeekly: boolean",
-        "selectedScheduleForPopup: ScheduleItem | null"
-      ],
-      "cache_functions": [
-        "buildMonthCacheKey(branchName, year, month)",
-        "readMonthCache(key)",
-        "writeMonthCache(key, data)",
-        "invalidateMonthCache(branchName, year, month)"
-      ],
-      "notes": "캐시 무효화: subscribeCalendarMonthDataChanged 이벤트 구독 / URL 동기화: syncUrl(year, month, dateISO, replace) / 날짜 선택 시 showWeekly false / 뒤로가기 popstate 이벤트 처리"
-    },
-    {
-      "path": "src/lib/calendar/month-view.ts",
-      "summary": "CalendarMonthData 빌드: 한국 시간대 기준(getKoreaNow, getKoreaDateFromISO) + 공휴일(korean-holidays) + 일정 매핑(mapScheduleItem). 함수: buildCalendarMonthData({year, month, schedules}) → CalendarMonthData. 5일 캘린더(월~금) 또는 7일(일~토). eventsByDay(Number→items) + eventsByDateStr(ISO→items) 이중 매핑. 중복 제거: seenScheduleIds Set",
-      "key_functions": [
-        "buildCalendarMonthData({year, month, schedules}) → CalendarMonthData",
-        "getCalendarFetchRange(year, month) → {from, to}",
-        "getKoreaNow() → Date",
-        "mapScheduleItem(ScheduleRow) → CalendarScheduleItem"
-      ],
-      "types": [
-        "CalendarCellData {key, day, dateISO, isToday, isSunday, isSaturday, isHoliday}",
-        "CalendarMonthData {year, month, todayStr, mobileMonthLabel, cells, eventsByDay, eventsByDateStr}"
-      ],
-      "notes": "5일 캘린더 전용:월~금만 표시, 오프셋 5로 정렬 / 공휴일 Set으로 매핑(ISO 비교) / 단일 schedule은 eventsByDay[day]와 eventsByDateStr[iso] 모두에 추가"
-    },
-    {
-      "path": "middleware.ts",
-      "summary": "인증 미들웨어: PUBLIC_PATHS 제외하고 ga_session 쿠키 체크. 없으면 /login으로 리다이렉트(redirectTo 쿼리 추가). matcher: '/((?!_next/static|_next/image|favicon.ico).*)'",
-      "key_paths": [
-        "PUBLIC_PATHS: [/, /login, /admin/signup, /apply, /api/auth/*, /api/invite/validate, /api/agent/apply, /_next, /favicon.ico]"
-      ],
-      "notes": "ga_session 쿠키 필수(세션 기반) / 모든 /admin/* 경로는 인증 필수"
-    },
-    {
-      "path": "package.json",
-      "summary": "의존성: Next.js 16, React 19, TypeScript 5, Tailwind v4.2, Neon(pg), Lucide, korean-holidays 등. 필요할 라이브러리(계획): recharts(통계), rrule(반복), @react-pdf/renderer(PDF)",
-      "dependencies": {
-        "next": "16.1.6",
-        "react": "19.2.4",
-        "tailwindcss": "4.2.1",
-        "typescript": "5.9.3",
-        "pg": "8.20.0",
-        "lucide-react": "0.577.0",
-        "korean-holidays": "1.0.0"
-      },
-      "missing_for_tasks": [
-        "recharts (TASK-018a)",
-        "rrule (TASK-018b)",
-        "@react-pdf/renderer (TASK-018c)"
-      ],
-      "notes": "ORM 없음(pg 직접 사용) / Vercel 배포"
+      "path": "app/api/invite/validate/route.ts",
+      "content": "import { NextRequest, NextResponse } from \"next/server\";\nimport { query } from \"@/src/lib/engines/db\";\n\ntype InviteRow = {\n  id: string;\n  code: string;\n  branch_name: string;\n  max_uses: number | null;\n  used_count: number;\n  expires_at: string | null;\n};\n\nexport async function POST(req: NextRequest) {\n  const { code } = (await req.json()) as { code?: string };\n\n  if (!code) {\n    return NextResponse.json(\n      { message: \"초대 코드를 입력해주세요.\" },\n      { status: 400 },\n    );\n  }\n\n  const rows = await query<InviteRow>(\n    `\n      select *\n      from public.invite_codes\n      where code = $1\n    `,\n    [code],\n  );\n\n  const invite = rows[0];\n  if (!invite) {\n    return NextResponse.json(\n      { message: \"유효하지 않은 초대 코드입니다.\" },\n      { status: 404 },\n    );\n  }\n\n  const now = Date.now();\n  if (\n    invite.expires_at &&\n    new Date(invite.expires_at).getTime() < now\n  ) {\n    return NextResponse.json(\n      { message: \"만료된 초대 코드입니다.\" },\n      { status: 410 },\n    );\n  }\n\n  if (\n    invite.max_uses !== null &&\n    invite.used_count >= invite.max_uses\n  ) {\n    return NextResponse.json(\n      { message: \"사용 가능한 횟수를 모두 소진한 초대 코드입니다.\" },\n      { status: 409 },\n    );\n  }\n\n  return NextResponse.json({\n    code: invite.code,\n    branchName: invite.branch_name,\n    remainingUses:\n      invite.max_uses === null\n        ? null\n        : Math.max(invite.max_uses - invite.used_count, 0),\n  });\n}",
+      "summary": "초대코드 유효성 검증 핸들러. 초대코드 존재 여부, 만료 여부, 사용횟수 확인. 유효하면 code, branchName, remainingUses 반환."
     }
   ],
-  "folder_structures": [
-    {
-      "path": "app/admin/",
-      "files": [
-        "branch/page.tsx",
-        "onboarding/page.tsx",
-        "signup/page.tsx",
-        "members/page.tsx",
-        "managers/page.tsx",
-        "approvals/page.tsx",
-        "invite-codes/page.tsx",
-        "schedules/page.tsx",
-        "push/page.tsx",
-        "_components/AdminPageHeader.tsx",
-        "schedules/_components/ScheduleAddScheduler.tsx"
-      ],
-      "summary": "admin/ 페이지들(branch, members, managers, approvals, invite-codes, schedules 등) + ScheduleAddScheduler 컴포넌트(schedules 서브폴더)"
-    }
-  ],
+  "folder_structures": [],
   "key_types": [
-    "ScheduleRow: {id, branch_name, title, description, category, dealer_name?, location?, instructor?, target_audience?, manager_name?, start_at, end_at, is_all_day, created_by, created_at, is_soft_deleted?, is_private?, creator_full_name?, instructor_color?, target_full_name?, target_avatar_url?}",
-    "ScheduleItem: ScheduleRow 동일 필드 + category enum",
-    "ScheduleInput: {branchName, title, description?, category?, dealerName?, location?, instructor?, targetAudience?, managerName?, startAt, endAt?, isAllDay?, isPrivate?, createdByProfileId}",
-    "ScheduleEditLogItem: {id, schedule_id, branch_name, modified_by, modifier_name?, changed_fields: Record, created_at}",
-    "CalendarMonthData: {year, month, todayStr, mobileMonthLabel, cells: CellData[], eventsByDay: Record<string, ScheduleItem[]>, eventsByDateStr: Record<string, ScheduleItem[]>}",
-    "ScheduleCategory: 'dealer' | 'internal' | 'personal' | 'leave' | 'etc'"
+    "InviteRow: { id, code, branch_name, max_uses, used_count, expires_at }",
+    "RegistryRow: { manager_code, manager_name, branch_name, is_active, claimed_profile_id }",
+    "ProfileUpsertRow: { id, login_id, full_name, branch_name, phone_number, role, is_approved, manager_code }",
+    "AuthUserRow: { login_id, password, role, must_change_password }",
+    "ProfileManagerRow: { login_id, is_approved }"
   ],
   "potential_conflicts": [
-    "recurrence_rule 컬럼 추가(TASK-018b) → listSchedulesForBranch, getScheduleById 쿼리 수정 필요(is_private와 동일 패턴)",
-    "schedule_participants 테이블 추가(TASK-018d) → 우측패널/ScheduleDetailPopup에 RSVP UI 추가, DB FK 체크(schedules 삭제 시 CASCADE)",
-    "conflict detection(TASK-018e) → POST /api/schedules에 겹침 쿼리 추가, 응답에 warning 필드 추가 → ScheduleAddScheduler에서 토스트 표시",
-    "PDF 생성(TASK-018c) → 새 API 엔드포인트(/api/schedules/export-pdf?) 또는 클라이언트사이드 @react-pdf/renderer, 한글 폰트 번들링 필요",
-    "recharts 번들 사이즈 → dynamic import + lazy load 필수(TASK-018a)",
-    "CalendarGridClient 433줄 이미 큼 → 반복 일정 UI, 충돌 경고 추가 시 신중히 리팩토링"
-  ],
-  "db_schema_observations": [
-    "schedules 테이블: id(UUID), branch_name, title, description, category(enum legacy), dealer_name, location, instructor, target_audience, manager_name, start_at(TIMESTAMPTZ), end_at(TIMESTAMPTZ), is_all_day(BOOLEAN), created_by(UUID→profiles), created_at(TIMESTAMPTZ), is_soft_deleted(BOOLEAN?), is_private(BOOLEAN?) — 메타 컬럼 점진적 마이그레이션",
-    "schedule_edit_logs 테이블: id, schedule_id(FK→schedules CASCADE), branch_name, modified_by(UUID), modifier_name, changed_fields(JSONB), created_at — 수정 이력 추적",
-    "schedule_participants 테이블(계획): id(UUID), schedule_id(FK CASCADE), profile_id(FK), status('attending'|'declined'|'tentative'), created_at, UNIQUE(schedule_id, profile_id)"
-  ],
-  "notes": "5개 기능이 연쇄적 의존성 있음. TASK-018e(충돌감지) → TASK-018d(RSVP) → TASK-018a(통계) → TASK-018b(반복) → TASK-018c(PDF) 순서 권장. 반복 일정 구현 후 조회 로직이 대폭 변경되므로 상단 순서 준수 필수."
+    "app/api/auth/login/route.ts: manager role is_approved 체크(라인 99) — apply에서 is_approved 값이 변경되면 로그인 가능 여부 영향",
+    "app/api/agent/apply/route.ts: autoApproved 로직 변경 시 현재 승인대기 플로우에 영향 없는지 확인",
+    "app/api/auth/login/route.ts: must_change_password 플로우가 autoApproved=true 케이스에서 정상 작동하는지 확인 (라인 84-90)"
+  ]
 }

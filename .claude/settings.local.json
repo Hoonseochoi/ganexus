@@ -12,7 +12,8 @@
       "Bash(npm run:*)",
       "Bash(node --env-file=.env.local -e \":*)",
       "Bash(curl -s \"https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400&display=swap\" -H \"User-Agent: Mozilla/5.0\")",
-      "Bash(curl -L \"https://fonts.gstatic.com/s/notosanskr/v39/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA-vvnIzzuoyeLQ.ttf\" -o \"C:/Users/chlgn/OneDrive/Desktop/GA_NEXUS/public/fonts/NotoSansKR-Regular.ttf\")"
+      "Bash(curl -L \"https://fonts.gstatic.com/s/notosanskr/v39/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA-vvnIzzuoyeLQ.ttf\" -o \"C:/Users/chlgn/OneDrive/Desktop/GA_NEXUS/public/fonts/NotoSansKR-Regular.ttf\")",
+      "Bash(grep -v \"next major\\\\|sslmode\\\\|uselibpq\\\\|postgresql\\\\|See https\\\\|Use \\\\`node\")"
     ]
   }
 }

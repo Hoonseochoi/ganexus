@@ -242,6 +242,7 @@ onDateSelect?: (dateISO: string | null) => void
 | 2026-03-20 | TASK-017p | 나만보기 pill 스타일 개선 | DraggableSchedulePill: 블랙배경+흰글씨+끝에 노란 자물쇠(yellow-400)로 최종 확정 | 없음 |
 | 2026-03-20 | TASK-017b | 나만보기 캘린더 미표시 버그 수정 | month-view.ts CalendarScheduleItem+mapScheduleItem에 is_private 추가(근본원인), ScheduleDetailPopup 헤더 [나만보기] 뱃지 | 없음 |
 | 2026-03-21 | TASK-018 | 5개 기능 구현(통계/반복일정/PDF/RSVP/충돌감지) | +16개 파일. analytics.ts, AnalyticsDashboard, CalendarPdfExport, RsvpSection, rrule-helpers, /admin/analytics 페이지, participants API, ScheduleAddScheduler 충돌경고+반복UI, ScheduleDetailPopup RSVP섹션 | recurrence_rule 컬럼(schedules), schedule_participants 테이블 신규 |
+| 2026-03-21 | TASK-019 | 초대코드 URL 가입 시 자동승인 | apply/route.ts: autoApproved=true (초대코드 유효하면 무조건), registry claim은 registryMatch 있을 때만. run.mjs featureSpec 스코프 버그 수정 | 없음 |
 
 ---
 
@@ -301,4 +302,4 @@ let noticeCacheEntry: NoticeCache | null = null;
 // 차트 3종: 월차 인원 추이(LineChart), 카테고리 분포(PieChart), 교육 현황(BarChart)
 ```
 
-*마지막 갱신: 2026-03-21*
+*마지막 갱신: 2026-03-21 (TASK-019)*

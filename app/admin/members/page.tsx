@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AdminPageHeader, ADMIN_ERROR_CLASS } from "../_components/AdminPageHeader";
 import { EclipseButton } from "@/app/components/ui/EclipseButton";
+import { AddManagerModal } from "./_components/AddManagerModal";
 
 type Member = {
   id: string;
@@ -19,6 +20,7 @@ export default function AdminMembersPage() {
   const [error, setError] = useState<string | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -71,6 +73,15 @@ export default function AdminMembersPage() {
         <AdminPageHeader
           title="브랜치 멤버 관리"
           description="지점에 속한 매니저/에이전트 멤버를 한눈에 보고 관리할 수 있습니다."
+          rightSlot={
+            <EclipseButton
+              type="button"
+              variant="primary"
+              size="sm"
+              text="교육매니저 등록"
+              onClick={() => setIsAddModalOpen(true)}
+            />
+          }
         />
 
         {error && <div className={ADMIN_ERROR_CLASS}>{error}</div>}
@@ -171,6 +182,16 @@ export default function AdminMembersPage() {
             </ul>
           )}
         </section>
+        
+        {isAddModalOpen && (
+          <AddManagerModal
+            onClose={() => setIsAddModalOpen(false)}
+            onSuccess={() => {
+              setIsAddModalOpen(false);
+              load();
+            }}
+          />
+        )}
       </div>
     </main>
   );

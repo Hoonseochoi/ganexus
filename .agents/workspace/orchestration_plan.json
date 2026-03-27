@@ -1,105 +1,22 @@
 {
-  "task_id": "TASK-018",
-  "task_summary": "5개 기능 일괄 구현: 통계 대시보드, 반복 일정, PDF 내보내기, RSVP 참석, 일정 충돌 감지",
-  "task_type": "feature",
+  "task_id": "TASK-019",
+  "task_summary": "초대코드 URL 가입 시 무조건 자동승인(is_approved=true) + manager role 설정",
+  "task_type": "bugfix",
   "affects_auth": true,
-  "affects_db": true,
-  "affects_layout": true,
-  "complexity": "high",
-  "sub_features": [
-    {
-      "id": "TASK-018a",
-      "name": "통계 대시보드 (Analytics Panel)",
-      "priority": 1,
-      "summary": "/admin/analytics 페이지에 월차 인원 추이, 카테고리별 일정 분포, 교육 참석률 차트 제공",
-      "requires_install": ["recharts"],
-      "affects_db": false,
-      "affects_auth": true,
-      "notes": "admin only 접근. schedules 테이블 집계 쿼리만으로 구현. Recharts 선택 (React 네이티브, 가볍고 SSR 호환)"
-    },
-    {
-      "id": "TASK-018b",
-      "name": "반복 일정 (Recurring Events)",
-      "priority": 2,
-      "summary": "schedules에 recurrence_rule 컬럼(RRULE 포맷) 추가, 일정 생성/조회 시 반복 확장",
-      "requires_install": ["rrule"],
-      "affects_db": true,
-      "affects_auth": false,
-      "notes": "FullCalendar rrule plugin 대신 rrule 라이브러리 직접 사용 (현재 FullCalendar 미사용). recurrence_rule TEXT 컬럼 + 조회 시 서버사이드 확장"
-    },
-    {
-      "id": "TASK-018c",
-      "name": "월간 일정표 PDF 내보내기",
-      "priority": 3,
-      "summary": "지점장이 월간 일정을 PDF로 출력/다운로드",
-      "requires_install": ["@react-pdf/renderer"],
-      "affects_db": false,
-      "affects_auth": true,
-      "notes": "manager 이상 권한. puppeteer는 Vercel serverless 제약으로 부적합 → @react-pdf/renderer 클라이언트 사이드 생성"
-    },
-    {
-      "id": "TASK-018d",
-      "name": "일정 참석/불참 RSVP",
-      "priority": 4,
-      "summary": "schedule_participants 테이블 추가, 참석/불참 버튼 + 참석자 목록 표시",
-      "requires_install": [],
-      "affects_db": true,
-      "affects_auth": true,
-      "notes": "schedule_participants(schedule_id, profile_id, status, created_at). 우측패널 ScheduleDetailPopup에 참석 버튼 + 참석자 리스트"
-    },
-    {
-      "id": "TASK-018e",
-      "name": "일정 충돌 감지 & 경고",
-      "priority": 5,
-      "summary": "일정 등록 시 같은 날짜·시간 겹침 체크 후 토스트 경고",
-      "requires_install": [],
-      "affects_db": false,
-      "affects_auth": false,
-      "notes": "POST /api/schedules에서 겹침 쿼리. 프론트에 warning 응답 → 토스트 표시. 등록 차단은 아닌 경고만"
-    }
-  ],
+  "affects_db": false,
+  "affects_layout": false,
+  "complexity": "low",
   "scan_targets": [
-    "app/admin/",
-    "app/api/schedules/route.ts",
-    "app/api/schedules/[id]/route.ts",
-    "src/lib/engines/schedules.ts",
-    "src/lib/engines/db.ts",
-    "app/components/right-panel/ScheduleDetailPopup.tsx",
-    "app/components/right-panel/index.tsx",
-    "app/components/right-panel/types.ts",
-    "app/components/CalendarGridClient.tsx",
-    "app/components/ScheduleAddScheduler.tsx",
-    "app/components/CalendarPageClientShell.tsx",
-    "src/lib/engines/month-view.ts",
-    "middleware.ts",
-    "package.json"
+    "app/api/agent/apply/route.ts",
+    "app/api/auth/login/route.ts",
+    "app/api/invite/validate/route.ts"
   ],
+  "subtasks": [],
   "risk_areas": [
-    "recharts/@react-pdf/renderer 번들 사이즈 — dynamic import + lazy load 필수",
-    "반복 일정 확장 시 무한 루프 방지 — maxDate 제한 필요",
-    "RSVP schedule_participants FK 제약 — schedules 삭제 시 CASCADE 처리",
-    "PDF 생성 시 한글 폰트 번들링 이슈 — @react-pdf/renderer 한글 폰트 등록 필요",
-    "통계 쿼리 성능 — schedules 테이블 인덱스 확인 (branch_name, start_at, category)",
-    "CalendarGridClient 433줄 — 충돌 감지 UI 추가 시 신중하게",
-    "ScheduleAddScheduler — 반복 일정 UI + 충돌 경고 토스트 둘 다 추가됨, 복잡도 증가"
+    "autoApproved 로직 변경 시 초대코드 없이 가입하는 일반 에이전트까지 자동승인되면 안 됨",
+    "role 설정이 manager로 바뀌면서 기존 agent 가입 플로우에 영향 없는지 확인",
+    "login API의 must_change_password 플로우가 is_approved=true 케이스에서 정상 작동하는지 확인"
   ],
-  "recommended_execution_order": [
-    "TASK-018e (충돌 감지) — 가장 단순, 기존 API에 쿼리 1개 추가",
-    "TASK-018d (RSVP) — DB 테이블 1개, API + UI 추가",
-    "TASK-018a (통계 대시보드) — 별도 페이지, 기존 코드 영향 최소",
-    "TASK-018b (반복 일정) — DB 변경 + 조회 로직 변경, 영향 범위 넓음",
-    "TASK-018c (PDF 내보내기) — 반복 일정 구현 후 PDF에 반영 가능"
-  ],
-  "db_changes": [
-    {
-      "feature": "TASK-018b",
-      "sql": "ALTER TABLE public.schedules ADD COLUMN IF NOT EXISTS recurrence_rule TEXT DEFAULT NULL;"
-    },
-    {
-      "feature": "TASK-018d",
-      "sql": "CREATE TABLE IF NOT EXISTS public.schedule_participants (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), schedule_id UUID NOT NULL REFERENCES public.schedules(id) ON DELETE CASCADE, profile_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE, status VARCHAR(20) NOT NULL DEFAULT 'attending' CHECK (status IN ('attending', 'declined', 'tentative')), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), UNIQUE(schedule_id, profile_id));"
-    }
-  ],
-  "commit_message": "feat: 5종 기능 추가 — 통계 대시보드, 반복 일정, PDF 내보내기, RSVP, 충돌 감지",
-  "notes": "5개 기능이라 한 번에 전부 구현하면 리스크가 높다. recommended_execution_order 순서대로 하나씩 구현·검증·배포하는 것을 권장. 각 서브태스크를 별도 TASK로 분리해서 run.mjs를 5회 실행하는 것도 고려."
+  "commit_message": "fix: 초대코드 URL 가입 시 자동승인 + manager role 설정",
+  "notes": "초대코드는 관리자가 직접 발급한 것이므로 별도 승인 불필요. manager_code_registry 매칭 로직 대신 초대코드 유효성 검증 통과 여부로 autoApproved 결정. 일반 가입(초대코드 없음)은 기존대로 승인대기 유지해야 함."
 }
